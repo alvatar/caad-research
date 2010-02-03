@@ -17,7 +17,7 @@ CC=gcc
 PATH_TO_GAMBIT=/usr
 GAMBIT_LIB=$(PATH_TO_GAMBIT)/lib
 GAMBIT_INCLUDE=$(PATH_TO_GAMBIT)/include
-GSC_OPTIONS= -debug
+GSC_OPTIONS= $(GSC_EXT_OPTIONS) -debug
 
 ## Bundled files
 PLAN_FILES = $(wildcard plans/*.ppm) $(wildcard plans/*.bmp)
@@ -83,7 +83,7 @@ sdl: gl
 	@echo
 	@echo "*** Compiling SDL loadable library ***"
 	@echo
-	$(GSC) $(GSC_OPTIONS) -link -flat -cc-options "$(INCLUDE_OPTIONS)" -o sdl.o1.c $(addprefix $(PATH_TO_SRCS)/, $(SDL_FILES))
+	$(GSC) $(GSC_OPTIONS) -link -flat -cc-options "$(INCLUDE_OPTIONS)" -o sdl.o1.c $(addprefix $(PATH_TO_SRCS)/, $(SDL_FILES)) $(PIPE_OUTPUT)
 	$(CC) -w -shared -fPIC -D___DYNAMIC $(INCLUDE_OPTIONS) $(addprefix $(PATH_TO_SRCS)/, $(SDL_FILES:.scm=.c)) sdl.o1.c -o $(PATH_TO_SRCS)/sdl.o1 -lSDL
 	rm $(addprefix $(PATH_TO_SRCS)/, $(SDL_FILES:.scm=.c)) sdl.o1.c
 
@@ -91,7 +91,7 @@ gl:
 	@echo
 	@echo "*** Compiling GL loadable library ***"
 	@echo
-	$(GSC) $(GSC_OPTIONS) -link -flat -cc-options "$(INCLUDE_OPTIONS)" -o gl.o1.c $(addprefix $(PATH_TO_SRCS)/, $(GL_FILES))
+	$(GSC) $(GSC_OPTIONS) -link -flat -cc-options "$(INCLUDE_OPTIONS)" -o gl.o1.c $(addprefix $(PATH_TO_SRCS)/, $(GL_FILES)) $(PIPE_OUTPUT) 
 	$(CC) -w -shared -fPIC -D___DYNAMIC $(INCLUDE_OPTIONS) $(addprefix $(PATH_TO_SRCS)/, $(GL_FILES:.scm=.c)) gl.o1.c -o $(PATH_TO_SRCS)/gl.o1 -lGL -lGLU
 	rm $(addprefix $(PATH_TO_SRCS)/, $(GL_FILES:.scm=.c)) gl.o1.c
 
@@ -99,14 +99,14 @@ cairo:
 	@echo
 	@echo "*** Compiling Cairo loadable library ***"
 	@echo
-	$(GSC) -f $(GSC_OPTIONS) \
-		-cc-options "$(CAIRO_INCLUDE)" \
-		-ld-options "$(CAIRO_LIBS)" $(PATH_TO_SRCS)/cairo/cairo.scm
+	$(GSC) $(GSC_OPTIONS) \
+		-cc-options "-w $(CAIRO_INCLUDE)" \
+		-ld-options "$(CAIRO_LIBS)" -f $(PATH_TO_SRCS)/cairo/cairo.scm $(PIPE_OUTPUT)
 	mv $(PATH_TO_SRCS)/cairo/cairo.o1 $(PATH_TO_SRCS)
 
 ssax:
 	@echo
-	@echo "*** Compiling Cairo loadable library ***"
+	@echo "*** Compiling SSAX-SXML loadable library ***"
 	@echo
 	cd $(PATH_TO_SRCS)/ssax-sxml; make; mv ssax-sxml.o1 ..
 

@@ -1,10 +1,6 @@
 #/bin/sh
 
-declare -x PROGRAM="bin/Ensanche-Core"
+declare -x PROGRAM="gsi -:d- main"
 
-if [[ -f $PROGRAM ]]
-then
-	$PROGRAM
-else
-	echo "Program not found. Please build the program"
-fi
+cd ..
+$PROGRAM

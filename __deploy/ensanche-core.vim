@@ -27,15 +27,8 @@ function! CleanProgram()
 	execute "!./clean.sh"
 endfunction
 
-" Run Chicken interpreter
-function! RunInterpreter()
-	execute "cd ".g:projectPath."__deploy"
-	execute "!./interpret.sh"
-endfunction
-
 " Shortcuts
 nnoremap <F3> :vimgrep /<C-R><C-W>/ **<CR>
-noremap <F8> :wa<CR>:call RunInterpreter()<CR>
 noremap <F9> :call RunProgram()<CR>
 noremap <F10> :call CleanProgram()<CR>
 noremap <F11> :call Compile(1)<CR>
