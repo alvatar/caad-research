@@ -1,9 +1,15 @@
 (load "gl")
 (load "sdl")
 (load "cairo")
+(load "ssax-sxml")
 
+(include "xml-macros.scm")
 
 (define (main)
+
+  (pp-code-eval
+    (sxml:document "test.xml"))
+
   (SDL::initialize SDL::init-everything)
   (SDL::set-window-caption "ensanche-core" "ensanche-core")
   (let*

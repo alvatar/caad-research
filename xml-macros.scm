@@ -1,6 +1,3 @@
-;-------------------------------------------------
-; A macro for pretty printing the code as it is evaluated
-
 ; Pretty print the code as it is evatuated
 (define-macro (pp-code-eval . thunk)
   `(begin
@@ -28,16 +25,3 @@
                 (newline)))))
          thunk))))
 
-;-------------------------------------------------
-; Examples
-(load "ssax-sxml")
-
- ;(pp-code-eval
-
-  "Examples that illustrate the primary high-level functions of the"
-  "SSAX-SXML package"
-  (newline)
-
-  "Obtaining an SXML document from XML"
-  (define doc (sxml:document "poem.xml"))
-  (display (caddr doc))
