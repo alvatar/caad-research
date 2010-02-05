@@ -1,6 +1,6 @@
 #/bin/sh
 
-declare -x PROGRAM="gsi -:d- main"
+declare -x PROGRAM="bsc -:d- -i main"
 
 cd ..
 $PROGRAM

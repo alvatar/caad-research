@@ -20,11 +20,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
-noremap <F11> :call Compile(1)
-noremap <F10> :call CleanProgram()
-noremap <F9> :call RunProgram()
 nnoremap <F3> :vimgrep // **
+noremap <F9> :call RunProgram()
+noremap <F10> :call CleanProgram()
+noremap <F11> :call Compile(1)
+nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -59,6 +59,13 @@ imap \is :IHS:A
 imap \ih :IHS
 imap <silent> \x <Plug>Traditional
 imap <silent> \c <Plug>Traditionalji
+iabbr p( printf( "<+++++>: %<+++++>\n", <+++++> );^h
+iabbr dw( do {<+++++>;} while (<+++++>);--:.,.+2!indent -kr=2+^h
+iabbr w( while( <+++++> ) {<+++++>;}--:.,.+2!indent -kr=2+^h
+iabbr iie( if (<+++++>) {<+++++>;} else if (<+++++>) {<++++++>;} else {<++++++>;}------:.,.+6!indent -kr=6+^h
+iabbr ie( if(<+++++>) {<+++++>;} else {<++++++>;}----:.,.+4!indent -kr=4+^h
+iabbr i( if (<+++++>) {<+++++>;}--:.,.+2!indent -kr=2+^h
+iabbr f( for( <+++++>; <+++++>; <+++++> ) {<+++++>;}--:.,.+2!indent -kr=2+^h
 let &cpo=s:cpo_save
 unlet s:cpo_save
 set autoindent
@@ -89,59 +96,65 @@ set wildmenu
 set window=29
 let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0
 let v:this_session=expand("<sfile>:p")
-let DidEnhancedCommentify =  1 
-let Tlist_Max_Submenu_Items =  20 
-let Tlist_Auto_Update =  1 
 let CTags_CScope_Dir_List = "/data/projects/ensanche-core/.."
-let Tlist_WinWidth =  30 
-let ScreenShellTerminal = ""
-let ScreenShellTmuxInitArgs = ""
-let Tlist_Close_On_Select =  1 
-let Tlist_GainFocus_On_ToggleOpen =  1 
-let Tlist_Use_SingleClick =  0 
-let ScreenShellQuitOnVimExit =  1 
-let Tlist_File_Fold_Auto_Close =  0 
-let Tlist_Auto_Open =  0 
-let ScreenShellServerName = "vim"
-let EnhCommentifyTraditionalMode = "Yes"
-let Tlist_Show_One_File =  1 
-let CTags_CScope_Top_Dir = "/data/projects/ensanche-core/__deploy"
-let EnhCommentifyRespectIndent = "yes"
-let Tlist_Inc_Winwidth =  1 
-let EnhCommentifyPretty = "yes"
 let Tlist_Display_Tag_Scope =  1 
+let Tlist_Enable_Fold_Column =  1 
+let ScreenShellQuitOnVimExit =  1 
+let Tlist_Show_One_File =  1 
+let Tlist_Auto_Highlight_Tag =  1 
 let Tlist_Compact_Format =  0 
+let Tlist_Sort_Type = "order"
+let Tlist_Use_Horiz_Window =  0 
+let EnhCommentifyAlignRight = "no"
+let Tlist_Ctags_Cmd = "exuberant-ctags"
+let Tlist_Process_File_Always =  0 
+let Tlist_Use_SingleClick =  0 
+let ScreenShellServerName = "vim"
+let EnhCommentifyPretty = "yes"
 let EnhCommentifyCallbackExists = "Yes"
 let TagList_title = "__Tag_List__"
-let Tlist_Use_Horiz_Window =  0 
 let ScreenShellExternal =  0 
 let ScreenImpl = "GnuScreen"
-let EnhCommentifyAlignRight = "no"
 let EnhCommentifyMultiPartBlocks = "yes"
-let Tlist_Exit_OnlyWindow =  1 
-let NetrwTopLvlMenu = "Netrw."
-let Tlist_Display_Prototype =  0 
-let Tlist_Ctags_Cmd = "exuberant-ctags"
-let Tlist_Enable_Fold_Column =  1 
 let NetrwMenuPriority =  80 
-let Tlist_WinHeight =  10 
-let ScreenShellHeight =  15 
 let Tlist_Highlight_Tag_On_BufEnter =  1 
-let Tlist_Auto_Highlight_Tag =  1 
-let Tlist_Show_Menu =  0 
+let ScreenShellTerminal = ""
+let Tlist_Max_Submenu_Items =  20 
+let ScreenShellTmuxInitArgs = ""
+let Tlist_GainFocus_On_ToggleOpen =  1 
+let Tlist_WinHeight =  10 
+let EnhCommentifyTraditionalMode = "Yes"
+let EnhCommentifyRespectIndent = "yes"
+let Tlist_Inc_Winwidth =  1 
+let Tlist_Auto_Update =  1 
+let CTags_CScope_Top_Dir = "/data/projects/ensanche-core/__deploy"
+let Tlist_Exit_OnlyWindow =  1 
+let Tlist_Display_Prototype =  0 
 let Tlist_Max_Tag_Length =  10 
+let DidEnhancedCommentify =  1 
+let Tlist_WinWidth =  30 
+let Tlist_Close_On_Select =  1 
+let Tlist_File_Fold_Auto_Close =  0 
+let Tlist_Auto_Open =  0 
+let NetrwTopLvlMenu = "Netrw."
+let ScreenShellHeight =  15 
+let Tlist_Show_Menu =  0 
 let Tlist_Use_Right_Window =  0 
 let Make_Dir = "/data/projects/ensanche-core/__deploy"
-let Tlist_Process_File_Always =  0 
-let Tlist_Sort_Type = "order"
 silent only
 cd /data/projects/ensanche-core/__deploy
 if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +13 /data/projects/ensanche-core/main.scm
-badd +0 /data/projects/ensanche-core/generate-graph-from-xml.scm
+badd +5 /data/projects/ensanche-core/main.scm
+badd +1 /data/projects/ensanche-core/generate-graph-from-xml.scm
+badd +1 cairo.c
+badd +35 /data/projects/ensanche-core/ssax-test.scm
+badd +91 /data/projects/ensanche-core/scm-lib-macro.scm
+badd +1 xml-macros.scm
+badd +1 /data/projects/ensanche-core/test.xml
+badd +0 /data/projects/ensanche-core/xml-macros.scm
 silent! argdel *
 edit /data/projects/ensanche-core/main.scm
 set splitbelow splitright
@@ -158,7 +171,7 @@ exe 'vert 2resize ' . ((&columns * 139 + 139) / 279)
 argglobal
 setlocal keymap=
 setlocal noarabic
-setlocal noautoindent
+setlocal autoindent
 setlocal balloonexpr=
 setlocal nobinary
 setlocal bufhidden=
@@ -201,7 +214,7 @@ setlocal formatexpr=
 setlocal formatoptions=nroql2
 setlocal formatlistpat=^\\s*\\d\\+[\\]:.)}\\t\ ]\\s*
 setlocal grepprg=
-setlocal iminsert=2
+setlocal iminsert=0
 setlocal imsearch=2
 setlocal include=
 setlocal includeexpr=
@@ -253,16 +266,15 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 13 - ((10 * winheight(0) + 46) / 92)
+let s:l = 11 - ((10 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-13
-normal! 0
-lcd /data/projects/ensanche-core/__deploy
+11
+normal! 027l
 wincmd w
 argglobal
-edit /data/projects/ensanche-core/generate-graph-from-xml.scm
+edit /data/projects/ensanche-core/xml-macros.scm
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
@@ -360,13 +372,12 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 1 - ((0 * winheight(0) + 46) / 92)
+let s:l = 27 - ((25 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-1
+27
 normal! 0
-lcd /data/projects/ensanche-core/__deploy
 wincmd w
 2wincmd w
 exe 'vert 1resize ' . ((&columns * 139 + 139) / 279)

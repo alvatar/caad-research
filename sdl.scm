@@ -9,6 +9,7 @@
 ;; @@FIXME: Implement define-foreign-struct [automagic accessors]
 ;; @@FIXME: Throw Gambit errors
 
+(compile-options cc-options: "-I/usr/include/SDL" ld-options: "-lSDL" force-compile: #t)
 (include "scm-lib-macro.scm")
 
 (c-declare #<<end-of-c-declare
