@@ -9,7 +9,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (compile-options cc-options: "-I/usr/include/GL" ld-options: "-lGL -lGLU" force-compile: #t)
-;(include "opengl-header.scm")
 
 (c-declare "#include <gl.h>")
 

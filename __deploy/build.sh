@@ -1,6 +1,9 @@
 #!/bin/sh
 
+declare -x PROJECT_DIR="/data/projects/ensanche-core"
+declare -x PROGRAM="bsc -:d- -exe -o $PROJECT_DIR/__deploy/bin/ensanche-core main"
+
+cd $PROJECT_DIR/__deploy
 if [[ ! -d bin ]]; then mkdir bin; fi;
-#csc -s -I/usr/include/SDL/ -lSDL sdl-cairo.scm
-GSC_EXT_OPTIONS=" -:d-" PIPE_OUTPUT=" > /dev/null" make 
-if [[ `ls *di 2> /dev/null` ]]; then rm -R *di; fi;
+cd $PROJECT_DIR
+$PROGRAM
