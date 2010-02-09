@@ -4,7 +4,8 @@
 
 (define (generate-graph-from-xml xml-string)
   (let*
-    ((sxml (xml-string->sxml xml-string)))
+    ((sxml (xml-string->sxml xml-string))
+    (architecture ((sxpath '(ensanche floorPlan architecture *)) sxml)))
 
-    (pp-code-eval ((sxpath '(ensanche floorPlan architecture *)) sxml)))
+    (pp-code-eval architecture))
 )

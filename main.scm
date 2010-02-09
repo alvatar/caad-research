@@ -53,9 +53,6 @@
      (xml-string (read-line xml-file #f))
      (close-port xml-file))
 
-    ;(pp-code-eval sxml)
-    ;((sxpath "ensanche/floorPlan") sxml)
-    ;(display (sxpath '(sxml)))
     (generate-graph-from-xml xml-string)
 
     (let loop ()
