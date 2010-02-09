@@ -17,6 +17,7 @@ execute "set makeprg=".makeString
 
 " Run program
 function! RunProgram()
+	:wa
 	execute "cd ".g:projectPath."__deploy"
 	execute "!./run.sh"
 endfunction
