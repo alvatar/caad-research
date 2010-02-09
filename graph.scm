@@ -7,4 +7,5 @@
     ((sxml (xml-string->sxml xml-string))
     (architecture ((sxpath '(ensanche floorPlan architecture *)) sxml)))
 
-    (pp-code-eval architecture)))
+    (pp-code-eval architecture)
+    architecture))

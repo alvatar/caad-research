@@ -11,10 +11,12 @@
      (close-port xml-file))
 
     (representation-init)
-    (let
+    (let*
       ((archgraph (generate-graph-from-xml xml-string)))
       (represent archgraph)
+      (represent archgraph)
       (filter (mutate archgraph)))
+
     (representation-cleanup)
 
   (exit 0)))
