@@ -1,9 +1,7 @@
 (import opengl/gl)
 (import sdl/sdl)
 (import cairo/cairo)
-(import (std string/xml-to-sxml))
 (import generate-graph-from-xml)
-(import xml-macros)
 
 (define (main)
 
@@ -53,10 +51,12 @@
                    ))
      (xml-file (open-input-file "arch.xml"))
      (xml-string (read-line xml-file #f))
-     (sxml (xml-string->sxml xml-string))
      (close-port xml-file))
 
-    (pp-code-eval sxml)
+    ;(pp-code-eval sxml)
+    ;((sxpath "ensanche/floorPlan") sxml)
+    ;(display (sxpath '(sxml)))
+    (generate-graph-from-xml xml-string)
 
     (let loop ()
       (SDL::delay 4)

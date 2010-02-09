@@ -1,0 +1,3 @@
+#!/bin/sh
+for i in `find . -name '*sch*'`; do mv $i ${i//.sch.scm}-header.scm; done
+find . | xargs grep -l '\.sch' | xargs sed -i 's/\.sch/-header/g'
