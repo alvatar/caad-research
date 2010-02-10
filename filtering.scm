@@ -1,4 +1,5 @@
 (import graph)
+(import constraints)
 
-(define (filter graph-list)
+(define (filter-graph-list graph-list constraints)
   (display "--> Display\n"))

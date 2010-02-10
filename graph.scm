@@ -9,3 +9,6 @@
 
     (pp-code-eval architecture)
     architecture))
+
+(define (print-graph sxml)
+  (pp-code-eval sxml))

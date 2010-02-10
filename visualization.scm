@@ -12,7 +12,7 @@
 (define (representation-cleanup)
   (SDL::exit))
 
-(define represent-loop
+(define visualize-loop-with-continuation
   (letrec
     ((control-state
        (lambda (return)
@@ -56,24 +56,30 @@
                           (cairo-stroke cairo)
 
                           (SDL::flip cairo-surface))))
-           (display "FIRST TIME\n")
+           ;(display "FIRST TIME\n")
            (set! return (call/cc
                           (lambda (resume-here)
                             (set! control-state resume-here)
-                            (return)))))
+                            (return))))
          (let loop ()
            (SDL::delay 4)
-           (display "LOOP\n")
-           (if (SDL::event-exit)
-             ;(begin (SDL::exit)
-                    ;(exit 0))
-             (return))
-           (loop))
+           ;(display "LOOP\n")
+           (let
+             ((event (SDL::event-exit)))
+             (cond
+               ((= event 27) ; 27 = escape TODO!
+                (begin 
+                  (SDL::exit)
+                  (exit 0)))
+               ((= event 32) ; 32 = space TODO!
+                (return))))
+           (paint-loop)
+           (loop)))
 
          (return))))
 
     (lambda (graph)
       (call/cc control-state))))
 
-(define (visualize graph)
-  (represent-loop graph))
+(define (visualize-graph graph)
+  (visualize-loop-with-continuation graph))

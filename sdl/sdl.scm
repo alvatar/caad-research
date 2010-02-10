@@ -100,8 +100,9 @@ int event_exit_P()
           break;
         case SDL_KEYUP:
           // If escape is pressed, return (and thus, quit)
-          if (event.key.keysym.sym == SDLK_ESCAPE)
-             return(1);
+          //if (event.key.keysym.sym == SDLK_ESCAPE)
+             //return(1);
+          return event.key.keysym.sym;
           break;
         case SDL_QUIT:
            return(1);
@@ -209,7 +210,7 @@ end-of-c-declare
 
 (define SDL::event-exit
   (c-lambda ()
-            bool
+            int
             "event_exit_P"))
 
 (define SDL::GL::SwapBuffers

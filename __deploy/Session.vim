@@ -20,11 +20,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F3> :vimgrep // **
-noremap <F9> :call RunProgram()
-noremap <F10> :call CleanProgram()
-noremap <F11> :call Compile(1)
 nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
+noremap <F11> :call Compile(1)
+noremap <F10> :call CleanProgram()
+noremap <F9> :call RunProgram()
+nnoremap <F3> :vimgrep // **
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -138,11 +138,15 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +62 /data/projects/ensanche-core/main.scm
+badd +24 /data/projects/ensanche-core/main.scm
 badd +2 /data/projects/ensanche-core/test.xml
 badd +52 /data/projects/ensanche-core/arch.xml
-badd +5 /data/projects/ensanche-core/graph.scm
-badd +2 /data/projects/ensanche-core/mutate.scm
+badd +14 /data/projects/ensanche-core/graph.scm
+badd +104 /data/projects/ensanche-core/sdl/sdl.scm
+badd +6 /data/projects/ensanche-core/input.scm
+badd +66 /data/projects/ensanche-core/visualization.scm
+badd +3 /data/projects/ensanche-core/filtering.scm
+badd +0 /data/projects/ensanche-core/mutation.scm
 silent! argdel *
 edit /data/projects/ensanche-core/main.scm
 set splitbelow splitright
@@ -159,7 +163,7 @@ exe 'vert 2resize ' . ((&columns * 139 + 139) / 279)
 argglobal
 setlocal keymap=
 setlocal noarabic
-setlocal noautoindent
+setlocal autoindent
 setlocal balloonexpr=
 setlocal nobinary
 setlocal bufhidden=
@@ -254,15 +258,15 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 57 - ((56 * winheight(0) + 46) / 92)
+let s:l = 12 - ((11 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-57
-normal! 06l
+12
+normal! 021l
 wincmd w
 argglobal
-edit /data/projects/ensanche-core/graph.scm
+edit /data/projects/ensanche-core/mutation.scm
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
@@ -275,7 +279,7 @@ setlocal nocindent
 setlocal cinkeys=0{,0},0),:,0#,!^F,o,O,e
 setlocal cinoptions=
 setlocal cinwords=if,else,while,do,for,switch
-setlocal comments=
+setlocal comments=:;;;,:;;,sr:#|,mb:|,ex:|#,:;
 setlocal commentstring=/*%s*/
 setlocal complete=.,w,b,u,t,i
 setlocal completefunc=
@@ -305,10 +309,10 @@ setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldtext=foldtext()
 setlocal formatexpr=
-setlocal formatoptions=nroql2
+setlocal formatoptions=croql
 setlocal formatlistpat=^\\s*\\d\\+[\\]:.)}\\t\ ]\\s*
 setlocal grepprg=
-setlocal iminsert=2
+setlocal iminsert=0
 setlocal imsearch=2
 setlocal include=
 setlocal includeexpr=
@@ -360,12 +364,12 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 5 - ((4 * winheight(0) + 46) / 92)
+let s:l = 3 - ((2 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-5
-normal! 0
+3
+normal! 020l
 lcd /data/projects/ensanche-core/__deploy
 wincmd w
 2wincmd w
