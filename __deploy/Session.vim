@@ -20,11 +20,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
-noremap <F11> :call Compile(1)
-noremap <F10> :call CleanProgram()
-noremap <F9> :call RunProgram()
 nnoremap <F3> :vimgrep // **
+noremap <F9> :call RunProgram()
+noremap <F10> :call CleanProgram()
+noremap <F11> :call Compile(1)
+nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -71,6 +71,7 @@ set guiheadroom=0
 set guioptions=ac
 set helplang=en
 set hlsearch
+set iminsert=0
 set makeprg=./build.sh
 set mouse=a
 set mousemodel=popup
@@ -138,7 +139,7 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +24 /data/projects/ensanche-core/main.scm
+badd +11 /data/projects/ensanche-core/main.scm
 badd +2 /data/projects/ensanche-core/test.xml
 badd +52 /data/projects/ensanche-core/arch.xml
 badd +14 /data/projects/ensanche-core/graph.scm
@@ -146,7 +147,7 @@ badd +104 /data/projects/ensanche-core/sdl/sdl.scm
 badd +6 /data/projects/ensanche-core/input.scm
 badd +66 /data/projects/ensanche-core/visualization.scm
 badd +3 /data/projects/ensanche-core/filtering.scm
-badd +0 /data/projects/ensanche-core/mutation.scm
+badd +4 /data/projects/ensanche-core/mutation.scm
 silent! argdel *
 edit /data/projects/ensanche-core/main.scm
 set splitbelow splitright
@@ -266,7 +267,7 @@ normal! zt
 normal! 021l
 wincmd w
 argglobal
-edit /data/projects/ensanche-core/mutation.scm
+edit /data/projects/ensanche-core/visualization.scm
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
@@ -364,12 +365,12 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 3 - ((2 * winheight(0) + 46) / 92)
+let s:l = 95 - ((46 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-3
-normal! 020l
+95
+normal! 02l
 lcd /data/projects/ensanche-core/__deploy
 wincmd w
 2wincmd w
