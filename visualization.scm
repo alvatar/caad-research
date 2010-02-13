@@ -2,7 +2,6 @@
 (import sdl/sdl)
 (import cairo/cairo)
 
-(import web/parse/ssax-sxml/sxml-tools/sxpath)
 (import graph)
 (import xml-macros)
 
@@ -75,10 +74,18 @@
 ;; Draw graph
 ;;
 (define (graph-to-cairo graph cairo)
-  ;; Paint wall from a list of points
+  ;; Paint wall
   (define (paint-wall wall)
     (cairo-new-path cairo)
-    '())
+    (cairo-set-line-cap cairo CAIRO_LINE_CAP_BUTT)
+    (display (point-coord 'x (wall-point-n 1 wall)))
+    (newline)
+    (cairo-move-to cairo
+      (string->number (point-coord 'x (wall-point-n 1 wall)))
+      10.0)
+    (cairo-line-to cairo 50.0 80.0)
+    (cairo-line-to cairo 380.0 280.0)
+    (cairo-stroke cairo))
   ;; Paint doors in the wall
   (define (paint-doors-in-wall wall)
     (cairo-new-path cairo)
@@ -87,40 +94,46 @@
   (define (paint-windows-in-wall wall)
     (cairo-new-path cairo)
     '())
+  ;; Paint pilar
+  (define (paint-pilar pilar)
+    (cairo-new-path cairo)
+    '())
+  ;; Paint room
+  (define (paint-room wall-list)
+    (cairo-new-path cairo)
+    '())
+  ;; Paint entry
+  (define (paint-entry wall)
+    (cairo-new-path cairo)
+    '())
+  ;; Paint pipe
+  (define (paint-pipe wall)
+    (cairo-new-path cairo)
+    '())
 
   (cairo-set-source-rgba cairo 1.0 1.0 0.0 1.0)
   (cairo-set-line-width cairo 15.0)
   (for-each
     (lambda
-      (elem1)
+      (elem)
       (cond
-        ((equal? (car elem1) 'wall)
+        ((equal? (car elem) 'wall)
          (paint-wall
-           elem1)
+           elem)
          (paint-windows-in-wall 
-           elem1)
+           elem)
          (paint-doors-in-wall 
-           elem1))
-        ((equal? (car elem1) 'pilar)
-         (for-each
-           (lambda
-             (elem2)
-             (cond
-               ((equal? (car elem2) 'center)
-                '())
-               ((equal? (car elem2) 'dim)
-                '())))
-         (cdr elem1)))
-        ((equal? (car elem1) 'room)
-         (for-each
-           (lambda
-             (elem2)
-             (if
-               (equal? (car elem2) 'wall)
-               '()))
-         (cdr elem1)))
-        ((equal? (car elem1) 'entry)
-         '())))
+           elem))
+        ((equal? (car elem) 'num)
+         (display (+ 1.0 (cadr elem))))
+        ((equal? (car elem) 'pilar)
+         (paint-pilar elem))
+        ((equal? (car elem) 'room)
+         (paint-room (make-wall-list-from-uids (make-uid-list elem) graph)))
+        ((equal? (car elem) 'entry)
+         (paint-entry (make-wall-list-from-uids (make-uid-list elem) graph)))
+        ((equal? (car elem) 'pipe)
+         (paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph)))))
     graph)
 
   #|
@@ -145,4 +158,4 @@
   (cairo-line-to cairo 90.0 80.0)
   (cairo-stroke cairo)
   |#
-  )
+ )

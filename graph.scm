@@ -27,7 +27,7 @@
   (define (find-coordinate point)
     (if
       (equal? (caar point) coordinate)
-      (cdar point)
+      (cadar point)
       (find-coordinate (cdr point))))
   (find-coordinate point))
 
@@ -51,3 +51,17 @@
   ((sxpath `((pt ,n) @ *)) wall))
 
 ;; Get windows in wall
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Utilities
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Make list of walls from uids
+;;
+(define (make-wall-list-from-uids uids graph)
+  '())
+
+;; Make list of walls from uids
+;;
+(define (make-uid-list subgraph)
+  ((sxpath '(wall @ uid *text*)) subgraph))
