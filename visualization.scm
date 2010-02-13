@@ -76,15 +76,15 @@
 ;;
 (define (graph-to-cairo graph cairo)
   ;; Paint wall from a list of points
-  (define (paint-wall-from-points wall)
+  (define (paint-wall wall)
     (cairo-new-path cairo)
     '())
   ;; Paint doors in the wall
-  (define (paint-doors-in-wall door wall)
+  (define (paint-doors-in-wall wall)
     (cairo-new-path cairo)
     '())
   ;; Paint windows in the wall
-  (define (paint-windows-in-wall window wall)
+  (define (paint-windows-in-wall wall)
     (cairo-new-path cairo)
     '())
 
@@ -95,39 +95,12 @@
       (elem1)
       (cond
         ((equal? (car elem1) 'wall)
-         ;(pp-code-eval elem1)
-         (for-each
-           (lambda
-             (elem2)
-             ;(display elem2)
-             (let
-               ((this-wall ((sxpath '(@ *)) elem1)))
-
-               (paint-wall-from-points
-                 this-wall)
-               (paint-windows-in-wall 
-                 ((sxpath '(window @ *)) elem1)
-                 this-wall)
-               (paint-doors-in-wall 
-                 ((sxpath '(window @ *)) elem1)
-                 this-wall))
-             #|
-             (cond
-               ((equal? (car elem2) '@)
-  (cairo-move-to cairo 10.0 10.0)
-  (cairo-line-to cairo 10.0 80.0)
-  ;; Recursive solution?
-                '())
-               ((equal? (car elem2) 'pt)
-                '())
-               ((equal? (car elem2) 'door)
-                '())
-               ((equal? (car elem2) 'window)
-                '()))
-                |#
-                )
-         (cdr elem1))
-         (cairo-stroke cairo))
+         (paint-wall
+           elem1)
+         (paint-windows-in-wall 
+           elem1)
+         (paint-doors-in-wall 
+           elem1))
         ((equal? (car elem1) 'pilar)
          (for-each
            (lambda
