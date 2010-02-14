@@ -20,11 +20,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F3> :vimgrep // **
-noremap <F9> :call RunProgram()
-noremap <F10> :call CleanProgram()
-noremap <F11> :call Compile(1)
 nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
+noremap <F11> :call Compile(1)
+noremap <F10> :call CleanProgram()
+noremap <F9> :call RunProgram()
+nnoremap <F3> :vimgrep // **
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -79,6 +79,7 @@ set path=.,/usr/include,,,.**,/data/projects/ensanche-core/**
 set sessionoptions=blank,buffers,curdir,globals,folds,help,localoptions,options,tabpages,winsize
 set shiftwidth=2
 set showcmd
+set showmatch
 set spelllang=es,en
 set statusline=%F%m%r%h%w\ [FORMAT=%{&ff}]\ [TYPE=%Y]\ [ASCII=%03.3b]\ [HEX=%02.2B]\ [POS=%04l,%04v][%p%%]\ [LEN=%L]
 set suffixes=.bak,~,.o,.h,.info,.swp,.obj,.info,.aux,.log,.dvi,.bbl,.out,.o,.lo
@@ -139,7 +140,7 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +11 /data/projects/ensanche-core/main.scm
+badd +1 /data/projects/ensanche-core/main.scm
 badd +2 /data/projects/ensanche-core/test.xml
 badd +52 /data/projects/ensanche-core/arch.xml
 badd +14 /data/projects/ensanche-core/graph.scm
@@ -149,7 +150,7 @@ badd +66 /data/projects/ensanche-core/visualization.scm
 badd +3 /data/projects/ensanche-core/filtering.scm
 badd +4 /data/projects/ensanche-core/mutation.scm
 silent! argdel *
-edit /data/projects/ensanche-core/main.scm
+edit /data/projects/ensanche-core/graph.scm
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
@@ -174,7 +175,7 @@ setlocal nocindent
 setlocal cinkeys=0{,0},0),:,0#,!^F,o,O,e
 setlocal cinoptions=
 setlocal cinwords=if,else,while,do,for,switch
-setlocal comments=
+setlocal comments=:;;;,:;;,sr:#|,mb:|,ex:|#,:;
 setlocal commentstring=/*%s*/
 setlocal complete=.,w,b,u,t,i
 setlocal completefunc=
@@ -204,7 +205,7 @@ setlocal foldminlines=1
 setlocal foldnestmax=20
 setlocal foldtext=foldtext()
 setlocal formatexpr=
-setlocal formatoptions=nroql2
+setlocal formatoptions=croql
 setlocal formatlistpat=^\\s*\\d\\+[\\]:.)}\\t\ ]\\s*
 setlocal grepprg=
 setlocal iminsert=0
@@ -259,12 +260,12 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 12 - ((11 * winheight(0) + 46) / 92)
+let s:l = 30 - ((29 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-12
-normal! 021l
+30
+normal! 06l
 wincmd w
 argglobal
 edit /data/projects/ensanche-core/visualization.scm
@@ -365,15 +366,13 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 95 - ((46 * winheight(0) + 46) / 92)
+let s:l = 93 - ((45 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-95
+93
 normal! 02l
-lcd /data/projects/ensanche-core/__deploy
 wincmd w
-2wincmd w
 exe 'vert 1resize ' . ((&columns * 139 + 139) / 279)
 exe 'vert 2resize ' . ((&columns * 139 + 139) / 279)
 tabnext 1

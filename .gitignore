@@ -4,3 +4,4 @@
 ssax-sxml/*/*/*.c
 ssax-sxml/*/*.c
 ssax-sxml/*.c
+*.c

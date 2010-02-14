@@ -27,7 +27,7 @@
   (define (find-coordinate point)
     (if
       (equal? (caar point) coordinate)
-      (cadar point)
+      (string->number (cadar point))
       (find-coordinate (cdr point))))
   (find-coordinate point))
 

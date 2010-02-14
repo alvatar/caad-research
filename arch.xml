@@ -23,13 +23,13 @@
             ID are near zero.
             -->
             <wall uid="2387058723">
-                <pt x="1.0" y="2.0"/>
-                <pt x="3.0" y="4.0"/>
+                <pt x="50.0" y="50.0"/>
+                <pt x="100.0" y="100.0"/>
             </wall>
 
             <wall uid="5493820876">
-                <pt x="0.0" y="0.0"/>
-                <pt x="0.0" y="100.0"/>
+                <pt x="100.0" y="100.0"/>
+                <pt x="50.0" y="100.0"/>
                 <!--
                 Windows can be described with a pair of ranges (from 0.0 to 1.0) which define
                 the endpoints relative to the wall line (the line that joins the 2 endpoints
@@ -68,8 +68,6 @@
             <entry doorNumber="0">
                 <wall uid="5493820876"/>
             </entry>
-
-            <num>0,9</num>
 
             <pipe x="10.0" y="8.0"/>
         </architecture>

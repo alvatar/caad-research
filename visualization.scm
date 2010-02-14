@@ -76,15 +76,16 @@
 (define (graph-to-cairo graph cairo)
   ;; Paint wall
   (define (paint-wall wall)
+    (cairo-set-source-rgba cairo 0.1 0.1 0.1 1.0)
+    (cairo-set-line-width cairo 5.0)
     (cairo-new-path cairo)
     (cairo-set-line-cap cairo CAIRO_LINE_CAP_BUTT)
-    (display (point-coord 'x (wall-point-n 1 wall)))
-    (newline)
     (cairo-move-to cairo
-      (string->number (point-coord 'x (wall-point-n 1 wall)))
-      10.0)
-    (cairo-line-to cairo 50.0 80.0)
-    (cairo-line-to cairo 380.0 280.0)
+      (point-coord 'x (wall-point-n 1 wall))
+      (point-coord 'y (wall-point-n 1 wall)))
+    (cairo-line-to cairo
+      (point-coord 'x (wall-point-n 2 wall))
+      (point-coord 'y (wall-point-n 2 wall)))
     (cairo-stroke cairo))
   ;; Paint doors in the wall
   (define (paint-doors-in-wall wall)
@@ -124,8 +125,6 @@
            elem)
          (paint-doors-in-wall 
            elem))
-        ((equal? (car elem) 'num)
-         (display (+ 1.0 (cadr elem))))
         ((equal? (car elem) 'pilar)
          (paint-pilar elem))
         ((equal? (car elem) 'room)
@@ -134,28 +133,4 @@
          (paint-entry (make-wall-list-from-uids (make-uid-list elem) graph)))
         ((equal? (car elem) 'pipe)
          (paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph)))))
-    graph)
-
-  #|
-  (cairo-set-source-rgba cairo 1.0 1.0 0.0 1.0)
-  (cairo-set-line-width cairo 15.0)
-
-  (cairo-new-path cairo)
-  (cairo-set-line-cap cairo CAIRO_LINE_CAP_BUTT)
-  (cairo-move-to cairo 10.0 10.0)
-  (cairo-line-to cairo 10.0 80.0)
-  (cairo-stroke cairo)
-
-  (cairo-new-path cairo)
-  (cairo-set-line-cap cairo CAIRO_LINE_CAP_ROUND)
-  (cairo-move-to cairo 50.0 10.0)
-  (cairo-line-to cairo 50.0 80.0)
-  (cairo-stroke cairo)
-
-  (cairo-new-path cairo)
-  (cairo-set-line-cap cairo CAIRO_LINE_CAP_SQUARE)
-  (cairo-move-to cairo 90.0 10.0)
-  (cairo-line-to cairo 90.0 80.0)
-  (cairo-stroke cairo)
-  |#
- )
+    graph))
