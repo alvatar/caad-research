@@ -89,18 +89,27 @@
     (cairo-stroke cairo))
   ;; Paint doors in the wall
   (define (paint-doors-in-wall wall)
-    (cairo-set-source-rgba cairo 1.0 0.1 0.1 1.0)
+    (for-each
+      (lambda
+        (door)
+        (cairo-set-line-cap cairo CAIRO_LINE_CAP_BUTT)
+        (cairo-set-source-rgba cairo 1.0 1.0 1.0 1.0)
+        (cairo-set-line-width cairo 6.0)
+        (paint-path cairo (wall-element-points door wall))
+        (cairo-set-source-rgba cairo 1.0 0.1 0.1 1.0)
+        (cairo-set-line-width cairo 3.0)
+        (paint-path cairo (wall-element-points door wall)))
+      (wall-doors wall)))
+  ;; Paint windows in the wall
+  (define (paint-windows-in-wall wall)
+    (cairo-set-source-rgba cairo 1.0 1.0 0.1 1.0)
     (cairo-set-line-cap cairo CAIRO_LINE_CAP_BUTT)
     (cairo-set-line-width cairo 3.0)
     (for-each
       (lambda
-        (door)
-        (paint-path cairo (door-points door wall)))
-      (wall-doors wall)))
-  ;; Paint windows in the wall
-  (define (paint-windows-in-wall wall)
-    (cairo-new-path cairo)
-    '())
+        (window)
+        (paint-path cairo (wall-element-points window wall)))
+      (wall-windows wall)))
   ;; Paint pilar
   (define (paint-pilar pilar)
     (cairo-new-path cairo)
@@ -118,8 +127,6 @@
     (cairo-new-path cairo)
     '())
 
-  (cairo-set-source-rgba cairo 1.0 1.0 0.0 1.0)
-  (cairo-set-line-width cairo 15.0)
   (for-each
     (lambda
       (elem)

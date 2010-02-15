@@ -42,7 +42,7 @@
 
 ;; Get all wall points
 ;;
-(define (wall-points wall)
+(define (wall-points-structured wall)
   ((sxpath '(pt @)) wall))
 
 ;; Get wall point n
@@ -52,7 +52,7 @@
 
 ;; Get windows in wall
 ;;
-(define (wall-doors wall)
+(define (wall-windows wall)
   ((sxpath '(window)) wall))
 
 ;; Get doors in wall
@@ -60,14 +60,14 @@
 (define (wall-doors wall)
   ((sxpath '(door)) wall))
 
-;; Calculate door points
+;; Calculate wall element (door, wall...) points
 ;;
-(define (door-points door wall)
+(define (wall-element-points element wall)
   (let
-    ((from (string->number (car ((sxpath '(@ from *text*)) door))))
-     (to (string->number (car ((sxpath '(@ to *text*)) door)))))
+    ((from (string->number (car ((sxpath '(@ from *text*)) element))))
+     (to (string->number (car ((sxpath '(@ to *text*)) element)))))
     (if
-      (= (length (wall-points wall)) 2)
+      (= (length (wall-points-structured wall)) 2)
       (let*
         ((Ax (point-coord 'x (wall-point-n 1 wall)))
          (Ay (point-coord 'y (wall-point-n 1 wall)))
@@ -75,12 +75,12 @@
          (ABy (- (point-coord 'y (wall-point-n 2 wall)) Ay)))
         (list `(,(+ Ax (* ABx from)) ,(+ Ay (* ABy from)))
               `(,(+ Ax (* ABx to)) ,(+ Ay (* ABy to)))))
+        (display "Error - wall element has more than 2 relative points\n"))))
       ; Else:
         ; 1. Precalcular lista de puntos relativos
         ; 2. Hacer lista de puntos relativos menores que puerta
         ; 3. Dibujar trayectoria de puerta completa de los segmentos menores
         ; 4. Dibujar el porcentaje restante sobre el siguiente segmento
-    )))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities

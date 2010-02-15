@@ -25,11 +25,6 @@
             <wall uid="2387058723">
                 <pt x="150.0" y="50.0"/>
                 <pt x="150.0" y="200.0"/>
-            </wall>
-
-            <wall uid="5493820876">
-                <pt x="150.0" y="200.0"/>
-                <pt x="250.0" y="200.0"/>
                 <!--
                 Windows can be described with a pair of ranges (from 0.0 to 1.0) which define
                 the endpoints relative to the wall line (the line that joins the 2 endpoints
@@ -41,7 +36,12 @@
                 the start point relative to the line wall and the size in meters of the window
                 if the size doesn't fit in the wall then it is taken to the end of the wall
                 -->
-                <window from="0.2" size="1.0"/>
+                <window from="0.6" to="0.7"/>
+            </wall>
+
+            <wall uid="5493820876">
+                <pt x="150.0" y="200.0"/>
+                <pt x="250.0" y="200.0"/>
                 <!--
                 Doors follow the same syntax
                 -->
@@ -69,6 +69,7 @@
             <wall uid="5387555723">
                 <pt x="250.0" y="100.0"/>
                 <pt x="150.0" y="50.0"/>
+                <window from="0.4" to="0.7"/>
             </wall>
 
             <!--
