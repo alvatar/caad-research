@@ -77,20 +77,26 @@
   ;; Paint wall
   (define (paint-wall wall)
     (cairo-set-source-rgba cairo 0.1 0.1 0.1 1.0)
+    (cairo-set-line-cap cairo CAIRO_LINE_CAP_SQUARE)
     (cairo-set-line-width cairo 5.0)
     (cairo-new-path cairo)
-    (cairo-set-line-cap cairo CAIRO_LINE_CAP_BUTT)
     (cairo-move-to cairo
-      (point-coord 'x (wall-point-n 1 wall))
-      (point-coord 'y (wall-point-n 1 wall)))
+                   (point-coord 'x (wall-point-n 1 wall))
+                   (point-coord 'y (wall-point-n 1 wall)))
     (cairo-line-to cairo
-      (point-coord 'x (wall-point-n 2 wall))
-      (point-coord 'y (wall-point-n 2 wall)))
+                   (point-coord 'x (wall-point-n 2 wall))
+                   (point-coord 'y (wall-point-n 2 wall)))
     (cairo-stroke cairo))
   ;; Paint doors in the wall
   (define (paint-doors-in-wall wall)
-    (cairo-new-path cairo)
-    '())
+    (cairo-set-source-rgba cairo 1.0 0.1 0.1 1.0)
+    (cairo-set-line-cap cairo CAIRO_LINE_CAP_BUTT)
+    (cairo-set-line-width cairo 3.0)
+    (for-each
+      (lambda
+        (door)
+        (paint-path cairo (door-points door wall)))
+      (wall-doors wall)))
   ;; Paint windows in the wall
   (define (paint-windows-in-wall wall)
     (cairo-new-path cairo)
@@ -134,3 +140,19 @@
         ((equal? (car elem) 'pipe)
          (paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph)))))
     graph))
+
+;; Paint a path given a list of 2d points
+;;
+(define (paint-path cairo points)
+  (cairo-new-path cairo)
+  (cairo-move-to cairo
+                 (caar points)
+                 (cadar points))
+  (for-each
+    (lambda
+      (point)
+      (cairo-line-to cairo
+                     (car point)
+                     (cadr point)))
+    (cdr points))
+  (cairo-stroke cairo))

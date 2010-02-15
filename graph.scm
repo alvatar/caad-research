@@ -51,6 +51,36 @@
   ((sxpath `((pt ,n) @ *)) wall))
 
 ;; Get windows in wall
+;;
+(define (wall-doors wall)
+  ((sxpath '(window)) wall))
+
+;; Get doors in wall
+;;
+(define (wall-doors wall)
+  ((sxpath '(door)) wall))
+
+;; Calculate door points
+;;
+(define (door-points door wall)
+  (let
+    ((from (string->number (car ((sxpath '(@ from *text*)) door))))
+     (to (string->number (car ((sxpath '(@ to *text*)) door)))))
+    (if
+      (= (length (wall-points wall)) 2)
+      (let*
+        ((Ax (point-coord 'x (wall-point-n 1 wall)))
+         (Ay (point-coord 'y (wall-point-n 1 wall)))
+         (ABx (- (point-coord 'x (wall-point-n 2 wall)) Ax))
+         (ABy (- (point-coord 'y (wall-point-n 2 wall)) Ay)))
+        (list `(,(+ Ax (* ABx from)) ,(+ Ay (* ABy from)))
+              `(,(+ Ax (* ABx to)) ,(+ Ay (* ABy to)))))
+      ; Else:
+        ; 1. Precalcular lista de puntos relativos
+        ; 2. Hacer lista de puntos relativos menores que puerta
+        ; 3. Dibujar trayectoria de puerta completa de los segmentos menores
+        ; 4. Dibujar el porcentaje restante sobre el siguiente segmento
+    )))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities

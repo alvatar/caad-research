@@ -23,13 +23,13 @@
             ID are near zero.
             -->
             <wall uid="2387058723">
-                <pt x="50.0" y="50.0"/>
-                <pt x="100.0" y="100.0"/>
+                <pt x="150.0" y="50.0"/>
+                <pt x="150.0" y="200.0"/>
             </wall>
 
             <wall uid="5493820876">
-                <pt x="100.0" y="100.0"/>
-                <pt x="50.0" y="100.0"/>
+                <pt x="150.0" y="200.0"/>
+                <pt x="250.0" y="200.0"/>
                 <!--
                 Windows can be described with a pair of ranges (from 0.0 to 1.0) which define
                 the endpoints relative to the wall line (the line that joins the 2 endpoints
@@ -45,7 +45,8 @@
                 <!--
                 Doors follow the same syntax
                 -->
-                <door from="0.2" size="1.0"/>
+                <door from="0.1" to="0.45"/>
+                <door from="0.5" to="0.7"/>
             </wall>
 
             <pilar uid="692034802">
@@ -59,6 +60,16 @@
                 <wall uid="5394501263"/>
                 <wall uid="0034923049"/>
             </room>
+
+            <wall uid="9587058723">
+                <pt x="250.0" y="200.0"/>
+                <pt x="250.0" y="100.0"/>
+            </wall>
+
+            <wall uid="5387555723">
+                <pt x="250.0" y="100.0"/>
+                <pt x="150.0" y="50.0"/>
+            </wall>
 
             <!--
             We identify the entry with the door number inside a wall (the wall is identified
