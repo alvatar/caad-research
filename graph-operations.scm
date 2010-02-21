@@ -2,7 +2,7 @@
 
 ;; Partition
 ;;
-(define (partition graph)
+(define (partition graph context)
   graph)
 
 ;; Remove

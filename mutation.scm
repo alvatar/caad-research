@@ -1,14 +1,15 @@
 (import graph)
 (import graph-operations)
+(import context)
 (import constraints)
 
 (define (make-graph-mutations graph constraints)
-  (list ((make-operations-set) graph)))
+  (list ((make-operation/context-set) graph)))
 
-;; Operation selector
+;; All the logic of what operations should be done stems from here
 ;;
-(define (make-operations-set)
+(define (make-operation/context-set)
   (lambda
     (graph)
-      (partition graph)))
+      (partition graph any-context)))
 
