@@ -6,6 +6,7 @@
 (import xml-macros)
 
 (export visualize-graph)
+(export visualize-graph-list)
 
 (define maxx 500)
 (define maxy 500)
@@ -68,8 +69,16 @@
       (set! graph g)
       (call/cc control-state))))
 
+;; Visualization entry points
 (define (visualize-graph graph)
   (visualize-loop-with-continuation graph))
+
+(define (visualize-graph-list graph-list)
+  (for-each
+    (lambda
+      (graph)
+      (visualize-graph graph))
+    graph-list))
 
 ;; Draw graph
 ;;
