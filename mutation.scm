@@ -6,10 +6,10 @@
 (define (make-graph-mutations graph constraints)
   (list ((make-operation/context-set) graph)))
 
-;; All the logic of what operations should be done stems from here
+;; All the logic of which operations should be performed stems from here
 ;;
 (define (make-operation/context-set)
   (lambda
     (graph)
-      (partition graph any-context)))
+      (partition graph biggest-room)))
 

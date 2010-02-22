@@ -94,3 +94,7 @@
 ;;
 (define (make-uid-list subgraph)
   ((sxpath '(wall @ uid *text*)) subgraph))
+
+;; Calculate room area
+(define (room-area room)
+  99.9)

@@ -20,11 +20,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
-noremap <F11> :call Compile(1)
-noremap <F10> :call CleanProgram()
-noremap <F9> :call RunProgram()
 nnoremap <F3> :vimgrep // **
+noremap <F9> :call RunProgram()
+noremap <F10> :call CleanProgram()
+noremap <F11> :call Compile(1)
+nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -143,14 +143,16 @@ set shortmess=aoO
 badd +1 /data/projects/ensanche-core/main.scm
 badd +2 /data/projects/ensanche-core/test.xml
 badd +52 /data/projects/ensanche-core/arch.xml
-badd +14 /data/projects/ensanche-core/graph.scm
+badd +30 /data/projects/ensanche-core/graph.scm
 badd +104 /data/projects/ensanche-core/sdl/sdl.scm
 badd +6 /data/projects/ensanche-core/input.scm
-badd +66 /data/projects/ensanche-core/visualization.scm
+badd +92 /data/projects/ensanche-core/visualization.scm
 badd +3 /data/projects/ensanche-core/filtering.scm
-badd +4 /data/projects/ensanche-core/mutation.scm
+badd +14 /data/projects/ensanche-core/mutation.scm
+badd +0 /data/projects/ensanche-core/graph-operations.scm
+badd +4 /data/projects/ensanche-core/context.scm
 silent! argdel *
-edit /data/projects/ensanche-core/graph.scm
+edit /data/projects/ensanche-core/graph-operations.scm
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
@@ -260,15 +262,15 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 30 - ((29 * winheight(0) + 46) / 92)
+let s:l = 6 - ((5 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-30
-normal! 06l
+6
+normal! 016l
 wincmd w
 argglobal
-edit /data/projects/ensanche-core/visualization.scm
+edit /data/projects/ensanche-core/mutation.scm
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
@@ -366,13 +368,14 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 93 - ((45 * winheight(0) + 46) / 92)
+let s:l = 13 - ((12 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-93
-normal! 02l
+13
+normal! 010l
 wincmd w
+2wincmd w
 exe 'vert 1resize ' . ((&columns * 139 + 139) / 279)
 exe 'vert 2resize ' . ((&columns * 139 + 139) / 279)
 tabnext 1
