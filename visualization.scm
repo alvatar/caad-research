@@ -70,6 +70,7 @@
       (call/cc control-state))))
 
 ;; Visualization entry points
+;;
 (define (visualize-graph graph)
   (visualize-loop-with-continuation graph))
 
@@ -155,7 +156,7 @@
          (paint-entry (make-wall-list-from-uids (make-uid-list elem) graph)))
         ((equal? (car elem) 'pipe)
          (paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph)))))
-    graph))
+    (graph-parts graph)))
 
 ;; Paint a path given a list of 2d points
 ;;

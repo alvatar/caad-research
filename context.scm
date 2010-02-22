@@ -1,6 +1,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Functions for filtering out subgraph lists from an architecture graph
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(import graph)
 
 ;; All
 ;;
@@ -14,7 +15,7 @@
 ;; Returns the biggest room as context
 ;;
 (define (biggest-room graph)
-  graph)
+  (rooms graph))
   ; (define (iter graph current-room current-max)
     ; (if
       ; (list? graph)

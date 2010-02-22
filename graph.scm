@@ -7,7 +7,7 @@
 (define (generate-graph-from-xml xml-string)
   (let*
     ((sxml (xml-string->sxml xml-string))
-    (architecture ((sxpath '(ensanche floorPlan architecture *)) sxml)))
+    (architecture (car ((sxpath '(ensanche floorPlan architecture)) sxml))))
 
     architecture))
 
@@ -15,6 +15,13 @@
 ;;
 (define (print-graph sxml)
   (pp-code-eval sxml))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Global
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define (graph-parts graph)
+  ;((sxpath '(*)) graph))
+  (cdr graph))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Points
@@ -82,6 +89,16 @@
         ; 4. Dibujar el porcentaje restante sobre el siguiente segmento
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Room
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define (rooms graph)
+  ((sxpath '(room)) graph))
+
+;; Calculate room area
+(define (room-area room)
+  99.9) ; TODO
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utilities
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -90,11 +107,7 @@
 (define (make-wall-list-from-uids uids graph)
   '())
 
-;; Make list of walls from uids
+;; Make uids list TODO
 ;;
 (define (make-uid-list subgraph)
   ((sxpath '(wall @ uid *text*)) subgraph))
-
-;; Calculate room area
-(define (room-area room)
-  99.9)
