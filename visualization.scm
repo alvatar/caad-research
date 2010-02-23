@@ -140,29 +140,31 @@
   (for-each
     (lambda
       (elem)
-        (cond
-          ((equal? (car elem) 'wall)
-           (paint-wall
-             elem)
-           (paint-windows-in-wall 
-             elem)
-           (paint-doors-in-wall 
-             elem))
-          ((equal? (car elem) 'pilar)
-           (paint-pilar elem))
-          ((equal? (car elem) 'room)
-           (paint-room (make-wall-list-from-uids (make-uid-list elem) graph)))
-          ((equal? (car elem) 'entry)
-           (paint-entry (make-wall-list-from-uids (make-uid-list elem) graph)))
-          ((equal? (car elem) 'pipe)
-           (paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph)))))
+      (cond
+        ((equal? elem (void))
+          (display "Malformed SXML\n"))
+        ((equal? (car elem) 'wall)
+         (paint-wall
+           elem)
+         (paint-windows-in-wall 
+           elem)
+         (paint-doors-in-wall 
+           elem))
+        ((equal? (car elem) 'pilar)
+         (paint-pilar elem))
+        ((equal? (car elem) 'room)
+         (paint-room (make-wall-list-from-uids (make-uid-list elem) graph)))
+        ((equal? (car elem) 'entry)
+         (paint-entry (make-wall-list-from-uids (make-uid-list elem) graph)))
+        ((equal? (car elem) 'pipe)
+         (paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph)))))
     (graph-parts graph)))
 
 ;; Paint a path given a list of 2d points
 ;;
 (define (paint-path cairo points)
   (if
-    (not (null? points))
+    (and (not (null? points)) (list? points))
     (begin
       (cairo-new-path cairo)
       (cairo-move-to cairo

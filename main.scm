@@ -14,7 +14,7 @@
     (for-each
       (lambda
         (graph)
-        ;(print-graph graph)
+        (print-graph graph)
         (visualize-graph graph))
       archgraph-list)
     (loop

@@ -15,7 +15,12 @@
 ;; Returns the biggest room as context
 ;;
 (define (biggest-room graph)
-  (rooms graph))
+  (let
+    ((rooms-list (rooms graph)))
+    (if
+      (null? rooms-list)
+      '()
+      (car rooms-list)))) ; TODO
   ; (define (iter graph current-room current-max)
     ; (if
       ; (list? graph)

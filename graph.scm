@@ -22,7 +22,7 @@
 (define (graph-parts graph)
   ;((sxpath '(*)) graph))
   (if
-    (not (null? graph))
+    (and (not (null? graph)) (list? graph))
     (cdr graph)
     '()))
 
