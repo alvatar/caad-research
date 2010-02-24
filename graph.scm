@@ -52,8 +52,8 @@
 (define (graph-parts graph)
   ;((sxpath '(*)) graph))
   (if
-    (and (not (null? graph)) (list? graph))
-    ;(pair? graph)
+    ;(and (not (null? graph)) (list? graph))
+    (pair? graph)
     (cdr graph)
     '()))
 
@@ -134,6 +134,12 @@
         ; 2. Hacer lista de puntos relativos menores que puerta
         ; 3. Dibujar trayectoria de puerta completa de los segmentos menores
         ; 4. Dibujar el porcentaje restante sobre el siguiente segmento
+ 
+;; Make list of walls from uids
+;;
+(define (make-wall-list-from-uids uids graph)
+  '()) ; TODO
+
 
 ;; Make list of walls from uids
 ;;

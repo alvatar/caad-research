@@ -141,7 +141,6 @@
       (if
         (pair? elem) ;(and (list? elem) (not (null? elem)))
         (cond
-          ((equal? elem (void))
           ((equal? (car elem) 'wall)
            (paint-wall
              elem)
@@ -157,7 +156,7 @@
            (paint-entry (make-wall-list-from-uids (make-uid-list elem) graph)))
           ((equal? (car elem) 'pipe)
            (paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph))))
-        (display "Malformed SXML\n"))))
+        (display "Malformed SXML\n")))
     (graph-parts graph)))
 
 ;; Paint a path given a list of 2d points

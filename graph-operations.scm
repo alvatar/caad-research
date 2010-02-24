@@ -44,7 +44,7 @@
 ;; Partition
 ;;
 (define (op-partition graph subgraph)
-  ;(add-wall graph)
+  (add-wall graph)
   (if
     (equal? (car subgraph) 'room)
     ; `(architecture (wall ; TODO
