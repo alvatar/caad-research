@@ -57,17 +57,14 @@
        ; (pt (@ (y ,(number->string (* 0.9 (random-integer 500)))) (x "150.0")))
        ; (pt (@ (y "100.0") (x "450.0")))))
        ;'()
-       '(room (@ (label "salon_transformado"))
-              (wall (@ (uid "0000000000")))
-              (wall (@ (uid "5493820876")))
-              (wall (@ (uid "5394501263")))
-              (wall (@ (uid "0034923049")))
-              )
+       (cons (car subgraph)
+             (append (cdr subgraph)
+                     (list '(wall (@ (uid "SDFSDFSFSDFSDF")))))) ; TODO: UID generator
        subgraph))
     ((eqv? level 'global)
      (add-wall graph
-               (make-point (* (random-integer 200) 1.0) 280.0)
-               (make-point (* (random-integer 200) 1.0) 380.0) ))))
+               (make-point (exact->inexact (random-integer 200)) 280.0)
+               (make-point (exact->inexact (random-integer 200)) 380.0) ))))
 
 ;; Expand
 ;;
