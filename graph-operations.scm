@@ -1,5 +1,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Architectural operations on the graph
+;;; Architectural high-level operations on the graph
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1))
@@ -36,27 +36,28 @@
 (define (op-identity graph subgraph)
   subgraph)
 
+;; Remove
+;;
+(define (op-remove graph subgraph)
+  '())
+
 ;; Partition
 ;;
 (define (op-partition graph subgraph)
+  ;(add-wall graph)
   (if
     (equal? (car subgraph) 'room)
     ; `(architecture (wall ; TODO
      ; (pt (@ (y ,(number->string (* 0.9 (random-integer 500)))) (x "150.0")))
      ; (pt (@ (y "100.0") (x "450.0")))))
       ;'()
-      '(room (@ (label "follodromo"))
+      '(room (@ (label "salon_transformado"))
        (wall (@ (uid "0000000000")))
        (wall (@ (uid "5493820876")))
        (wall (@ (uid "5394501263")))
        (wall (@ (uid "0034923049")))
        )
      subgraph))
-
-;; Remove
-;;
-(define (op-remove graph subgraph)
-  '())
 
 ;; Expand
 ;;

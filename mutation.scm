@@ -11,5 +11,5 @@
 (define (make-operation/context-set)
   (lambda
     (graph)
-      (apply-to-context op-remove biggest-room graph)))
+      (apply-to-context op-partition biggest-room graph)))
 

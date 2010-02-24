@@ -1,30 +1,74 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Graph definition and low-level operations
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (import web/parse/ssax-sxml/sxml-tools/sxpath)
 (import (std string/xml-to-sxml))
-(import xml-macros)
 
 ;; Generate graph from XML
 ;;
 (define (generate-graph-from-xml xml-string)
   (let*
     ((sxml (xml-string->sxml xml-string))
-    (architecture (car ((sxpath '(ensanche floorPlan architecture)) sxml))))
-
+     (architecture (car ((sxpath '(ensanche floorPlan architecture)) sxml))))
     architecture))
 
 ;; Print graph
 ;;
 (define (print-graph sxml)
+  (define-macro (pp-code-eval . thunk) ; Pretty print the code as it is evatuated
+    `(begin
+       ,@(apply
+          append  ; should better use `map-union' from "sxpathlib.scm"
+          (map
+           (lambda (s-expr)
+             (cond
+               ((string? s-expr)  ; string - just display it
+                `((display ,s-expr)
+                  (newline)))
+               ((and (pair? s-expr) (eq? (car s-expr) 'define))
+                ; definition - pp and eval it
+                `((pp ',s-expr)
+                  ,s-expr))
+               ((and (pair? s-expr)
+                     (memq (car s-expr) '(newline cond-expand)))
+                ; just eval it
+                `(,s-expr))
+               (else  ; for anything else - pp it and pp result
+                `((pp ',s-expr)
+                  (display "==>")
+                  (newline)
+                  (pp ,s-expr)
+                  (newline)))))
+           thunk))))
   (pp-code-eval sxml))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Global
+;; General
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Get everything inside the architecture tag as a list
+;;
 (define (graph-parts graph)
   ;((sxpath '(*)) graph))
   (if
     (and (not (null? graph)) (list? graph))
+    ;(pair? graph)
     (cdr graph)
     '()))
+
+;; Make uids list TODO
+;;
+(define (make-uid-list subgraph)
+  ((sxpath '(wall @ uid *text*)) subgraph))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Modifiers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (add-wall graph)
+  (display "ADDWALL\n")
+  (cons graph 'wall))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Points
@@ -91,26 +135,21 @@
         ; 3. Dibujar trayectoria de puerta completa de los segmentos menores
         ; 4. Dibujar el porcentaje restante sobre el siguiente segmento
 
+;; Make list of walls from uids
+;;
+(define (make-wall-list-from-uids uids graph)
+  '()) ; TODO
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Room
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Get rooms in the graph
+;;
 (define (rooms graph)
   ((sxpath '(room)) graph))
 
 ;; Calculate room area
+;;
 (define (room-area room)
   99.9) ; TODO
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Utilities
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Make list of walls from uids
-;;
-(define (make-wall-list-from-uids uids graph)
-  '())
-
-;; Make uids list TODO
-;;
-(define (make-uid-list subgraph)
-  ((sxpath '(wall @ uid *text*)) subgraph))

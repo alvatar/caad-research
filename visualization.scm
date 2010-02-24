@@ -1,9 +1,7 @@
 (import opengl/gl)
 (import sdl/sdl)
 (import cairo/cairo)
-
 (import graph)
-(import xml-macros)
 
 (export visualize-graph)
 (export visualize-graph-list)
@@ -141,11 +139,9 @@
     (lambda
       (elem)
       (if
-        ;(and (list? elem) (not (null? elem)))
-        (pair? elem)
+        (pair? elem) ;(and (list? elem) (not (null? elem)))
         (cond
           ((equal? elem (void))
-            (display "Malformed SXML\n"))
           ((equal? (car elem) 'wall)
            (paint-wall
              elem)
@@ -160,7 +156,8 @@
           ((equal? (car elem) 'entry)
            (paint-entry (make-wall-list-from-uids (make-uid-list elem) graph)))
           ((equal? (car elem) 'pipe)
-           (paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph))))))
+           (paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph))))
+        (display "Malformed SXML\n"))))
     (graph-parts graph)))
 
 ;; Paint a path given a list of 2d points
