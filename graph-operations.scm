@@ -2,27 +2,34 @@
 ;;; Architectural operations on the graph
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(import (std srfi/1))
 (import graph)
 
 ;; Apply to context
 ;;
 (define (apply-to-context operation context-builder graph)
+  (define matches-context? equal?)
   (define (do-in-context graph-tail)
-    (map
-      (lambda (graph-elem)
-        (if
-          (not (null? graph-elem)) ; LIST? quitar : tiene que ir dentro de la iteración
+    (remove
+      (lambda (lst) (if (equal? lst '()) #t #f))
+      (map
+        (lambda (graph-elem)
           (if
-            (equal? graph-elem (context-builder graph))
-            (operation graph graph-elem)
+            (not (null? graph-elem))
             (if
-              (list? graph-elem)
-              (begin (do-in-context graph-elem)
-                   ;(display graph-tail)(newline)
-                   graph-elem)
-              graph-elem))))
-      graph-tail))
-  (do-in-context graph))
+              (matches-context? graph-elem (context-builder graph)) ; TODO: optimize context-builder with let
+              (operation graph graph-elem)
+              (if
+                (list? graph-elem)
+                (begin (do-in-context graph-elem)
+                     ;(display graph-tail)(newline)
+                     graph-elem)
+                graph-elem))))
+        graph-tail)))
+  (if
+    (equal? (context-builder graph) graph)
+    (operation graph graph)
+    (do-in-context graph)))
 
 ;; Identity
 ;;
@@ -44,15 +51,12 @@
        (wall (@ (uid "5394501263")))
        (wall (@ (uid "0034923049")))
        )
-     ;(begin (display "ROOM\n") subgraph)
      subgraph))
 
 ;; Remove
 ;;
-; (define (remove graph context-builder)
-  ; (define (partition-impl subgraph)
-    ; subgraph)
-  ; (apply-operation-to-context remove-impl (context-builder graph)))
+(define (op-remove graph subgraph)
+  '())
 
 ;; Expand
 ;;
