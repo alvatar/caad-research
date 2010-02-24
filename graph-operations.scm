@@ -5,9 +5,9 @@
 (import (std srfi/1))
 (import graph)
 
-;; Apply to context
+;; Apply operation to context
 ;;
-(define (apply-to-context operation context-builder graph)
+(define (apply-operation-to-context operation-local context-builder graph)
   (define matches-context? equal?)
   (define (do-in-context graph-tail)
     (remove
@@ -18,7 +18,7 @@
             (not (null? graph-elem))
             (if
               (matches-context? graph-elem (context-builder graph)) ; TODO: optimize context-builder with let
-              (operation graph graph-elem)
+              (operation-local graph graph-elem)
               (if
                 (list? graph-elem)
                 (begin (do-in-context graph-elem)
@@ -28,8 +28,13 @@
         graph-tail)))
   (if
     (equal? (context-builder graph) graph)
-    (operation graph graph)
+    (operation-local graph graph)
     (do-in-context graph)))
+
+;; Apply operation to a graph and all contexts matching
+;;
+(define (apply-operation operation context-builder graph)
+  (apply-operation-to-context operation context-builder graph))
 
 ;; Identity
 ;;
