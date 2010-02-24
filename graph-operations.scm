@@ -7,7 +7,7 @@
 
 ;; Apply operation to context
 ;;
-(define (apply-operation-to-context operation-local context-builder graph)
+(define (apply-operation-to-context operation context-builder graph)
   (define matches-context? equal?)
   (define (do-in-context graph-tail)
     (remove
@@ -18,7 +18,7 @@
             (not (null? graph-elem))
             (if
               (matches-context? graph-elem (context-builder graph)) ; TODO: optimize context-builder with let
-              (operation-local graph graph-elem)
+              (operation 'local graph graph-elem)
               (if
                 (list? graph-elem)
                 (begin (do-in-context graph-elem)
@@ -28,13 +28,13 @@
         graph-tail)))
   (if
     (equal? (context-builder graph) graph)
-    (operation-local graph graph)
+    (operation 'local graph graph)
     (do-in-context graph)))
 
 ;; Apply operation to a graph and all contexts matching
 ;;
 (define (apply-operation operation context-builder graph)
-  (apply-operation-to-context operation context-builder graph))
+  (operation 'global (apply-operation-to-context operation context-builder graph) graph))
 
 ;; Identity
 ;;
@@ -48,21 +48,26 @@
 
 ;; Partition
 ;;
-(define (op-partition graph subgraph)
-  (add-wall graph)
-  (if
-    (equal? (car subgraph) 'room)
-    ; `(architecture (wall ; TODO
-     ; (pt (@ (y ,(number->string (* 0.9 (random-integer 500)))) (x "150.0")))
-     ; (pt (@ (y "100.0") (x "450.0")))))
-      ;'()
-      '(room (@ (label "salon_transformado"))
-       (wall (@ (uid "0000000000")))
-       (wall (@ (uid "5493820876")))
-       (wall (@ (uid "5394501263")))
-       (wall (@ (uid "0034923049")))
-       )
-     subgraph))
+(define (op-partition level graph subgraph)
+  (cond
+    ((eqv? level 'local)
+     (if
+       (equal? (car subgraph) 'room)
+       ; `(architecture (wall ; TODO
+       ; (pt (@ (y ,(number->string (* 0.9 (random-integer 500)))) (x "150.0")))
+       ; (pt (@ (y "100.0") (x "450.0")))))
+       ;'()
+       '(room (@ (label "salon_transformado"))
+              (wall (@ (uid "0000000000")))
+              (wall (@ (uid "5493820876")))
+              (wall (@ (uid "5394501263")))
+              (wall (@ (uid "0034923049")))
+              )
+       subgraph))
+    ((eqv? level 'global)
+     (add-wall graph
+               (make-point (* (random-integer 200) 1.0) 280.0)
+               (make-point (* (random-integer 200) 1.0) 380.0) ))))
 
 ;; Expand
 ;;

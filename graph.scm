@@ -66,9 +66,16 @@
 ;; Modifiers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (add-wall graph)
-  (display "ADDWALL\n")
-  (cons graph 'wall))
+(define (add-wall graph point-a point-b)
+  (cons (car graph)
+        (append (cdr graph)
+                (list `(wall (@ (uid "2387058723"))
+                         (pt (@ (y ,(number->string (point-coord 'y point-a)))
+                                (x ,(number->string (point-coord 'x point-a)))))
+                         (pt (@ (y ,(number->string (point-coord 'y point-b)))
+                                (x ,(number->string (point-coord 'x point-b)))))
+                         (window (@ (to "0.4") (from "0.2")))
+                         (window (@ (to "0.7") (from "0.6"))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Points
@@ -88,6 +95,15 @@
 ;;
 (define (point-n n point-list)
   (cdr (list-ref point-list n)))
+
+;; Make point
+;;
+(define (make-point x y)
+  (if (or (null? x) (null? y))
+    (display "Error making point\n")
+    (list
+      (list 'y (number->string y))
+      (list 'x (number->string x)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Wall
