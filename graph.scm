@@ -99,9 +99,22 @@
 ;;
 (define (make-point x y)
   (if (or (null? x) (null? y))
-      (display "Error making point\n")
+      (raise "Error making point\n")
       (list (list 'y (number->string y))
             (list 'x (number->string x)))))
+
+;; Calculate absolute point given segment and percentage
+;;
+(define (point-from-relative-in-segment point-a point-b percentage)
+  (if (and (pair? point-a) (pair? point-b))
+      (let* ((Ax (point-coord 'x point-a))
+             (Ay (point-coord 'y point-a))
+             (ABx (- (point-coord 'x point-b) Ax))
+             (ABy (- (point-coord 'y point-b) Ay)))
+        (make-point
+          (+ Ax (* ABx percentage))
+          (+ Ay (* ABy percentage))))
+      (raise "Wrong points passed")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Wall
@@ -109,7 +122,7 @@
 
 ;; Get all wall points
 ;;
-(define (wall-points-structured wall)
+(define (wall-points wall)
   ((sxpath '(pt @)) wall))
 
 ;; Get wall point n
@@ -127,19 +140,24 @@
 (define (wall-doors wall)
   ((sxpath '(door)) wall))
 
+;; Get wall elements' relative points
+;;
+(define (wall-element-relative-points label element)
+  (string->number (car ((sxpath `(@ ,label *text*)) element))))
+
 ;; Calculate wall element (door, wall...) points
 ;;
 (define (wall-element-points element wall)
-  (let ((from (string->number (car ((sxpath '(@ from *text*)) element))))
-        (to (string->number (car ((sxpath '(@ to *text*)) element)))))
-    (if (= (length (wall-points-structured wall)) 2)
+  (let ((from (wall-element-relative-points 'from element))
+        (to (wall-element-relative-points 'to element)))
+    (if (= (length (wall-points wall)) 2)
         (let* ((Ax (point-coord 'x (wall-point-n 1 wall)))
                (Ay (point-coord 'y (wall-point-n 1 wall)))
                (ABx (- (point-coord 'x (wall-point-n 2 wall)) Ax))
                (ABy (- (point-coord 'y (wall-point-n 2 wall)) Ay)))
           (list `(,(+ Ax (* ABx from)) ,(+ Ay (* ABy from)))
                 `(,(+ Ax (* ABx to)) ,(+ Ay (* ABy to)))))
-          (display "Error - wall element has more than 2 relative points\n"))))
+          (raise "Error - wall element has more than 2 relative points\n"))))
       ; Else:
         ; 1. Precalcular lista de puntos relativos
         ; 2. Hacer lista de puntos relativos menores que puerta

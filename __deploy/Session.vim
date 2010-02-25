@@ -20,11 +20,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F3> :vimgrep // **
-noremap <F9> :call RunProgram()
-noremap <F10> :call CleanProgram()
-noremap <F11> :call Compile(1)
 nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
+noremap <F11> :call Compile(1)
+noremap <F10> :call CleanProgram()
+noremap <F9> :call RunProgram()
+nnoremap <F3> :vimgrep // **
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -70,6 +70,7 @@ set guifont=montecarlo
 set guiheadroom=0
 set guioptions=ac
 set helplang=en
+set hidden
 set hlsearch
 set iminsert=0
 set makeprg=./build.sh
@@ -95,10 +96,12 @@ let Tlist_Auto_Update =  1
 let CTags_CScope_Dir_List = "/data/projects/ensanche-core/.."
 let Tlist_WinWidth =  30 
 let ScreenShellTerminal = ""
+let ScreenShellInitialFocus = "vim"
 let ScreenShellTmuxInitArgs = ""
 let Tlist_Close_On_Select =  1 
 let Tlist_GainFocus_On_ToggleOpen =  1 
 let Tlist_Use_SingleClick =  0 
+let ScreenShellGnuScreenVerticalSupport = ""
 let ScreenShellQuitOnVimExit =  1 
 let Tlist_File_Fold_Auto_Close =  0 
 let Tlist_Auto_Open =  0 
@@ -111,6 +114,7 @@ let Tlist_Inc_Winwidth =  1
 let EnhCommentifyPretty = "yes"
 let Tlist_Display_Tag_Scope =  1 
 let Tlist_Compact_Format =  0 
+let ScreenShellWidth =  -1 
 let EnhCommentifyCallbackExists = "Yes"
 let TagList_title = "__Tag_List__"
 let Tlist_Use_Horiz_Window =  0 
@@ -141,18 +145,16 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
 endif
 set shortmess=aoO
 badd +1 /data/projects/ensanche-core/main.scm
-badd +2 /data/projects/ensanche-core/test.xml
 badd +52 /data/projects/ensanche-core/arch.xml
 badd +30 /data/projects/ensanche-core/graph.scm
-badd +104 /data/projects/ensanche-core/sdl/sdl.scm
 badd +6 /data/projects/ensanche-core/input.scm
 badd +92 /data/projects/ensanche-core/visualization.scm
 badd +3 /data/projects/ensanche-core/filtering.scm
-badd +14 /data/projects/ensanche-core/mutation.scm
-badd +0 /data/projects/ensanche-core/graph-operations.scm
-badd +4 /data/projects/ensanche-core/context.scm
+badd +13 /data/projects/ensanche-core/mutation.scm
+badd +24 /data/projects/ensanche-core/context.scm
+badd +0 /data/projects/ensanche-core/operations.scm
 silent! argdel *
-edit /data/projects/ensanche-core/graph-operations.scm
+edit /data/projects/ensanche-core/operations.scm
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
@@ -262,15 +264,16 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 6 - ((5 * winheight(0) + 46) / 92)
+let s:l = 32 - ((31 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-6
-normal! 016l
+32
+normal! 0
+lcd /data/projects/ensanche-core/__deploy
 wincmd w
 argglobal
-edit /data/projects/ensanche-core/mutation.scm
+edit /data/projects/ensanche-core/graph.scm
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
@@ -368,14 +371,13 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 13 - ((12 * winheight(0) + 46) / 92)
+let s:l = 105 - ((14 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-13
-normal! 010l
+105
+normal! 0
 wincmd w
-2wincmd w
 exe 'vert 1resize ' . ((&columns * 139 + 139) / 279)
 exe 'vert 2resize ' . ((&columns * 139 + 139) / 279)
 tabnext 1

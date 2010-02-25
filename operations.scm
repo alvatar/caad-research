@@ -80,8 +80,8 @@
             subgraph))
        ((eqv? args 'global)
         (add-wall graph
-                  (make-point (exact->inexact (random-integer 200)) 280.0)
-                  (make-point (exact->inexact (random-integer 200)) 380.0)
+                  (point-from-relative-in-segment (make-point 220.0 100.0) (make-point 160.0 330.0) 0.5)
+                  (point-from-relative-in-segment (make-point 120.0 100.0) (make-point 160.0 330.0) 0.2)
                   new-uuid))))))
 
 ;; Expand
