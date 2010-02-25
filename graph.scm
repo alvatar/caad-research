@@ -68,16 +68,14 @@
 ;; Modifiers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (add-wall graph point-a point-b)
+(define (add-wall graph point-a point-b uuid)
   (cons (car graph)
         (append (cdr graph)
-                (list `(wall (@ (uid (make-uuid)))
+                (list `(wall (@ (uid ,uuid))
                          (pt (@ (y ,(number->string (point-coord 'y point-a)))
                                 (x ,(number->string (point-coord 'x point-a)))))
                          (pt (@ (y ,(number->string (point-coord 'y point-b)))
-                                (x ,(number->string (point-coord 'x point-b)))))
-                         (window (@ (to "0.4") (from "0.2")))
-                         (window (@ (to "0.7") (from "0.6"))))))))
+                                (x ,(number->string (point-coord 'x point-b))))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Points

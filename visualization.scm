@@ -24,10 +24,9 @@
     ((graph #f)
      (control-state
        (lambda (return)
-         (let*
-           ((cairo-surface (SDL::set-video-mode maxx maxy 0 (+ SDL::hwsurface
-                                                               SDL::hwpalette
-                                                               SDL::doublebuf)))
+         (let* ((cairo-surface (SDL::set-video-mode maxx maxy 0 (+ SDL::hwsurface
+                                                                   SDL::hwpalette
+                                                                   SDL::doublebuf)))
             (image-surface (cairo-image-surface-create-for-data
                              (SDL::surface-pixels cairo-surface)
                              CAIRO_FORMAT_RGB24
@@ -43,15 +42,14 @@
          (let loop ()
            (SDL::delay 4)
            ;(display "LOOP\n")
-           (let
-             ((event (SDL::event-exit)))
+           (let ((event (SDL::event-exit)))
              (cond
-               ((= event 27) ; 27 = escape TODO!
-                (begin 
-                  (SDL::exit)
-                  (exit 0)))
-               ((= event 32) ; 32 = space TODO!
-                (return))))
+              ((= event 27) ; 27 = escape TODO!
+               (begin 
+                 (SDL::exit)
+                 (exit 0)))
+              ((= event 32) ; 32 = space TODO!
+               (return))))
 
            (cairo-set-source-rgba cairo 1.0 1.0 1.0 1.0)
            (cairo-rectangle cairo 0.0 0.0 (* maxx 1.0) (* maxy 1.0))
@@ -74,8 +72,7 @@
 
 (define (visualize-graph-list graph-list)
   (for-each
-    (lambda
-      (graph)
+    (lambda (graph)
       (visualize-graph graph))
     graph-list))
 
