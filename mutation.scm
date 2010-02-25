@@ -1,7 +1,7 @@
 (import graph)
-(import graph-operations)
+(import operations)
 (import context)
-(import constraints)
+(import validators)
 
 (define (make-graph-mutations graph constraints)
   (list ((make-operation/context-set) graph)))
@@ -10,4 +10,8 @@
 ;;
 (define (make-operation/context-set)
   (lambda (graph)
-    (apply-operation op-partition biggest-room graph)))
+    (apply-operation
+      op-partition
+      all-valid
+      biggest-room
+      graph)))

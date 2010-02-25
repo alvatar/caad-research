@@ -31,9 +31,16 @@
 
 ;; Apply operation to a graph and all contexts matching
 ;;
-(define (apply-operation operation context-builder graph)
-  (operation 'prepare)
-  (operation 'global (apply-operation-to-context operation context-builder graph)))
+(define (apply-operation operation operation-validator context-builder graph)
+  (let ((new-graph ((lambda () ; Execute this to bind to an operation only if is valid
+                     (let do-until-valid ()
+                       (operation 'prepare)
+                       (if (operation-validator (operation 'local graph (context-builder graph)))
+                           (apply-operation-to-context operation context-builder graph)
+                           (do-until-valid)))))))
+    (if (equal? new-graph graph) ; Only if the graph was modified
+        graph
+        (operation 'global new-graph))))
 
 ;; Identity
 ;;

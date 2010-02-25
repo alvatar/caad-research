@@ -4,7 +4,7 @@
 (import visualization)
 (import mutation)
 (import constraints)
-(import filtering)
+(import filters)
 (import ordering)
 
 (define (main)
