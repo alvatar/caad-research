@@ -22,7 +22,7 @@
             distribution, which means that probabilities that 2 elements share the same
             ID are near zero.
             -->
-            <wall uid="2387058723">
+            <wall uid="DB7F49A3-BBF6-40F3-95A1-038CCACE1D88">
                 <pt x="150.0" y="50.0"/>
                 <pt x="150.0" y="200.0"/>
                 <!--
@@ -39,7 +39,7 @@
                 <window from="0.6" to="0.7"/>
             </wall>
 
-            <wall uid="5493820876">
+            <wall uid="B06528DA-C0B9-4583-A7AF-8A3E788DB6EF">
                 <pt x="150.0" y="200.0"/>
                 <pt x="250.0" y="200.0"/>
                 <!--
@@ -49,24 +49,24 @@
                 <door from="0.5" to="0.7"/>
             </wall>
 
-            <pilar uid="692034802">
+            <pilar uid="7F23F0B9-7797-4672-AD65-FC8352F92A24">
                 <center x="5.0" y="5.0"/>
                 <dim a="0.3" b="0.45"/>
             </pilar>
 
             <room label="salon">
-                <wall uid="2387058723"/>
-                <wall uid="5493820876"/>
-                <wall uid="5394501263"/>
-                <wall uid="0034923049"/>
+                <wall uid="DB7F49A3-BBF6-40F3-95A1-038CCACE1D88"/>
+                <wall uid="B06528DA-C0B9-4583-A7AF-8A3E788DB6EF"/>
+                <wall uid="7F23F0B9-7797-4672-AD65-FC8352F92A24"/>
+                <wall uid="CA106583-D604-4012-BA9D-DD7BFE704ACB"/>
             </room>
 
-            <wall uid="9587058723">
+            <wall uid="">
                 <pt x="250.0" y="200.0"/>
                 <pt x="250.0" y="100.0"/>
             </wall>
 
-            <wall uid="5387555723">
+            <wall uid="CA106583-D604-4012-BA9D-DD7BFE704ACB">
                 <pt x="250.0" y="100.0"/>
                 <pt x="150.0" y="50.0"/>
                 <window from="0.4" to="0.7"/>
@@ -78,7 +78,7 @@
             door is considered.
             -->
             <entry doorNumber="0">
-                <wall uid="5493820876"/>
+                <wall uid="B06528DA-C0B9-4583-A7AF-8A3E788DB6EF"/>
             </entry>
 
             <pipe x="10.0" y="8.0"/>

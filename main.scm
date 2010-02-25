@@ -8,6 +8,7 @@
 (import ordering)
 
 (define (main)
+  (random-source-randomize! default-random-source) ; Randomizes seed for UUID generation
   (visualize-graph '())
   (let loop
     ((archgraph-list (list (generate-graph-from-xml (input)))))

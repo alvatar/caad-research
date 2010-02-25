@@ -9,7 +9,5 @@
 ;; All the logic of which operations should be performed stems from here
 ;;
 (define (make-operation/context-set)
-  (lambda
-    (graph)
-      (apply-operation op-partition biggest-room graph)))
-
+  (lambda (graph)
+    (apply-operation op-partition biggest-room graph)))

@@ -2,15 +2,17 @@
 ;;; Graph definition and low-level operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import web/parse/ssax-sxml/sxml-tools/sxpath)
 (import (std string/xml-to-sxml))
+(import (std misc/uuid))
+(import web/parse/ssax-sxml/sxml-tools/sxpath)
 
 ;; Generate graph from XML
 ;;
 (define (generate-graph-from-xml xml-string)
-  (let*
-    ((sxml (xml-string->sxml xml-string))
-     (architecture (car ((sxpath '(ensanche floorPlan architecture)) sxml))))
+  (let* ((sxml (xml-string->sxml xml-string))
+         (architecture
+          (car
+           ((sxpath '(ensanche floorPlan architecture)) sxml))))
     architecture))
 
 ;; Print graph
@@ -69,7 +71,7 @@
 (define (add-wall graph point-a point-b)
   (cons (car graph)
         (append (cdr graph)
-                (list `(wall (@ (uid "2387058723"))
+                (list `(wall (@ (uid (make-uuid)))
                          (pt (@ (y ,(number->string (point-coord 'y point-a)))
                                 (x ,(number->string (point-coord 'x point-a)))))
                          (pt (@ (y ,(number->string (point-coord 'y point-b)))
@@ -85,10 +87,9 @@
 ;;
 (define (point-coord coordinate point)
   (define (find-coordinate point)
-    (if
-      (equal? (caar point) coordinate)
-      (string->number (cadar point))
-      (find-coordinate (cdr point))))
+    (if (equal? (caar point) coordinate)
+        (string->number (cadar point))
+        (find-coordinate (cdr point))))
   (find-coordinate point))
 
 ;; Get point n from point list
@@ -100,10 +101,9 @@
 ;;
 (define (make-point x y)
   (if (or (null? x) (null? y))
-    (display "Error making point\n")
-    (list
-      (list 'y (number->string y))
-      (list 'x (number->string x)))))
+      (display "Error making point\n")
+      (list (list 'y (number->string y))
+            (list 'x (number->string x)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Wall
@@ -132,19 +132,16 @@
 ;; Calculate wall element (door, wall...) points
 ;;
 (define (wall-element-points element wall)
-  (let
-    ((from (string->number (car ((sxpath '(@ from *text*)) element))))
-     (to (string->number (car ((sxpath '(@ to *text*)) element)))))
-    (if
-      (= (length (wall-points-structured wall)) 2)
-      (let*
-        ((Ax (point-coord 'x (wall-point-n 1 wall)))
-         (Ay (point-coord 'y (wall-point-n 1 wall)))
-         (ABx (- (point-coord 'x (wall-point-n 2 wall)) Ax))
-         (ABy (- (point-coord 'y (wall-point-n 2 wall)) Ay)))
-        (list `(,(+ Ax (* ABx from)) ,(+ Ay (* ABy from)))
-              `(,(+ Ax (* ABx to)) ,(+ Ay (* ABy to)))))
-        (display "Error - wall element has more than 2 relative points\n"))))
+  (let ((from (string->number (car ((sxpath '(@ from *text*)) element))))
+        (to (string->number (car ((sxpath '(@ to *text*)) element)))))
+    (if (= (length (wall-points-structured wall)) 2)
+        (let* ((Ax (point-coord 'x (wall-point-n 1 wall)))
+               (Ay (point-coord 'y (wall-point-n 1 wall)))
+               (ABx (- (point-coord 'x (wall-point-n 2 wall)) Ax))
+               (ABy (- (point-coord 'y (wall-point-n 2 wall)) Ay)))
+          (list `(,(+ Ax (* ABx from)) ,(+ Ay (* ABy from)))
+                `(,(+ Ax (* ABx to)) ,(+ Ay (* ABy to)))))
+          (display "Error - wall element has more than 2 relative points\n"))))
       ; Else:
         ; 1. Precalcular lista de puntos relativos
         ; 2. Hacer lista de puntos relativos menores que puerta
