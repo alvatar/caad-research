@@ -21,7 +21,6 @@
                   (operation 'local graph graph-elem)
                   (if (list? graph-elem)
                       (begin (do-in-context graph-elem)
-                           ;(display graph-tail)(newline)
                            graph-elem)
                       graph-elem))))
         graph-tail)))
@@ -79,15 +78,14 @@
                           (list `(wall (@ (uid ,new-uuid))))))
             subgraph))
        ((eqv? args 'global)
+       (print-graph graph)
         (add-wall graph
-                  (point-from-relative-in-segment
-                   (make-point 220.0 100.0)
-                   (make-point 160.0 330.0)
-                   0.5)
-                  (point-from-relative-in-segment
-                   (make-point 120.0 100.0)
-                   (make-point 160.0 330.0)
-                   0.2)
+                  (point-from-relative-in-wall
+                   (room-wall (car (rooms graph)) graph 0)
+                   (random-real))
+                  (point-from-relative-in-wall
+                   (room-wall (car (rooms graph)) graph 2)
+                   (random-real))
                   new-uuid))))))
 
 ;; Expand

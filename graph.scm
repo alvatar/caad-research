@@ -120,6 +120,11 @@
 ;; Wall
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Get all walls in the graph
+;;
+(define (walls graph)
+  ((sxpath '(wall)) graph))
+
 ;; Get all wall points
 ;;
 (define (wall-points wall)
@@ -140,6 +145,11 @@
 (define (wall-doors wall)
   ((sxpath '(door)) wall))
 
+;; Get wall's uid
+;;
+(define (wall-uid wall)
+  (cdar ((sxpath '(@ uid)) wall)))
+
 ;; Get wall elements' relative points
 ;;
 (define (wall-element-relative-points label element)
@@ -157,23 +167,38 @@
                (ABy (- (point-coord 'y (wall-point-n 2 wall)) Ay)))
           (list `(,(+ Ax (* ABx from)) ,(+ Ay (* ABy from)))
                 `(,(+ Ax (* ABx to)) ,(+ Ay (* ABy to)))))
-          (raise "Error - wall element has more than 2 relative points\n"))))
+        (raise "Error - wall element has more than 2 relative points\n"))))
       ; Else:
         ; 1. Precalcular lista de puntos relativos
         ; 2. Hacer lista de puntos relativos menores que puerta
         ; 3. Dibujar trayectoria de puerta completa de los segmentos menores
         ; 4. Dibujar el porcentaje restante sobre el siguiente segmento
+
+;; Calculate point given wall and percentage
+;;
+(define (point-from-relative-in-wall wall percentage)
+  (point-from-relative-in-segment
+   (wall-point-n 1 wall)
+   (wall-point-n 2 wall)
+   percentage))
  
 ;; Make list of walls from uids
 ;;
 (define (make-wall-list-from-uids uids graph)
   '()) ; TODO
 
-
-;; Make list of walls from uids
+;; Find the wall with that specific uid
 ;;
-(define (make-wall-list-from-uids uids graph)
-  '()) ; TODO
+(define (find-wall-with-uid uid graph)
+  (define (iter wall-list-tail)
+    (cond
+     ((not (pair? wall-list-tail))
+      (raise "Wall with such UID not found"))
+     ((equal? (wall-uid (car wall-list-tail)) uid)
+      (car wall-list-tail))
+     (else
+      (iter (cdr wall-list-tail)))))
+  (iter (walls graph)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Room
@@ -183,6 +208,11 @@
 ;;
 (define (rooms graph)
   ((sxpath '(room)) graph))
+
+;; Get walls in the room
+;;
+(define (room-wall room graph n)
+  (find-wall-with-uid (cdr (list-ref ((sxpath '(wall @ uid)) room) n)) graph))
 
 ;; Calculate room area
 ;;

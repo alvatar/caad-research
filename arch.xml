@@ -61,7 +61,7 @@
                 <wall uid="CA106583-D604-4012-BA9D-DD7BFE704ACB"/>
             </room>
 
-            <wall uid="">
+            <wall uid="7F23F0B9-7797-4672-AD65-FC8352F92A24">
                 <pt x="250.0" y="200.0"/>
                 <pt x="250.0" y="100.0"/>
             </wall>
