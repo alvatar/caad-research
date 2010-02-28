@@ -1,2 +1,2 @@
-(define constraints
-  '())
+(define (unconstrained input)
+  input)

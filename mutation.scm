@@ -2,8 +2,9 @@
 (import operations)
 (import context)
 (import validators)
+(import constraints)
 
-(define (make-graph-mutations graph constraints)
+(define (make-graph-mutations graph)
   (list ((make-operation/context-set) graph)))
 
 ;; All the logic of which operations should be performed stems from here
@@ -12,6 +13,7 @@
   (lambda (graph)
     (apply-operation
       op-partition
-      all-valid
+      graph
       biggest-room
-      graph)))
+      all-valid
+      unconstrained)))

@@ -21,9 +21,7 @@
     (loop
       (order-graph-list
         (filter-graph-list
-          (make-graph-mutations (first-or-element archgraph-list)
-                                constraints)
-          constraints))))
+          (make-graph-mutations (first-or-element archgraph-list))))))
 
   (representation-cleanup)
 
