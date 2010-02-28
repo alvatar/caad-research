@@ -5,7 +5,6 @@
 (import (std srfi/1))
 (import (std misc/uuid))
 (import graph)
-(import utilities)
 
 ;; Apply operation to context
 ;;
@@ -17,7 +16,7 @@
      (map
       (lambda (elem)
         (if (pair? elem)
-            (call-with-values (lambda () (break-deep matches-context? elem))
+            (call-with-values (lambda () (break matches-context? elem))
                               (lambda (a b)
                                 (if (equal? b '()) ; If nothing found (b is null)
                                     (do-in-context elem)
