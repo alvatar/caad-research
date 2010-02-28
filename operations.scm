@@ -19,12 +19,12 @@
         (if (pair? elem)
             (call-with-values (lambda () (break-deep matches-context? elem))
                               (lambda (a b)
-                                (if (equal? b '())
+                                (if (equal? b '()) ; If nothing found (b is null)
                                     (do-in-context elem)
-                                    new-subgraph)))
+                                    (append a new-subgraph (cdr b)))))
             elem))
       graph-tail)))
-  (do-in-context graph))
+  (car (do-in-context (list graph)))) ; Iteration must start at top level
 
 ;; Apply operation to a graph and all contexts matching
 ;;
@@ -48,6 +48,9 @@
       (if (equal? lst '()) #t #f))
     graph))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; General operations
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Identity
 ;;
@@ -65,30 +68,44 @@
    context-builder
    '()))
 
-;; Partition
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Topology modifications
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Partition a room
 ;;
 (define (op-partition graph context-builder constraints)
   (let ((new-uuid (make-uuid))
         (subgraph (context-builder graph)))
-        (add-wall
-          (apply-operation-in-context
-            graph
-            context-builder
-            (cons (car subgraph)
-                  (append (cdr subgraph)
-                          (list `(wall (@ (uid ,new-uuid)))))))
-          (point-from-relative-in-wall
-            (room-wall (car (rooms graph)) graph 0)
-            (random-real))
-          (point-from-relative-in-wall
-            (room-wall (car (rooms graph)) graph 2)
-            (random-real))
-          new-uuid)))
+    (add-wall
+      (apply-operation-in-context
+        graph
+        context-builder
+        (list
+          (cons (car subgraph)
+                (append (cdr subgraph)
+                        (list `(wall (@ (uid ,new-uuid))))))))
+      (point-from-relative-in-wall
+        (room-wall (car (rooms graph)) graph 0)
+        (constraints (random-real)))
+      (point-from-relative-in-wall
+        (room-wall (car (rooms graph)) graph 2)
+        (constraints (random-real)))
+      new-uuid)))
+
+;; Merge two rooms
+;;
+(define (op-merge graph context-builder constraints)
+  '())
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Boundary modifications
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Expand
 ;;
-; (define (expand graph context-builder)
-  ; (define (partition-impl subgraph)
-    ; subgraph)
-  ; (apply-operation-to-context expand-impl (context-builder graph)))
-
+(define (op-expand graph context-builder constraints)
+  (apply-operation-in-context
+   graph
+   context-builder
+   '()))

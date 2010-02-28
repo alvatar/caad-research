@@ -20,11 +20,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F3> :vimgrep // **
-noremap <F9> :call RunProgram()
-noremap <F10> :call CleanProgram()
-noremap <F11> :call Compile(1)
 nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
+noremap <F11> :call Compile(1)
+noremap <F10> :call CleanProgram()
+noremap <F9> :call RunProgram()
+nnoremap <F3> :vimgrep // **
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -151,9 +151,10 @@ badd +6 /data/projects/ensanche-core/input.scm
 badd +92 /data/projects/ensanche-core/visualization.scm
 badd +14 /data/projects/ensanche-core/mutation.scm
 badd +24 /data/projects/ensanche-core/context.scm
-badd +89 /data/projects/ensanche-core/operations.scm
+badd +13 /data/projects/ensanche-core/operations.scm
 badd +1 /data/projects/ensanche-core/constraints.scm
-badd +0 /data/projects/ensanche-core/filters.scm
+badd +8 /data/projects/ensanche-core/filters.scm
+badd +24 /data/projects/ensanche-core/utilities.scm
 silent! argdel *
 edit /data/projects/ensanche-core/operations.scm
 set splitbelow splitright
@@ -265,15 +266,15 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 38 - ((27 * winheight(0) + 46) / 92)
+let s:l = 24 - ((23 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-38
-normal! 012l
+24
+normal! 036l
 wincmd w
 argglobal
-edit /data/projects/ensanche-core/filters.scm
+edit /data/projects/ensanche-core/constraints.scm
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
@@ -371,11 +372,11 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 8 - ((7 * winheight(0) + 46) / 92)
+let s:l = 1 - ((0 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-8
+1
 normal! 0
 lcd /data/projects/ensanche-core/__deploy
 wincmd w

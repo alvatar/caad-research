@@ -15,7 +15,7 @@
   (let recur ((lis lis))
     (if (null-list? lis) (values '() '())
       (let ((x (car lis)))
-        (if (pred lis)
+        (if (pred (car lis))
           (receive (prefix suffix) (recur (cdr lis))
                    (values (cons x prefix) suffix))
           (values '() lis))))))

@@ -15,5 +15,5 @@
       op-partition
       graph
       biggest-room
-      all-valid
-      unconstrained)))
+      unconstrained
+      all-valid)))
