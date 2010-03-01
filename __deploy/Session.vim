@@ -20,11 +20,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
-noremap <F11> :call Compile(1)
-noremap <F10> :call CleanProgram()
-noremap <F9> :call RunProgram()
 nnoremap <F3> :vimgrep // **
+noremap <F9> :call RunProgram()
+noremap <F10> :call CleanProgram()
+noremap <F11> :call Compile(1)
+nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -95,7 +95,8 @@ let Tlist_Max_Submenu_Items =  20
 let Tlist_Auto_Update =  1 
 let CTags_CScope_Dir_List = "/data/projects/ensanche-core/.."
 let Tlist_WinWidth =  30 
-let ScreenShellTerminal = ""
+let ScreenShellWindow = "screenshell"
+let ScreenShellTerminal = "urxvt"
 let ScreenShellInitialFocus = "vim"
 let ScreenShellTmuxInitArgs = ""
 let Tlist_Close_On_Select =  1 
@@ -119,9 +120,11 @@ let EnhCommentifyCallbackExists = "Yes"
 let TagList_title = "__Tag_List__"
 let Tlist_Use_Horiz_Window =  0 
 let ScreenShellExternal =  0 
+let ScreenShellSession = "tmpvjTRA9U0"
 let ScreenImpl = "GnuScreen"
 let EnhCommentifyAlignRight = "no"
 let EnhCommentifyMultiPartBlocks = "yes"
+let ScreenShellOrientation = "horizontal"
 let Tlist_Exit_OnlyWindow =  1 
 let NetrwTopLvlMenu = "Netrw."
 let Tlist_Display_Prototype =  0 
@@ -146,15 +149,15 @@ endif
 set shortmess=aoO
 badd +24 /data/projects/ensanche-core/main.scm
 badd +52 /data/projects/ensanche-core/arch.xml
-badd +105 /data/projects/ensanche-core/graph.scm
+badd +216 /data/projects/ensanche-core/graph.scm
 badd +6 /data/projects/ensanche-core/input.scm
 badd +92 /data/projects/ensanche-core/visualization.scm
 badd +14 /data/projects/ensanche-core/mutation.scm
 badd +24 /data/projects/ensanche-core/context.scm
-badd +13 /data/projects/ensanche-core/operations.scm
+badd +74 /data/projects/ensanche-core/operations.scm
 badd +1 /data/projects/ensanche-core/constraints.scm
 badd +8 /data/projects/ensanche-core/filters.scm
-badd +24 /data/projects/ensanche-core/utilities.scm
+badd +14 /data/projects/ensanche-core/utilities.scm
 silent! argdel *
 edit /data/projects/ensanche-core/operations.scm
 set splitbelow splitright
@@ -266,15 +269,15 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 24 - ((23 * winheight(0) + 46) / 92)
+let s:l = 76 - ((75 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-24
-normal! 036l
+76
+normal! 046l
 wincmd w
 argglobal
-edit /data/projects/ensanche-core/constraints.scm
+edit /data/projects/ensanche-core/utilities.scm
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
@@ -372,13 +375,12 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 1 - ((0 * winheight(0) + 46) / 92)
+let s:l = 14 - ((13 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-1
+14
 normal! 0
-lcd /data/projects/ensanche-core/__deploy
 wincmd w
 2wincmd w
 exe 'vert 1resize ' . ((&columns * 139 + 139) / 279)

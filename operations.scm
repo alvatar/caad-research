@@ -5,6 +5,7 @@
 (import (std srfi/1))
 (import (std misc/uuid))
 (import graph)
+(import utilities)
 
 ;; Apply operation to context
 ;;
@@ -65,10 +66,6 @@
 ;; Split a room
 ;;
 (define (op-split graph context-selector constraints)
-  (room-span graph
-             (context-selector graph) 
-             (wall-uid (room-wall graph (car (rooms graph)) 0))
-             (wall-uid (room-wall graph (car (rooms graph)) 2)))
   (let* ((new-uuid (make-uuid))
          (subgraph (context-selector graph))
          (first-wall (room-wall graph (car (rooms graph)) 0)) ; TODO: First wall selected with constraint
@@ -89,10 +86,10 @@
             (create-wall
               (point-from-relative-in-wall
                 first-wall
-                (constraints (random-real))) ; With constraints (orthogonality and elements)
+                (constraints (random-real))) ; TODO: With constraints (orthogonality and elements)
               (point-from-relative-in-wall
                 second-wall
-                (constraints (random-real))) ; With constraints (orthogonality and elements)
+                (constraints (random-real))) ; TODO: With constraints (orthogonality and elements)
               new-uuid))))))
 
 ;; Merge two rooms

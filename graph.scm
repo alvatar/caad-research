@@ -6,6 +6,7 @@
 (import (std string/xml-to-sxml))
 (import (std misc/uuid))
 (import web/parse/ssax-sxml/sxml-tools/sxpath)
+(import utilities)
 
 ;; Generate graph from XML
 ;;
@@ -221,10 +222,13 @@
   (cddr room))
 
 ;; Span, splits in two lists from where a wall was found
+;; Warning! This assumes that rooms contain topologically connected walls
 ;;
 (define (room-span graph room first-wall-uid second-wall-uid)
-  (let ((first-wall (find-wall-with-uid graph first-wall-uid)))
-    (values '() '())))
+  (span (lambda (wall) #t)
+        (rotate-until
+          (lambda (elem) (if (equal? first-wall-uid (wall-uid elem)) #t #f))
+          (room-walls room))))
 
 ;; Calculate room area
 ;;
