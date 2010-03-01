@@ -12,7 +12,7 @@
 (define (make-operation/context-set)
   (lambda (graph)
     (apply-operation
-      op-partition
+      op-split
       graph
       biggest-room
       unconstrained
