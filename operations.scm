@@ -65,23 +65,35 @@
 ;; Split a room
 ;;
 (define (op-split graph context-selector constraints)
-  (let ((new-uuid (make-uuid))
-        (subgraph (context-selector graph)))
-    (add-wall
-      (apply-operation-in-context
-        graph
-        context-selector
-        (list
-          (cons (car subgraph)
-                (append (cdr subgraph)
-                        (list `(wall (@ (uid ,new-uuid))))))))
-      (point-from-relative-in-wall
-        (room-wall (car (rooms graph)) graph 0)
-        (constraints (random-real)))
-      (point-from-relative-in-wall
-        (room-wall (car (rooms graph)) graph 2)
-        (constraints (random-real)))
-      new-uuid)))
+  (room-span graph
+             (context-selector graph) 
+             (wall-uid (room-wall graph (car (rooms graph)) 0))
+             (wall-uid (room-wall graph (car (rooms graph)) 2)))
+  (let* ((new-uuid (make-uuid))
+         (subgraph (context-selector graph))
+         (first-wall (room-wall graph (car (rooms graph)) 0)) ; TODO: First wall selected with constraint
+         (second-wall (room-wall graph (car (rooms graph)) 2))) ; TODO: Second wall selected with constraint, taking first
+    ; TODO: Check context somehow and redirect to correct splitting algorithm
+    (receive (fore aft)
+             (room-span graph subgraph (wall-uid first-wall) (wall-uid second-wall))
+        (apply-operation-in-context
+          graph
+          context-selector
+          (list
+            (cons (car subgraph) ; TODO: fore + new wall
+                  (append (cdr subgraph)
+                          (list `(wall (@ (uid ,new-uuid))))))
+            (cons (car subgraph) ; TODO: after + new wall
+                  (append (cdr subgraph)
+                          (list `(wall (@ (uid ,new-uuid))))))
+            (create-wall
+              (point-from-relative-in-wall
+                first-wall
+                (constraints (random-real))) ; With constraints (orthogonality and elements)
+              (point-from-relative-in-wall
+                second-wall
+                (constraints (random-real))) ; With constraints (orthogonality and elements)
+              new-uuid))))))
 
 ;; Merge two rooms
 ;;
@@ -156,7 +168,7 @@
 
 ;; Fix everything
 ;;
-(define (op-fix-malformed graph context-selector constraints)
+(define (op-fix-everything graph context-selector constraints)
   (apply-operation-in-context
    graph
    context-selector

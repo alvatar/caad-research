@@ -2,6 +2,7 @@
 ;;; Graph definition and low-level operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(import (std srfi/1))
 (import (std string/xml-to-sxml))
 (import (std misc/uuid))
 (import web/parse/ssax-sxml/sxml-tools/sxpath)
@@ -45,41 +46,26 @@
            thunk))))
   (pp-code-eval sxml))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; General
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;-------------------------------------------------------------------------------
+; General
+;-------------------------------------------------------------------------------
 
 ;; Get everything inside the architecture tag as a list
 ;;
 (define (graph-parts graph)
   ;((sxpath '(*)) graph))
-  (if
-    ;(and (not (null? graph)) (list? graph))
-    (pair? graph)
-    (cdr graph)
-    '()))
+  (if (null-list? graph)
+      '()
+    (cdr graph)))
 
 ;; Make uids list TODO
 ;;
 (define (make-uid-list subgraph)
   ((sxpath '(wall @ uid *text*)) subgraph))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Modifiers
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(define (add-wall graph point-a point-b uuid)
-  (cons (car graph)
-        (append (cdr graph)
-                (list `(wall (@ (uid ,uuid))
-                         (pt (@ (y ,(number->string (point-coord 'y point-a)))
-                                (x ,(number->string (point-coord 'x point-a)))))
-                         (pt (@ (y ,(number->string (point-coord 'y point-b)))
-                                (x ,(number->string (point-coord 'x point-b))))))))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Points
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;-------------------------------------------------------------------------------
+; Points
+;-------------------------------------------------------------------------------
 
 ;; Get coordinate from point
 ;;
@@ -106,24 +92,70 @@
 ;; Calculate absolute point given segment and percentage
 ;;
 (define (point-from-relative-in-segment point-a point-b percentage)
-  (if (and (pair? point-a) (pair? point-b))
-      (let* ((Ax (point-coord 'x point-a))
-             (Ay (point-coord 'y point-a))
-             (ABx (- (point-coord 'x point-b) Ax))
-             (ABy (- (point-coord 'y point-b) Ay)))
-        (make-point
-          (+ Ax (* ABx percentage))
-          (+ Ay (* ABy percentage))))
-      (raise "Wrong points passed")))
+  (if (or (null-list? point-a) (null-list? point-b))
+    (raise "Wrong points passed")
+    (let* ((Ax (point-coord 'x point-a))
+           (Ay (point-coord 'y point-a))
+           (ABx (- (point-coord 'x point-b) Ax))
+           (ABy (- (point-coord 'y point-b) Ay)))
+      (make-point
+        (+ Ax (* ABx percentage))
+        (+ Ay (* ABy percentage))))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Wall
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;-------------------------------------------------------------------------------
+; Wall
+;-------------------------------------------------------------------------------
+
+;; Create a wall
+;;
+(define (create-wall point-a point-b uuid)
+  `(wall (@ (uid ,uuid))
+         (pt (@ (y ,(number->string (point-coord 'y point-a)))
+                (x ,(number->string (point-coord 'x point-a)))))
+         (pt (@ (y ,(number->string (point-coord 'y point-b)))
+                (x ,(number->string (point-coord 'x point-b)))))))
 
 ;; Get all walls in the graph
 ;;
 (define (walls graph)
   ((sxpath '(wall)) graph))
+
+;; Get wall's uid
+;;
+(define (wall-uid wall)
+  (if (null-list? wall)
+      (raise "wall-uid: Wall is null")
+    (cdar ((sxpath '(@ uid)) wall))))
+
+;; Calculate point given wall and percentage
+;;
+(define (point-from-relative-in-wall wall percentage)
+  (point-from-relative-in-segment
+   (wall-point-n 1 wall)
+   (wall-point-n 2 wall)
+   percentage))
+ 
+;; Make list of walls from uids
+;;
+(define (make-wall-list-from-uids uids graph)
+  '()) ; TODO
+
+;; Find the wall with that specific uid
+;;
+(define (find-wall-with-uid graph uid)
+  (define (iter wall-list-tail)
+    (cond
+     ((null-list? wall-list-tail)
+      (raise "Wall with such UID not found"))
+     ((equal? (wall-uid (car wall-list-tail)) uid)
+      (car wall-list-tail))
+     (else
+      (iter (cdr wall-list-tail)))))
+  (iter (walls graph)))
+
+;-------------------------------------------------------------------------------
+; Wall elements
+;-------------------------------------------------------------------------------
 
 ;; Get all wall points
 ;;
@@ -144,11 +176,6 @@
 ;;
 (define (wall-doors wall)
   ((sxpath '(door)) wall))
-
-;; Get wall's uid
-;;
-(define (wall-uid wall)
-  (cdar ((sxpath '(@ uid)) wall)))
 
 ;; Get wall elements' relative points
 ;;
@@ -174,47 +201,33 @@
         ; 3. Dibujar trayectoria de puerta completa de los segmentos menores
         ; 4. Dibujar el porcentaje restante sobre el siguiente segmento
 
-;; Calculate point given wall and percentage
-;;
-(define (point-from-relative-in-wall wall percentage)
-  (point-from-relative-in-segment
-   (wall-point-n 1 wall)
-   (wall-point-n 2 wall)
-   percentage))
- 
-;; Make list of walls from uids
-;;
-(define (make-wall-list-from-uids uids graph)
-  '()) ; TODO
-
-;; Find the wall with that specific uid
-;;
-(define (find-wall-with-uid uid graph)
-  (define (iter wall-list-tail)
-    (cond
-     ((not (pair? wall-list-tail))
-      (raise "Wall with such UID not found"))
-     ((equal? (wall-uid (car wall-list-tail)) uid)
-      (car wall-list-tail))
-     (else
-      (iter (cdr wall-list-tail)))))
-  (iter (walls graph)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Room
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;-------------------------------------------------------------------------------
+; Room
+;-------------------------------------------------------------------------------
 
 ;; Get rooms in the graph
 ;;
 (define (rooms graph)
   ((sxpath '(room)) graph))
 
-;; Get walls in the room
+;; Get a wall in the room by index
 ;;
-(define (room-wall room graph n)
-  (find-wall-with-uid (cdr (list-ref ((sxpath '(wall @ uid)) room) n)) graph))
+(define (room-wall graph room n)
+  (find-wall-with-uid graph (cdr (list-ref ((sxpath '(wall @ uid)) room) n))))
+
+;; Get list of walls in the room
+;;
+(define (room-walls room)
+  (cddr room))
+
+;; Span, splits in two lists from where a wall was found
+;;
+(define (room-span graph room first-wall-uid second-wall-uid)
+  (let ((first-wall (find-wall-with-uid graph first-wall-uid)))
+    (values '() '())))
 
 ;; Calculate room area
 ;;
 (define (room-area room)
+  ;http://www.mathsisfun.com/geometry/area-irregular-polygons.html
   99.9) ; TODO
