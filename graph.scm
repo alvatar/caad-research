@@ -116,6 +116,20 @@
          (pt (@ (y ,(number->string (point-coord 'y point-b)))
                 (x ,(number->string (point-coord 'x point-b)))))))
 
+;; Create 2 walls splitting one in a point
+;;
+(define (create-splitted-wall wall split-point uuid1 uuid2)
+  `((wall (@ (uid ,uuid1))
+         (pt (@ (y ,(number->string (point-coord 'y (wall-point-n 1 wall))))
+                (x ,(number->string (point-coord 'x (wall-point-n 1 wall))))))
+         (pt (@ (y ,(number->string (point-coord 'y (point-from-relative-in-wall wall split-point))))
+                (x ,(number->string (point-coord 'x (point-from-relative-in-wall wall split-point)))))))
+   (wall (@ (uid ,uuid2))
+         (pt (@ (y ,(number->string (point-coord 'y (point-from-relative-in-wall wall split-point))))
+                (x ,(number->string (point-coord 'x (point-from-relative-in-wall wall split-point))))))
+         (pt (@ (y ,(number->string (point-coord 'y (wall-point-n 2 wall))))
+                (x ,(number->string (point-coord 'x (wall-point-n 2 wall)))))))))
+
 ;; Get all walls in the graph
 ;;
 (define (walls graph)
@@ -221,13 +235,14 @@
 (define (room-walls room)
   (cddr room))
 
-;; Span, splits in two lists from where a wall was found
+;; Break in two lists from where a wall was found
 ;; Warning! This assumes that rooms contain topologically connected walls
 ;;
-(define (room-span graph room first-wall-uid second-wall-uid)
-  (span (lambda (wall) #t)
-        (rotate-until
-          (lambda (elem) (if (equal? first-wall-uid (wall-uid elem)) #t #f))
+(define (room-break graph room first-wall-uid second-wall-uid)
+  ; TODO: check if walls are ordered
+  (break (lambda (wall) (equal? second-wall-uid (wall-uid wall)))
+        (rotate-until-first
+          (lambda (wall) (equal? first-wall-uid (wall-uid wall)))
           (room-walls room))))
 
 ;; Calculate room area

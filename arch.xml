@@ -54,7 +54,7 @@
                 <dim a="0.3" b="0.45"/>
             </pilar>
 
-            <room label="salon">
+            <room uid="salon">
                 <wall uid="DB7F49A3-BBF6-40F3-95A1-038CCACE1D88"/>
                 <wall uid="B06528DA-C0B9-4583-A7AF-8A3E788DB6EF"/>
                 <wall uid="7F23F0B9-7797-4672-AD65-FC8352F92A24"/>

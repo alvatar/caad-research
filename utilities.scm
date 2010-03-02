@@ -7,13 +7,17 @@
       (car list-or-element)
     (list-or-element)))
 
-;; Rotates the list until this element is the first one
-;; Warning! Can yield infinite loop. Improve
+;; Rotates the list until the first one satisfies the predicate
 ;;
-(define (rotate-until pred lis)
-  (define (iter lis-iter)
-    (let ((x (car lis-iter)))
-      (if (pred x)
-          lis-iter
-        (iter (cons (cdr lis-iter) x)))))
-  (iter lis))
+(define (rotate-until-first pred lis)
+  (define (iter lis-iter n)
+    (let ((x (car lis-iter))
+          (l (length lis)))
+      (cond
+       ((= n l)
+        (raise "Full list rotation done without satisfying predicate"))
+       ((pred x)
+          lis-iter)
+       (else
+        (iter (append (cdr lis-iter) (list x)) (+ n 1))))))
+  (iter lis 0))

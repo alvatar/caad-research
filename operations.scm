@@ -66,31 +66,48 @@
 ;; Split a room
 ;;
 (define (op-split graph context-selector constraints)
-  (let* ((new-uuid (make-uuid))
-         (subgraph (context-selector graph))
-         (first-wall (room-wall graph (car (rooms graph)) 0)) ; TODO: First wall selected with constraint
-         (second-wall (room-wall graph (car (rooms graph)) 2))) ; TODO: Second wall selected with constraint, taking first
+  (let* ((subgraph (context-selector graph))
+         (first-wall (room-wall graph (context-selector graph) 0)) ; TODO: First wall selected with constraint
+         (second-wall (room-wall graph (context-selector graph) 2)) ; TODO: Second wall selected with constraint, taking first
+         (first-split-point (constraints (random-real)))
+         (second-split-point (constraints (random-real)))
+         (new-wall-uid (make-uuid))
+         (first-wall-uid-1-half (make-uuid))
+         (first-wall-uid-2-half (make-uuid))
+         (second-wall-uid-1-half (make-uuid))
+         (second-wall-uid-2-half (make-uuid)))
     ; TODO: Check context somehow and redirect to correct splitting algorithm
     (receive (fore aft)
-             (room-span graph subgraph (wall-uid first-wall) (wall-uid second-wall))
-        (apply-operation-in-context
-          graph
-          context-selector
+             (room-break graph subgraph (wall-uid first-wall) (wall-uid second-wall))
+      (apply-operation-in-context
+        graph
+        context-selector
+        (append
           (list
-            (cons (car subgraph) ; TODO: fore + new wall
-                  (append (cdr subgraph)
-                          (list `(wall (@ (uid ,new-uuid))))))
-            (cons (car subgraph) ; TODO: after + new wall
-                  (append (cdr subgraph)
-                          (list `(wall (@ (uid ,new-uuid))))))
+            (append `(room (@ (uid ,(make-uuid))))
+                    (cdr fore)
+                    (list `(wall (@ (uid ,first-wall-uid-1-half))))
+                    (list `(wall (@ (uid ,new-wall-uid))))
+                    (list `(wall (@ (uid ,second-wall-uid-1-half)))))
+            (append `(room (@ (uid ,(make-uuid))))
+                    (list `(wall (@ (uid ,first-wall-uid-2-half))))
+                    (list `(wall (@ (uid ,new-wall-uid))))
+                    (list `(wall (@ (uid ,second-wall-uid-2-half))))
+                    (cdr aft))
             (create-wall
-              (point-from-relative-in-wall
-                first-wall
-                (constraints (random-real))) ; TODO: With constraints (orthogonality and elements)
-              (point-from-relative-in-wall
-                second-wall
-                (constraints (random-real))) ; TODO: With constraints (orthogonality and elements)
-              new-uuid))))))
+              (point-from-relative-in-wall first-wall first-split-point) ; TODO: With constraints (orthogonality and elements)
+              (point-from-relative-in-wall second-wall second-split-point) ; TODO: With constraints (orthogonality and elements)
+              new-wall-uid))
+          (create-splitted-wall
+            (find-wall-with-uid graph (wall-uid (car fore)))
+            first-split-point
+            first-wall-uid-1-half
+            first-wall-uid-2-half)
+          (create-splitted-wall
+            (find-wall-with-uid graph (wall-uid (car aft)))
+            second-split-point
+            second-wall-uid-1-half
+            second-wall-uid-2-half)))))) ; TODO: añadir puerta
 
 ;; Merge two rooms
 ;;
@@ -162,6 +179,14 @@
     (lambda (lst)
       (if (equal? lst '()) #t #f))
     graph))
+
+;; Fix room topology
+;;
+(define (op-fix-room-topology graph context-selector constraints)
+  (apply-operation-in-context
+   graph
+   context-selector
+   '()))
 
 ;; Fix everything
 ;;
