@@ -56,7 +56,7 @@
 (define (graph-parts graph)
   ;((sxpath '(*)) graph))
   (if (null-list? graph)
-      '()
+      (raise "You sent me a null graph. What should I do with this?")
     (cdr graph)))
 
 ;; Make uids list TODO
@@ -72,9 +72,14 @@
 ;;
 (define (point-coord coordinate point)
   (define (find-coordinate point)
-    (if (equal? (caar point) coordinate)
-        (string->number (cadar point))
-        (find-coordinate (cdr point))))
+    (cond
+     ((null-list? point)
+      ;(raise "You sent me a null point. Seriously, what should I do with this?? Boy, I'm having a bad day thanks to you."))
+      69) ; TODO!!!!!!!!!!!!!
+     ((equal? (caar point) coordinate)
+      (string->number (cadar point)))
+     (else
+      (find-coordinate (cdr point)))))
   (find-coordinate point))
 
 ;; Get point n from point list
@@ -86,7 +91,7 @@
 ;;
 (define (make-point x y)
   (if (or (null? x) (null? y))
-      (raise "Error making point\n")
+      (raise "Error making point: null arguments")
       (list (list 'y (number->string y))
             (list 'x (number->string x)))))
 
@@ -199,7 +204,7 @@
 
 ;; Calculate wall element (door, wall...) points
 ;;
-(define (wall-element-points element wall)
+(define (wall-element-points-raw element wall)
   (let ((from (wall-element-relative-points 'from element))
         (to (wall-element-relative-points 'to element)))
     (if (= (length (wall-points wall)) 2)
@@ -230,10 +235,35 @@
 (define (room-wall graph room n)
   (find-wall-with-uid graph (cdr (list-ref ((sxpath '(wall @ uid)) room) n))))
 
-;; Get list of walls in the room
+;; Get list of wall references in the room
+;;
+(define (room-wall-refs room)
+  (cddr room))
+
+;; Get list of walls that belong to a room, fully descripted
 ;;
 (define (room-walls room)
-  (cddr room))
+  (cddr room)) ; TODO
+
+;; Calculate the points that close a room polygon
+;;
+(define (room-points-raw graph room)
+  (define (get-next-two-points last-points wall)
+    `((,(point-coord 'x (wall-point-n 1 wall)) ,(point-coord 'y (wall-point-n 1 wall)))
+      (,(point-coord 'x (wall-point-n 2 wall)) ,(point-coord 'y (wall-point-n 2 wall)))))
+      ; TODO: GET NEXT POINTS ALGORITHM IS INCOMPLETE
+  (define (iter point-list walls)
+    (if (null-list? walls)
+        point-list
+      (iter
+        (append point-list (get-next-two-points (take-right point-list 2) (car walls)))
+        (cdr walls))))
+  (let* ((walls (room-walls room))
+         (first-wall (car walls)))
+    (iter
+      `((,(point-coord 'x (wall-point-n 1 first-wall)) ,(point-coord 'y (wall-point-n 1 first-wall)))
+        (,(point-coord 'x (wall-point-n 2 first-wall)) ,(point-coord 'y (wall-point-n 2 first-wall))))
+      (cdr walls))))
 
 ;; Break in two lists from where a wall was found
 ;; Warning! This assumes that rooms contain topologically connected walls
@@ -243,7 +273,7 @@
   (break (lambda (wall) (equal? second-wall-uid (wall-uid wall)))
         (rotate-until-first
           (lambda (wall) (equal? first-wall-uid (wall-uid wall)))
-          (room-walls room))))
+          (room-wall-refs room))))
 
 ;; Calculate room area
 ;;

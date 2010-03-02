@@ -1,3 +1,4 @@
+(import (std srfi/1))
 (import opengl/gl)
 (import sdl/sdl)
 (import cairo/cairo)
@@ -100,10 +101,10 @@
         (cairo-set-line-cap cairo CAIRO_LINE_CAP_BUTT)
         (cairo-set-source-rgba cairo 1.0 1.0 1.0 1.0)
         (cairo-set-line-width cairo 6.0)
-        (paint-path cairo (wall-element-points door wall))
+        (paint-path cairo (wall-element-points-raw door wall))
         (cairo-set-source-rgba cairo 1.0 0.1 0.1 1.0)
         (cairo-set-line-width cairo 3.0)
-        (paint-path cairo (wall-element-points door wall)))
+        (paint-path cairo (wall-element-points-raw door wall)))
       (wall-doors wall)))
   ;; Paint windows in the wall
   (define (paint-windows-in-wall wall)
@@ -113,30 +114,34 @@
     (for-each
       (lambda
         (window)
-        (paint-path cairo (wall-element-points window wall)))
+        (paint-path cairo (wall-element-points-raw window wall)))
       (wall-windows wall)))
   ;; Paint pilar
   (define (paint-pilar pilar)
     (cairo-new-path cairo)
+    (cairo-stroke cairo)
     '())
   ;; Paint room
-  (define (paint-room wall-list)
-    (cairo-new-path cairo)
+  (define (paint-room graph room)
+    ;(paint-polygon cairo (room-points-raw room))
+    (display (room-points-raw graph room))(newline)
     '())
   ;; Paint entry
   (define (paint-entry wall)
     (cairo-new-path cairo)
+    (cairo-stroke cairo)
     '())
   ;; Paint pipe
   (define (paint-pipe wall)
     (cairo-new-path cairo)
+    (cairo-stroke cairo)
     '())
 
   (for-each
     (lambda
       (elem)
-      (if
-        (pair? elem) ;(and (list? elem) (not (null? elem)))
+      (if (null-list? elem)
+          (raise "Malformed SXML")
         (cond
           ((equal? (car elem) 'wall)
            (paint-wall
@@ -148,20 +153,18 @@
           ((equal? (car elem) 'pilar)
            (paint-pilar elem))
           ((equal? (car elem) 'room)
-           (paint-room (make-wall-list-from-uids (make-uid-list elem) graph)))
+           (paint-room graph elem))
           ((equal? (car elem) 'entry)
            (paint-entry (make-wall-list-from-uids (make-uid-list elem) graph)))
           ((equal? (car elem) 'pipe)
-           (paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph))))
-        (display "Malformed SXML\n")))
+           (paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph))))))
     (graph-parts graph)))
 
 ;; Paint a path given a list of 2d points
 ;;
 (define (paint-path cairo points)
-  (if
-    ;(and (not (null? points)) (list? points))
-    (pair? points)
+  (if (null-list? points)
+      (raise "Trying to paint a path with a null list of points")
     (begin
       (cairo-new-path cairo)
       (cairo-move-to cairo
@@ -174,4 +177,24 @@
                          (car point)
                          (cadr point)))
         (cdr points))
+      (cairo-stroke cairo))))
+
+;; Paint a polygon given a list of 2d points
+;;
+(define (paint-polygon cairo points)
+  (if (null-list? points)
+      (raise "Trying to paint a polygon with a null list of points")
+    (begin
+      (cairo-new-path cairo)
+      (cairo-move-to cairo
+                     (caar points)
+                     (cadar points))
+      (for-each
+        (lambda
+          (point)
+          (cairo-line-to cairo
+                         (car point)
+                         (cadr point)))
+        (cdr points))
+      (cairo-close-path cairo)
       (cairo-stroke cairo))))
