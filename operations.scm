@@ -84,16 +84,16 @@
         context-selector
         (append
           (list
+            ; (append `(room (@ (uid ,(make-uuid))))
+                    ; (cdr fore)
+                    ; (list `(wall (@ (uid ,second-wall-uid-1-half))))
+                    ; (list `(wall (@ (uid ,new-wall-uid))))
+                    ; (list `(wall (@ (uid ,first-wall-uid-2-half)))))
             (append `(room (@ (uid ,(make-uuid))))
-                    (cdr fore)
+                    (cdr aft)
                     (list `(wall (@ (uid ,first-wall-uid-1-half))))
                     (list `(wall (@ (uid ,new-wall-uid))))
                     (list `(wall (@ (uid ,second-wall-uid-2-half)))))
-            (append `(room (@ (uid ,(make-uuid))))
-                    (cdr aft)
-                    (list `(wall (@ (uid ,second-wall-uid-1-half))))
-                    (list `(wall (@ (uid ,new-wall-uid))))
-                    (list `(wall (@ (uid ,first-wall-uid-2-half)))))
             (create-wall
               (point-from-relative-in-wall first-wall first-split-point) ; TODO: With constraints (orthogonality and elements)
               (point-from-relative-in-wall second-wall second-split-point) ; TODO: With constraints (orthogonality and elements)
@@ -107,7 +107,7 @@
             (find-wall-with-uid graph (wall-uid (car aft)))
             second-split-point
             second-wall-uid-1-half
-            second-wall-uid-2-half)))))) ; TODO: añadir puerta
+            second-wall-uid-2-half)))))) ; TODO: añadir puerta TODO: eliminar muros partidos
 
 ;; Merge two rooms
 ;;

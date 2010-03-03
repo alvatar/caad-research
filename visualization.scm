@@ -50,14 +50,17 @@
                  (SDL::exit)
                  (exit 0)))
               ((= event 32) ; 32 = space TODO!
-               (return))))
 
+           ;; This block goes here (*) for continuous redrawing
            (cairo-set-source-rgba cairo 1.0 1.0 1.0 1.0)
            (cairo-rectangle cairo 0.0 0.0 (* maxx 1.0) (* maxy 1.0))
            (cairo-fill cairo)
            (graph-to-cairo graph cairo)
            (SDL::flip cairo-surface)
 
+               (return))))
+
+           ;(*)
            (loop)))
 
          (return))))
@@ -101,10 +104,10 @@
         (cairo-set-line-cap cairo CAIRO_LINE_CAP_BUTT)
         (cairo-set-source-rgba cairo 1.0 1.0 1.0 1.0)
         (cairo-set-line-width cairo 6.0)
-        (paint-path cairo (wall-element-points-raw door wall))
+        (paint-path cairo (extract-wall-element-points door wall))
         (cairo-set-source-rgba cairo 1.0 0.1 0.1 1.0)
         (cairo-set-line-width cairo 3.0)
-        (paint-path cairo (wall-element-points-raw door wall)))
+        (paint-path cairo (extract-wall-element-points door wall)))
       (wall-doors wall)))
   ;; Paint windows in the wall
   (define (paint-windows-in-wall wall)
@@ -114,7 +117,7 @@
     (for-each
       (lambda
         (window)
-        (paint-path cairo (wall-element-points-raw window wall)))
+        (paint-path cairo (extract-wall-element-points window wall)))
       (wall-windows wall)))
   ;; Paint pilar
   (define (paint-pilar pilar)
@@ -124,7 +127,9 @@
   ;; Paint room
   (define (paint-room graph room)
     ;(paint-polygon cairo (room-points-raw room))
-    (display (room-points-raw graph room))(newline)
+    (display (extract-room-points graph room))(newline)
+    (cairo-set-source-rgba cairo (random-real) (random-real) (random-real) 0.5)
+    (paint-polygon cairo (extract-room-points graph room))
     '())
   ;; Paint entry
   (define (paint-entry wall)
@@ -155,9 +160,11 @@
           ((equal? (car elem) 'room)
            (paint-room graph elem))
           ((equal? (car elem) 'entry)
-           (paint-entry (make-wall-list-from-uids (make-uid-list elem) graph)))
+           ;(paint-entry (make-wall-list-from-uids (make-uid-list elem) graph)))
+           '())
           ((equal? (car elem) 'pipe)
-           (paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph))))))
+           ;(paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph))))))
+           '()))))
     (graph-parts graph)))
 
 ;; Paint a path given a list of 2d points
@@ -197,4 +204,4 @@
                          (cadr point)))
         (cdr points))
       (cairo-close-path cairo)
-      (cairo-stroke cairo))))
+      (cairo-fill cairo))))

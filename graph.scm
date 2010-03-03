@@ -59,11 +59,6 @@
       (raise "You sent me a null graph. What should I do with this?")
     (cdr graph)))
 
-;; Make uids list TODO
-;;
-(define (make-uid-list subgraph)
-  ((sxpath '(wall @ uid *text*)) subgraph))
-
 ;-------------------------------------------------------------------------------
 ; Points
 ;-------------------------------------------------------------------------------
@@ -145,7 +140,7 @@
 (define (wall-uid wall)
   (if (null-list? wall)
       (raise "wall-uid: Wall is null")
-    (cdar ((sxpath '(@ uid)) wall))))
+    (cadar ((sxpath '(@ uid)) wall))))
 
 ;; Calculate point given wall and percentage
 ;;
@@ -202,9 +197,9 @@
 (define (wall-element-relative-points label element)
   (string->number (car ((sxpath `(@ ,label *text*)) element))))
 
-;; Calculate wall element (door, wall...) points
+;; Calculate wall element (door, wall...) points a list
 ;;
-(define (wall-element-points-raw element wall)
+(define (extract-wall-element-points element wall)
   (let ((from (wall-element-relative-points 'from element))
         (to (wall-element-relative-points 'to element)))
     (if (= (length (wall-points wall)) 2)
@@ -233,37 +228,48 @@
 ;; Get a wall in the room by index
 ;;
 (define (room-wall graph room n)
-  (find-wall-with-uid graph (cdr (list-ref ((sxpath '(wall @ uid)) room) n))))
+  (find-wall-with-uid graph (cadr (list-ref ((sxpath '(wall @ uid)) room) n))))
 
 ;; Get list of wall references in the room
 ;;
 (define (room-wall-refs room)
   (cddr room))
 
-;; Get list of walls that belong to a room, fully descripted
+;; Get list of walls that belong to a room, fully described
 ;;
-(define (room-walls room)
-  (cddr room)) ; TODO
+(define (room-walls graph room)
+  (define (make-uid-list)
+    ((sxpath '(wall @ uid *text*)) room))
+  (define (collect-walls wall-lis uid-lis)
+    (if (null-list? uid-lis)
+        wall-lis
+      (collect-walls (append wall-lis
+                             (list
+                               (find-wall-with-uid graph (car uid-lis))))
+                     (cdr uid-lis))))
+  (let ((uids (make-uid-list)))
+    (collect-walls '() uids)))
 
-;; Calculate the points that close a room polygon
+;; Calculate the points that enclose a room polygon as a list
 ;;
-(define (room-points-raw graph room)
-  (define (get-next-two-points last-points wall)
-    `((,(point-coord 'x (wall-point-n 1 wall)) ,(point-coord 'y (wall-point-n 1 wall)))
-      (,(point-coord 'x (wall-point-n 2 wall)) ,(point-coord 'y (wall-point-n 2 wall)))))
-      ; TODO: GET NEXT POINTS ALGORITHM IS INCOMPLETE
+(define (extract-room-points graph room)
+  (define (get-next-point wall)
+    (let ((p (wall-point-n 1 wall)))
+      `((,(point-coord 'x p)
+         ,(point-coord 'y p))))) ; TODO: invert when necessary!
   (define (iter point-list walls)
     (if (null-list? walls)
         point-list
       (iter
-        (append point-list (get-next-two-points (take-right point-list 2) (car walls)))
+        (append point-list (get-next-point (car walls)))
         (cdr walls))))
-  (let* ((walls (room-walls room))
+  (let* ((walls (room-walls graph room))
          (first-wall (car walls)))
     (iter
-      `((,(point-coord 'x (wall-point-n 1 first-wall)) ,(point-coord 'y (wall-point-n 1 first-wall)))
-        (,(point-coord 'x (wall-point-n 2 first-wall)) ,(point-coord 'y (wall-point-n 2 first-wall))))
-      (cdr walls))))
+      '()
+      ;`((,(point-coord 'x (wall-point-n 1 first-wall))
+         ;,(point-coord 'y (wall-point-n 1 first-wall))))
+      walls)))
 
 ;; Break in two lists from where a wall was found
 ;; Warning! This assumes that rooms contain topologically connected walls

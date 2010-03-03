@@ -23,8 +23,8 @@
             ID are near zero.
             -->
             <wall uid="DB7F49A3-BBF6-40F3-95A1-038CCACE1D88">
-                <pt x="150.0" y="50.0"/>
-                <pt x="150.0" y="200.0"/>
+                <pt x="50.0" y="50.0"/>
+                <pt x="350.0" y="50.0"/>
                 <!--
                 Windows can be described with a pair of ranges (from 0.0 to 1.0) which define
                 the endpoints relative to the wall line (the line that joins the 2 endpoints
@@ -40,8 +40,8 @@
             </wall>
 
             <wall uid="B06528DA-C0B9-4583-A7AF-8A3E788DB6EF">
-                <pt x="150.0" y="200.0"/>
-                <pt x="250.0" y="200.0"/>
+                <pt x="350.0" y="50.0"/>
+                <pt x="350.0" y="350.0"/>
                 <!--
                 Doors follow the same syntax
                 -->
@@ -62,13 +62,13 @@
             </room>
 
             <wall uid="7F23F0B9-7797-4672-AD65-FC8352F92A24">
-                <pt x="250.0" y="200.0"/>
-                <pt x="250.0" y="100.0"/>
+                <pt x="350.0" y="350.0"/>
+                <pt x="50.0" y="350.0"/>
             </wall>
 
             <wall uid="CA106583-D604-4012-BA9D-DD7BFE704ACB">
-                <pt x="250.0" y="100.0"/>
-                <pt x="150.0" y="50.0"/>
+                <pt x="50.0" y="350.0"/>
+                <pt x="50.0" y="50.0"/>
                 <window from="0.4" to="0.7"/>
             </wall>
 
