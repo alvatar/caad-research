@@ -84,11 +84,11 @@
         context-selector
         (append
           (list
-            ; (append `(room (@ (uid ,(make-uuid))))
-                    ; (cdr fore)
-                    ; (list `(wall (@ (uid ,second-wall-uid-1-half))))
-                    ; (list `(wall (@ (uid ,new-wall-uid))))
-                    ; (list `(wall (@ (uid ,first-wall-uid-2-half)))))
+            (append `(room (@ (uid ,(make-uuid))))
+                    (cdr fore)
+                    (list `(wall (@ (uid ,second-wall-uid-1-half))))
+                    (list `(wall (@ (uid ,new-wall-uid))))
+                    (list `(wall (@ (uid ,first-wall-uid-2-half)))))
             (append `(room (@ (uid ,(make-uuid))))
                     (cdr aft)
                     (list `(wall (@ (uid ,first-wall-uid-1-half))))

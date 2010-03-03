@@ -59,6 +59,15 @@
       (raise "You sent me a null graph. What should I do with this?")
     (cdr graph)))
 
+;; Are the point lists equal? (with precision)
+;;
+(define (equal-point-lists? lis1 lis2 precision)
+  (every
+    (lambda (a b)
+      (every (lambda (e) (< e precision)) (map abs (map - a b))))
+    lis1
+    lis2))
+
 ;-------------------------------------------------------------------------------
 ; Points
 ;-------------------------------------------------------------------------------
@@ -69,13 +78,18 @@
   (define (find-coordinate point)
     (cond
      ((null-list? point)
-      ;(raise "You sent me a null point. Seriously, what should I do with this?? Boy, I'm having a bad day thanks to you."))
-      69) ; TODO!!!!!!!!!!!!!
+      (raise "You sent me a null point. Seriously, what should I do with this?? Boy, I'm having a bad day thanks to you."))
      ((equal? (caar point) coordinate)
       (string->number (cadar point)))
      (else
       (find-coordinate (cdr point)))))
   (find-coordinate point))
+
+;; Extract a list of point coordinates
+;;
+(define (extract-point-coords point)
+  `((,(point-coord 'x point)
+     ,(point-coord 'y point))))
 
 ;; Get point n from point list
 ;;
@@ -182,6 +196,16 @@
 (define (wall-point-n n wall)
   ((sxpath `((pt ,n) @ *)) wall))
 
+;; Get first wall point
+;;
+(define (wall-first-point wall)
+  ((sxpath '((pt 1) @ *)) wall))
+
+;; Get last wall point
+;;
+(define (wall-last-point wall)
+  ((sxpath '((pt 2) @ *)) wall))
+
 ;; Get windows in wall
 ;;
 (define (wall-windows wall)
@@ -253,23 +277,42 @@
 ;; Calculate the points that enclose a room polygon as a list
 ;;
 (define (extract-room-points graph room)
-  (define (get-next-point wall)
-    (let ((p (wall-point-n 1 wall)))
-      `((,(point-coord 'x p)
-         ,(point-coord 'y p))))) ; TODO: invert when necessary!
+  (define (get-next-points wall last-point-coords)
+    (let ((p1 (extract-point-coords (wall-first-point wall)))
+          (p2 (extract-point-coords (wall-last-point wall))))
+      (cond
+       ((equal-point-lists? p1 last-point-coords 0.0001)
+        ;`((,(point-coord 'x p2)
+           ;,(point-coord 'y p2))))
+           p2)
+       ((equal-point-lists? p2 last-point-coords 0.0001)
+        ; `((,(point-coord 'x p1)
+           ; ,(point-coord 'y p1))))
+           p1)
+       (else ; If neither the first or the last point of the wall 
+         (display "MIERDA\n")
+         (display last-point-coords)(newline)
+         (display p1)(newline)
+         (display (equal-point-lists? p1 last-point-coords 0.001))(newline)
+         (display p2)(newline)
+         (display (equal-point-lists? p2 last-point-coords 0.001))(newline)
+         (display wall)(newline)
+        ;(raise "Room points extraction not implemented for polyline walls")
+        p1
+        ))))
   (define (iter point-list walls)
+  (display point-list)(newline)
     (if (null-list? walls)
         point-list
       (iter
-        (append point-list (get-next-point (car walls)))
+        (append point-list (get-next-points (car walls) (take-right point-list 1)))
         (cdr walls))))
   (let* ((walls (room-walls graph room))
          (first-wall (car walls)))
     (iter
-      '()
-      ;`((,(point-coord 'x (wall-point-n 1 first-wall))
-         ;,(point-coord 'y (wall-point-n 1 first-wall))))
-      walls)))
+      `((,(point-coord 'x (wall-last-point first-wall))
+         ,(point-coord 'y (wall-last-point first-wall))))
+      (cdr walls))))
 
 ;; Break in two lists from where a wall was found
 ;; Warning! This assumes that rooms contain topologically connected walls
