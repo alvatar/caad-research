@@ -98,16 +98,31 @@
               (point-from-relative-in-wall first-wall first-split-point) ; TODO: With constraints (orthogonality and elements)
               (point-from-relative-in-wall second-wall second-split-point) ; TODO: With constraints (orthogonality and elements)
               new-wall-uid))
-          (create-splitted-wall
-            (find-wall-with-uid graph (wall-uid (car fore)))
-            first-split-point
-            first-wall-uid-1-half
-            first-wall-uid-2-half)
-          (create-splitted-wall
-            (find-wall-with-uid graph (wall-uid (car aft)))
-            second-split-point
-            second-wall-uid-1-half
-            second-wall-uid-2-half)))))) ; TODO: añadir puerta TODO: eliminar muros partidos
+          (if (wall-is-reversed? first-wall first-split-point)
+              (create-splitted-wall
+                (find-wall-with-uid graph (wall-uid (car fore)))
+                first-split-point
+                first-wall-uid-2-half
+                first-wall-uid-1-half)
+              (create-splitted-wall
+                (find-wall-with-uid graph (wall-uid (car fore)))
+                first-split-point
+                first-wall-uid-1-half
+                first-wall-uid-2-half))
+          (if (wall-is-reversed? first-wall first-split-point)
+              (create-splitted-wall
+                (find-wall-with-uid graph (wall-uid (car aft)))
+                second-split-point
+                second-wall-uid-2-half
+                second-wall-uid-1-half)
+              (create-splitted-wall
+                (find-wall-with-uid graph (wall-uid (car aft)))
+                second-split-point
+                second-wall-uid-1-half
+                second-wall-uid-2-half)))))))
+            ; TODO: añadir puerta ¡
+            ; TODO: eliminar muros partidos
+            ; TODO: eliminar referencias a muros eliminados
 
 ;; Merge two rooms
 ;;

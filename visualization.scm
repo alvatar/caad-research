@@ -80,6 +80,7 @@
       (visualize-graph graph))
     graph-list))
 
+;(import geometry)
 ;; Draw graph
 ;;
 (define (graph-to-cairo graph cairo)
@@ -88,14 +89,15 @@
     (cairo-set-source-rgba cairo 0.1 0.1 0.1 1.0)
     (cairo-set-line-cap cairo CAIRO_LINE_CAP_SQUARE)
     (cairo-set-line-width cairo 5.0)
-    (cairo-new-path cairo)
-    (cairo-move-to cairo
-                   (point-coord 'x (wall-point-n 1 wall))
-                   (point-coord 'y (wall-point-n 1 wall)))
-    (cairo-line-to cairo
-                   (point-coord 'x (wall-point-n 2 wall))
-                   (point-coord 'y (wall-point-n 2 wall)))
-    (cairo-stroke cairo))
+    (paint-path cairo (extract-wall-points wall)))
+    ; (cairo-new-path cairo)
+    ; (cairo-move-to cairo
+                   ; (point-coord 'x (wall-point-n wall 1))
+                   ; (point-coord 'y (wall-point-n wall 1)))
+    ; (cairo-line-to cairo
+                   ; (point-coord 'x (wall-point-n wall 2))
+                   ; (point-coord 'y (wall-point-n wall 2)))
+    ; (cairo-stroke cairo))
   ;; Paint doors in the wall
   (define (paint-doors-in-wall wall)
     (for-each
@@ -142,6 +144,8 @@
     (cairo-stroke cairo)
     '())
 
+  (if (> (length (rooms graph)) 1)
+      (paint-room graph (cadr (rooms graph))))
   (for-each
     (lambda
       (elem)
@@ -158,7 +162,8 @@
           ((equal? (car elem) 'pilar)
            (paint-pilar elem))
           ((equal? (car elem) 'room)
-           (paint-room graph elem))
+           ;(paint-room graph elem)
+           '())
           ((equal? (car elem) 'entry)
            ;(paint-entry (make-wall-list-from-uids (make-uid-list elem) graph)))
            '())

@@ -7,6 +7,7 @@
 (import (std misc/uuid))
 (import web/parse/ssax-sxml/sxml-tools/sxpath)
 (import utilities)
+(import geometry)
 
 ;; Generate graph from XML
 ;;
@@ -69,57 +70,47 @@
     lis2))
 
 ;-------------------------------------------------------------------------------
-; Points
-;-------------------------------------------------------------------------------
-
-;; Get coordinate from point
-;;
-(define (point-coord coordinate point)
-  (define (find-coordinate point)
-    (cond
-     ((null-list? point)
-      (raise "You sent me a null point. Seriously, what should I do with this?? Boy, I'm having a bad day thanks to you."))
-     ((equal? (caar point) coordinate)
-      (string->number (cadar point)))
-     (else
-      (find-coordinate (cdr point)))))
-  (find-coordinate point))
-
-;; Extract a list of point coordinates
-;;
-(define (extract-point-coords point)
-  `((,(point-coord 'x point)
-     ,(point-coord 'y point))))
-
-;; Get point n from point list
-;;
-(define (point-n n point-list)
-  (cdr (list-ref point-list n)))
-
-;; Make point
-;;
-(define (make-point x y)
-  (if (or (null? x) (null? y))
-      (raise "Error making point: null arguments")
-      (list (list 'y (number->string y))
-            (list 'x (number->string x)))))
-
-;; Calculate absolute point given segment and percentage
-;;
-(define (point-from-relative-in-segment point-a point-b percentage)
-  (if (or (null-list? point-a) (null-list? point-b))
-    (raise "Wrong points passed")
-    (let* ((Ax (point-coord 'x point-a))
-           (Ay (point-coord 'y point-a))
-           (ABx (- (point-coord 'x point-b) Ax))
-           (ABy (- (point-coord 'y point-b) Ay)))
-      (make-point
-        (+ Ax (* ABx percentage))
-        (+ Ay (* ABy percentage))))))
-
-;-------------------------------------------------------------------------------
 ; Wall
 ;-------------------------------------------------------------------------------
+
+;; Get all wall points
+;;
+(define (wall-points wall)
+  ((sxpath '(pt @)) wall))
+
+;; Extract wall points as a list
+;;
+(define (extract-wall-points wall)
+  (define (iter point-list to-process)
+    (if (null-list? to-process)
+        point-list
+      (iter
+        (append point-list (extract-point-coords (cdar to-process)))
+        (cdr to-process))))
+    (iter '() (wall-points wall)))
+
+;; Get wall point n
+;;
+(define (wall-point-n wall n)
+  ((sxpath `((pt ,n) @ *)) wall))
+
+;; Get first wall point
+;;
+(define (wall-first-point wall)
+  ((sxpath '((pt 1) @ *)) wall))
+
+;; Get last wall point
+;;
+(define (wall-last-point wall)
+  ((sxpath '((pt 2) @ *)) wall))
+
+;; Is the wall described in a reverse order from a given reference?
+;;
+(define (wall-is-reversed? wall point)
+  (if (> (distance-point-point point (wall-first-point wall))
+         (distance-point-point point (wall-last-point wall)))
+      #t
+      #f))
 
 ;; Create a wall
 ;;
@@ -132,17 +123,37 @@
 
 ;; Create 2 walls splitting one in a point
 ;;
-(define (create-splitted-wall wall split-point uuid1 uuid2)
+(define (create-splitted-wall wall split-point-relative uuid1 uuid2)
+  (let ((split-point (point-from-relative-in-wall wall split-point-relative))
+        (first-point (wall-first-point wall))
+        (second-point (wall-last-point wall)))
   `((wall (@ (uid ,uuid1))
-         (pt (@ (y ,(number->string (point-coord 'y (wall-point-n 1 wall))))
-                (x ,(number->string (point-coord 'x (wall-point-n 1 wall))))))
-         (pt (@ (y ,(number->string (point-coord 'y (point-from-relative-in-wall wall split-point))))
-                (x ,(number->string (point-coord 'x (point-from-relative-in-wall wall split-point)))))))
+         (pt (@ (y ,(number->string (point-coord 'y first-point)))
+                (x ,(number->string (point-coord 'x first-point)))))
+         (pt (@ (y ,(number->string (point-coord 'y split-point)))
+                (x ,(number->string (point-coord 'x split-point))))))
    (wall (@ (uid ,uuid2))
-         (pt (@ (y ,(number->string (point-coord 'y (point-from-relative-in-wall wall split-point))))
-                (x ,(number->string (point-coord 'x (point-from-relative-in-wall wall split-point))))))
-         (pt (@ (y ,(number->string (point-coord 'y (wall-point-n 2 wall))))
-                (x ,(number->string (point-coord 'x (wall-point-n 2 wall)))))))))
+         (pt (@ (y ,(number->string (point-coord 'y split-point)))
+                (x ,(number->string (point-coord 'x split-point)))))
+         (pt (@ (y ,(number->string (point-coord 'y second-point)))
+                (x ,(number->string (point-coord 'x second-point)))))))))
+
+;; Create 2 walls splitting one in a point (inverting first and second)
+;;
+(define (create-splitted-wall-inverted wall split-point-relative uuid1 uuid2)
+  (let ((split-point (point-from-relative-in-wall wall split-point-relative))
+        (first-point (wall-first-point wall))
+        (second-point (wall-last-point wall)))
+  `((wall (@ (uid ,uuid1))
+         (pt (@ (y ,(number->string (point-coord 'y second-point)))
+                (x ,(number->string (point-coord 'x second-point)))))
+         (pt (@ (y ,(number->string (point-coord 'y split-point)))
+                (x ,(number->string (point-coord 'x split-point))))))
+   (wall (@ (uid ,uuid2))
+         (pt (@ (y ,(number->string (point-coord 'y split-point)))
+                (x ,(number->string (point-coord 'x split-point)))))
+         (pt (@ (y ,(number->string (point-coord 'y first-point)))
+                (x ,(number->string (point-coord 'x first-point)))))))))
 
 ;; Get all walls in the graph
 ;;
@@ -160,8 +171,8 @@
 ;;
 (define (point-from-relative-in-wall wall percentage)
   (point-from-relative-in-segment
-   (wall-point-n 1 wall)
-   (wall-point-n 2 wall)
+   (wall-point-n wall 1)
+   (wall-point-n wall 2)
    percentage))
  
 ;; Make list of walls from uids
@@ -186,26 +197,6 @@
 ; Wall elements
 ;-------------------------------------------------------------------------------
 
-;; Get all wall points
-;;
-(define (wall-points wall)
-  ((sxpath '(pt @)) wall))
-
-;; Get wall point n
-;;
-(define (wall-point-n n wall)
-  ((sxpath `((pt ,n) @ *)) wall))
-
-;; Get first wall point
-;;
-(define (wall-first-point wall)
-  ((sxpath '((pt 1) @ *)) wall))
-
-;; Get last wall point
-;;
-(define (wall-last-point wall)
-  ((sxpath '((pt 2) @ *)) wall))
-
 ;; Get windows in wall
 ;;
 (define (wall-windows wall)
@@ -227,10 +218,10 @@
   (let ((from (wall-element-relative-points 'from element))
         (to (wall-element-relative-points 'to element)))
     (if (= (length (wall-points wall)) 2)
-        (let* ((Ax (point-coord 'x (wall-point-n 1 wall)))
-               (Ay (point-coord 'y (wall-point-n 1 wall)))
-               (ABx (- (point-coord 'x (wall-point-n 2 wall)) Ax))
-               (ABy (- (point-coord 'y (wall-point-n 2 wall)) Ay)))
+        (let* ((Ax (point-coord 'x (wall-point-n wall 1)))
+               (Ay (point-coord 'y (wall-point-n wall 1)))
+               (ABx (- (point-coord 'x (wall-point-n wall 2)) Ax))
+               (ABy (- (point-coord 'y (wall-point-n wall 2)) Ay)))
           (list `(,(+ Ax (* ABx from)) ,(+ Ay (* ABy from)))
                 `(,(+ Ax (* ABx to)) ,(+ Ay (* ABy to)))))
         (raise "Error - wall element has more than 2 relative points\n"))))
@@ -267,10 +258,11 @@
   (define (collect-walls wall-lis uid-lis)
     (if (null-list? uid-lis)
         wall-lis
-      (collect-walls (append wall-lis
-                             (list
-                               (find-wall-with-uid graph (car uid-lis))))
-                     (cdr uid-lis))))
+      (collect-walls
+        (append wall-lis
+                (list
+                  (find-wall-with-uid graph (car uid-lis))))
+        (cdr uid-lis))))
   (let ((uids (make-uid-list)))
     (collect-walls '() uids)))
 
@@ -281,27 +273,23 @@
     (let ((p1 (extract-point-coords (wall-first-point wall)))
           (p2 (extract-point-coords (wall-last-point wall))))
       (cond
-       ((equal-point-lists? p1 last-point-coords 0.0001)
-        ;`((,(point-coord 'x p2)
-           ;,(point-coord 'y p2))))
-           p2)
        ((equal-point-lists? p2 last-point-coords 0.0001)
-        ; `((,(point-coord 'x p1)
-           ; ,(point-coord 'y p1))))
-           p1)
+        p1)
+       ((equal-point-lists? p1 last-point-coords 0.0001)
+        p2)
        (else ; If neither the first or the last point of the wall 
-         (display "MIERDA\n")
-         (display last-point-coords)(newline)
-         (display p1)(newline)
-         (display (equal-point-lists? p1 last-point-coords 0.001))(newline)
-         (display p2)(newline)
-         (display (equal-point-lists? p2 last-point-coords 0.001))(newline)
-         (display wall)(newline)
+         ; (display "MIERDA\n")
+         ; (display last-point-coords)(newline)
+         ; (display p1)(newline)
+         ; (display (equal-point-lists? p1 last-point-coords 0.001))(newline)
+         ; (display p2)(newline)
+         ; (display (equal-point-lists? p2 last-point-coords 0.001))(newline)
+         ; (display wall)(newline)
         ;(raise "Room points extraction not implemented for polyline walls")
-        p1
+        p2
         ))))
   (define (iter point-list walls)
-  (display point-list)(newline)
+  ;(display point-list)(newline)
     (if (null-list? walls)
         point-list
       (iter
@@ -320,9 +308,9 @@
 (define (room-break graph room first-wall-uid second-wall-uid)
   ; TODO: check if walls are ordered
   (break (lambda (wall) (equal? second-wall-uid (wall-uid wall)))
-        (rotate-until-first
-          (lambda (wall) (equal? first-wall-uid (wall-uid wall)))
-          (room-wall-refs room))))
+         (rotate-until-first
+           (lambda (wall) (equal? first-wall-uid (wall-uid wall)))
+           (room-wall-refs room))))
 
 ;; Calculate room area
 ;;
