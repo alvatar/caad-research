@@ -85,7 +85,7 @@
     (if (null-list? to-process)
         point-list
       (iter
-        (append point-list (extract-point-coords (cdar to-process)))
+        (append point-list (list (extract-point-coords (cdar to-process))))
         (cdr to-process))))
     (iter '() (wall-points wall)))
 
@@ -107,10 +107,12 @@
 ;; Is the wall described in a reverse order from a given reference?
 ;;
 (define (wall-is-reversed? wall point)
+(display (distance-point-point point (wall-first-point wall)))(newline)
+(display (distance-point-point point (wall-last-point wall)))(newline)
   (if (> (distance-point-point point (wall-first-point wall))
          (distance-point-point point (wall-last-point wall)))
-      #t
-      #f))
+      (begin (display "TRUE\n")#t)
+      (begin (display "FALSE\n")#f)))
 
 ;; Create a wall
 ;;
@@ -273,10 +275,10 @@
     (let ((p1 (extract-point-coords (wall-first-point wall)))
           (p2 (extract-point-coords (wall-last-point wall))))
       (cond
-       ((equal-point-lists? p2 last-point-coords 0.0001)
-        p1)
-       ((equal-point-lists? p1 last-point-coords 0.0001)
-        p2)
+       ((equal-point-lists? (list p2) last-point-coords 0.0001)
+        (list p1))
+       ((equal-point-lists? (list p1) last-point-coords 0.0001)
+        (list p2))
        (else ; If neither the first or the last point of the wall 
          ; (display "MIERDA\n")
          ; (display last-point-coords)(newline)
@@ -286,7 +288,7 @@
          ; (display (equal-point-lists? p2 last-point-coords 0.001))(newline)
          ; (display wall)(newline)
         ;(raise "Room points extraction not implemented for polyline walls")
-        p2
+        (list p2)
         ))))
   (define (iter point-list walls)
   ;(display point-list)(newline)

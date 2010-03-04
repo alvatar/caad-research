@@ -20,8 +20,8 @@
 ;; Extract a list of point coordinates
 ;;
 (define (extract-point-coords point)
-  `((,(point-coord 'x point)
-     ,(point-coord 'y point))))
+  `(,(point-coord 'x point)
+    ,(point-coord 'y point)))
 
 ;; Get point n from point list
 ;;
@@ -52,4 +52,7 @@
 ;; Calculate the distance between two points
 ;;
 (define (distance-point-point a b)
-  0.0)
+  (let ((p1 (extract-point-coords a))
+        (p2 (extract-point-coords b)))
+    (sqrt (+ (expt (- (car p1) (car p2)) 2)
+             (expt (- (cadr p1) (cadr p2)) 2)))))

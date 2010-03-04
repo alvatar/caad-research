@@ -98,7 +98,7 @@
               (point-from-relative-in-wall first-wall first-split-point) ; TODO: With constraints (orthogonality and elements)
               (point-from-relative-in-wall second-wall second-split-point) ; TODO: With constraints (orthogonality and elements)
               new-wall-uid))
-          (if (wall-is-reversed? first-wall first-split-point)
+          (if (wall-is-reversed? first-wall (point-from-relative-in-wall first-wall first-split-point))
               (create-splitted-wall
                 (find-wall-with-uid graph (wall-uid (car fore)))
                 first-split-point
@@ -109,7 +109,7 @@
                 first-split-point
                 first-wall-uid-1-half
                 first-wall-uid-2-half))
-          (if (wall-is-reversed? first-wall first-split-point)
+          (if (wall-is-reversed? second-wall (point-from-relative-in-wall second-wall second-split-point))
               (create-splitted-wall
                 (find-wall-with-uid graph (wall-uid (car aft)))
                 second-split-point
