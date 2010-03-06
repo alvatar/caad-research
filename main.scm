@@ -1,3 +1,10 @@
+;;; Copyright (c) 2010 by Álvaro Castro-Castilla, All Rights Reserved.
+;;; Licensed under the GPLv3 license, see LICENSE file for full description.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Main
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (import input)
 (import graph)
 (import utilities)
@@ -5,7 +12,6 @@
 (import mutation)
 (import constraints)
 (import filters)
-(import ordering)
 
 (define (main)
   (random-source-randomize! default-random-source) ; Randomizes seed for UUID generation
@@ -19,9 +25,8 @@
         (visualize-graph graph))
       archgraph-list)
     (loop
-      (order-graph-list
-        (filter-graph-list
-          (make-graph-mutations (first-or-element archgraph-list))))))
+      (filter-graph-list
+        (make-graph-mutations (first-or-element archgraph-list)))))
 
   (representation-cleanup)
 

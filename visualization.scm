@@ -1,3 +1,10 @@
+;;; Copyright (c) 2010 by Álvaro Castro-Castilla, All Rights Reserved.
+;;; Licensed under the GPLv3 license, see LICENSE file for full description.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Visual representation of the graph
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (import (std srfi/1))
 (import opengl/gl)
 (import sdl/sdl)
