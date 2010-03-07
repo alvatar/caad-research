@@ -63,14 +63,39 @@
       (raise "You sent me a null graph. What should I do with this?")
     (cdr graph)))
 
-;; Are the point lists equal? (with precision)
+;; Get element's uid
 ;;
-(define (equal-point-lists? lis1 lis2 precision)
-  (every
-    (lambda (a b)
-      (every (lambda (e) (< e precision)) (map abs (map - a b))))
-    lis1
-    lis2))
+(define (element-uid elem)
+  (if (null-list? elem)
+      (raise "element-uid: Element is null")
+    (cadar ((sxpath '(@ uid)) elem))))
+
+;; Get the element from a referene element (consisting only of its uid)
+;;
+(define (reference-to-element graph ref)
+  (list (find-element-with-uid graph (element-uid ref))))
+
+;; Get the element from a referene element (consisting only of its uid)
+;;
+(define (reference-list-to-elements graph ref-lis)
+  (define (iter elem-lis ref-lis)
+    (if (null-list? ref-lis)
+        elem-lis
+      (iter (append elem-lis (reference-to-element graph (car ref-lis))) (cdr ref-lis))))
+  (iter '() ref-lis))
+
+;; Find the element with that specific uid
+;;
+(define (find-element-with-uid graph uid)
+  (define (iter elem-list-tail)
+    (cond
+     ((null-list? elem-list-tail)
+      (raise "Wall with such UID not found"))
+     ((equal? (element-uid (car elem-list-tail)) uid)
+      (car elem-list-tail))
+     (else
+      (iter (cdr elem-list-tail)))))
+  (iter (walls graph))) ; TODO!!!!!!!!!!!!!!!!!!!! GENERALIZE
 
 ;-------------------------------------------------------------------------------
 ; Wall
@@ -92,6 +117,15 @@
         (cdr to-process))))
     (iter '() (wall-points wall)))
 
+;; Extract poly wall points as a list
+;;
+(define (extract-polywall-points wall-lis)
+  (define (iter pt-lis lis)
+    (if (null-list? lis)
+        pt-lis
+      (iter (append pt-lis (extract-wall-points (car lis))) (cdr lis))))
+  (iter '() wall-lis))
+
 ;; Get wall point n
 ;;
 (define (wall-point-n wall n)
@@ -110,12 +144,8 @@
 ;; Is the wall described in a reverse order from a given reference?
 ;;
 (define (wall-is-reversed? wall point)
-(display (distance-point-point point (wall-first-point wall)))(newline)
-(display (distance-point-point point (wall-last-point wall)))(newline)
-  (if (> (distance-point-point point (wall-first-point wall))
-         (distance-point-point point (wall-last-point wall)))
-      (begin (display "TRUE\n")#t)
-      (begin (display "FALSE\n")#f)))
+  (> (distance-point-point point (wall-first-point wall))
+     (distance-point-point point (wall-last-point wall))))
 
 ;; Create a wall
 ;;
@@ -165,13 +195,6 @@
 (define (walls graph)
   ((sxpath '(wall)) graph))
 
-;; Get wall's uid
-;;
-(define (wall-uid wall)
-  (if (null-list? wall)
-      (raise "wall-uid: Wall is null")
-    (cadar ((sxpath '(@ uid)) wall))))
-
 ;; Calculate point given wall and percentage
 ;;
 (define (point-from-relative-in-wall wall percentage)
@@ -184,19 +207,6 @@
 ;;
 (define (make-wall-list-from-uids uids graph)
   '()) ; TODO
-
-;; Find the wall with that specific uid
-;;
-(define (find-wall-with-uid graph uid)
-  (define (iter wall-list-tail)
-    (cond
-     ((null-list? wall-list-tail)
-      (raise "Wall with such UID not found"))
-     ((equal? (wall-uid (car wall-list-tail)) uid)
-      (car wall-list-tail))
-     (else
-      (iter (cdr wall-list-tail)))))
-  (iter (walls graph)))
 
 ;-------------------------------------------------------------------------------
 ; Wall elements
@@ -248,7 +258,7 @@
 ;; Get a wall in the room by index
 ;;
 (define (room-wall graph room n)
-  (find-wall-with-uid graph (cadr (list-ref ((sxpath '(wall @ uid)) room) n))))
+  (find-element-with-uid graph (cadr (list-ref ((sxpath '(wall @ uid)) room) n))))
 
 ;; Get list of wall references in the room
 ;;
@@ -266,7 +276,7 @@
       (collect-walls
         (append wall-lis
                 (list
-                  (find-wall-with-uid graph (car uid-lis))))
+                  (find-element-with-uid graph (car uid-lis))))
         (cdr uid-lis))))
   (let ((uids (make-uid-list)))
     (collect-walls '() uids)))
@@ -274,47 +284,37 @@
 ;; Calculate the points that enclose a room polygon as a list
 ;;
 (define (extract-room-points graph room)
-  (define (get-next-points wall last-point-coords)
-    (let ((p1 (extract-point-coords (wall-first-point wall)))
-          (p2 (extract-point-coords (wall-last-point wall))))
+  (define (get-next-points a-wall b-wall)
+    (let ((a-wall-points (extract-wall-points a-wall))
+          (b-wall-points (extract-wall-points b-wall)))
       (cond
-       ((equal-point-lists? (list p2) last-point-coords 0.0001)
-        (list p1))
-       ((equal-point-lists? (list p1) last-point-coords 0.0001)
-        (list p2))
+       ((is-end-point? b-wall-points (car a-wall-points)) ; then the a-wall is reversed
+        (reverse a-wall-points))
+       ((is-end-point? b-wall-points (cadr a-wall-points)) ; then the a-wall is reversed
+        a-wall-points)
        (else ; If neither the first or the last point of the wall 
-         ; (display "MIERDA\n")
-         ; (display last-point-coords)(newline)
-         ; (display p1)(newline)
-         ; (display (equal-point-lists? p1 last-point-coords 0.001))(newline)
-         ; (display p2)(newline)
-         ; (display (equal-point-lists? p2 last-point-coords 0.001))(newline)
-         ; (display wall)(newline)
-        ;(raise "Room points extraction not implemented for polyline walls")
-        (list p2)
-        ))))
+         (display (element-uid a-wall))(newline)
+         (display a-wall-points)(newline)
+         (display (element-uid b-wall))(newline)
+         (display b-wall-points)(newline)
+         (raise "extract-room-points: Room must be a closed polygon. TODO: Polyline walls")))))
   (define (iter point-list walls)
-  ;(display point-list)(newline)
-    (if (null-list? walls)
+    (if (< (length walls) 2)
         point-list
       (iter
-        (append point-list (get-next-points (car walls) (take-right point-list 1)))
+        (append point-list (get-next-points (car walls) (cadr walls)))
         (cdr walls))))
-  (let* ((walls (room-walls graph room))
-         (first-wall (car walls)))
-    (iter
-      `((,(point-coord 'x (wall-last-point first-wall))
-         ,(point-coord 'y (wall-last-point first-wall))))
-      (cdr walls))))
+  (let* ((walls (room-walls graph room)))
+    (iter '() walls)))
 
 ;; Break in two lists from where a wall was found
 ;; Warning! This assumes that rooms contain topologically connected walls
 ;;
 (define (room-break graph room first-wall-uid second-wall-uid)
   ; TODO: check if walls are ordered
-  (break (lambda (wall) (equal? second-wall-uid (wall-uid wall)))
+  (break (lambda (wall) (equal? second-wall-uid (element-uid wall)))
          (rotate-until-first
-           (lambda (wall) (equal? first-wall-uid (wall-uid wall)))
+           (lambda (wall) (equal? first-wall-uid (element-uid wall)))
            (room-wall-refs room))))
 
 ;; Calculate room area

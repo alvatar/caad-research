@@ -7,6 +7,7 @@
 
 (import (std srfi/1))
 (import (std misc/uuid))
+(import geometry)
 (import graph)
 (import utilities)
 
@@ -81,48 +82,52 @@
          (second-wall-uid-2-half (make-uuid)))
     ; TODO: Check context somehow and redirect to correct splitting algorithm
     (receive (fore aft)
-             (room-break graph subgraph (wall-uid first-wall) (wall-uid second-wall))
-      (apply-operation-in-context
-        graph
-        context-selector
-        (append
+             (room-break graph subgraph (element-uid first-wall) (element-uid second-wall))
+      (append
+        (apply-operation-in-context
+          graph
+          context-selector
           (list
             (append `(room (@ (uid ,(make-uuid))))
                     (cdr fore)
-                    (list `(wall (@ (uid ,second-wall-uid-1-half))))
-                    (list `(wall (@ (uid ,new-wall-uid))))
-                    (list `(wall (@ (uid ,first-wall-uid-2-half)))))
-            (append `(room (@ (uid ,(make-uuid))))
-                    (cdr aft)
                     (list `(wall (@ (uid ,first-wall-uid-1-half))))
                     (list `(wall (@ (uid ,new-wall-uid))))
                     (list `(wall (@ (uid ,second-wall-uid-2-half)))))
-            (create-wall
-              (point-from-relative-in-wall first-wall first-split-point) ; TODO: With constraints (orthogonality and elements)
-              (point-from-relative-in-wall second-wall second-split-point) ; TODO: With constraints (orthogonality and elements)
-              new-wall-uid))
-          (if (wall-is-reversed? first-wall (point-from-relative-in-wall first-wall first-split-point))
-              (create-splitted-wall
-                (find-wall-with-uid graph (wall-uid (car fore)))
-                first-split-point
-                first-wall-uid-2-half
-                first-wall-uid-1-half)
-              (create-splitted-wall
-                (find-wall-with-uid graph (wall-uid (car fore)))
-                first-split-point
-                first-wall-uid-1-half
-                first-wall-uid-2-half))
-          (if (wall-is-reversed? second-wall (point-from-relative-in-wall second-wall second-split-point))
-              (create-splitted-wall
-                (find-wall-with-uid graph (wall-uid (car aft)))
-                second-split-point
-                second-wall-uid-2-half
-                second-wall-uid-1-half)
-              (create-splitted-wall
-                (find-wall-with-uid graph (wall-uid (car aft)))
-                second-split-point
-                second-wall-uid-1-half
-                second-wall-uid-2-half)))))))
+            (append `(room (@ (uid ,(make-uuid))))
+                    (cdr aft)
+                    (list `(wall (@ (uid ,second-wall-uid-1-half))))
+                    (list `(wall (@ (uid ,new-wall-uid))))
+                    (list `(wall (@ (uid ,first-wall-uid-2-half)))))))
+        (list (create-wall
+                (point-from-relative-in-wall first-wall first-split-point) ; TODO: With constraints (orthogonality and elements)
+                (point-from-relative-in-wall second-wall second-split-point) ; TODO: With constraints (orthogonality and elements)
+          new-wall-uid))
+        (if (is-end-point?
+              (extract-polywall-points (reference-list-to-elements graph (cdr fore)))
+              (extract-point-coords (wall-first-point first-wall)))
+            (create-splitted-wall
+              (find-element-with-uid graph (element-uid (car fore)))
+              first-split-point
+              first-wall-uid-1-half
+              first-wall-uid-2-half)
+            (create-splitted-wall
+              (find-element-with-uid graph (element-uid (car fore)))
+              first-split-point
+              first-wall-uid-2-half
+              first-wall-uid-1-half))
+        (if (is-end-point?
+              (extract-polywall-points (reference-list-to-elements graph (cdr aft)))
+              (extract-point-coords (wall-first-point second-wall)))
+            (create-splitted-wall
+              (find-element-with-uid graph (element-uid (car aft)))
+              second-split-point
+              second-wall-uid-1-half
+              second-wall-uid-2-half)
+            (create-splitted-wall
+              (find-element-with-uid graph (element-uid (car aft)))
+              second-split-point
+              second-wall-uid-2-half
+              second-wall-uid-1-half))))))
             ; TODO: añadir puerta ¡
             ; TODO: eliminar muros partidos
             ; TODO: eliminar referencias a muros eliminados

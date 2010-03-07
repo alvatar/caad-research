@@ -8,6 +8,30 @@
 (import (std srfi/1))
 
 ;-------------------------------------------------------------------------------
+; General
+;-------------------------------------------------------------------------------
+
+;; Is equal? (with precision)
+;;
+(define (=~ a b precision)
+  (define (test t1 t2)
+    (< (abs (- a b)) precision))
+  (if (and (list? a) (list? b))
+      (every (lambda (e1 e2) (=~ e1 e2 precision))
+             a
+             b)
+    (test a b)))
+
+;; Are the point lists equal? (with precision)
+;;
+; (define (equal-point-lists? lis1 lis2 precision)
+  ; (every
+    ; (lambda (a b)
+      ; (every (lambda (e) (< e precision)) (map abs (map - a b))))
+    ; lis1
+    ; lis2))
+
+;-------------------------------------------------------------------------------
 ; Points
 ;-------------------------------------------------------------------------------
 
@@ -63,3 +87,19 @@
         (p2 (extract-point-coords b)))
     (sqrt (+ (expt (- (car p1) (car p2)) 2)
              (expt (- (cadr p1) (cadr p2)) 2)))))
+
+;-------------------------------------------------------------------------------
+; Segments
+;-------------------------------------------------------------------------------
+
+;; Tell whether the point is an end point of the segment
+;;
+(define (is-end-point? segment point)
+  (let ((point-x (car point))
+        (point-y (cadr point)))
+    (or (and
+          (=~ (caar segment) point-x 0.0001)
+          (=~ (cadar segment) point-y 0.0001))
+        (and
+          (=~ (caadr segment) point-x 0.0001)
+          (=~ (cadadr segment) point-y 0.0001)))))

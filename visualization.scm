@@ -42,14 +42,12 @@
                              maxy
                              (SDL::screen-pitch cairo-surface)))
             (cairo (cairo-create image-surface)))
-           ;(display "FIRST TIME\n")
            (set! return (call/cc
                           (lambda (resume-here)
                             (set! control-state resume-here)
                             (return))))
          (let loop ()
            (SDL::delay 4)
-           ;(display "LOOP\n")
            (let ((event (SDL::event-exit)))
              (cond
               ((= event 27) ; 27 = escape TODO!
@@ -97,14 +95,6 @@
     (cairo-set-line-cap cairo CAIRO_LINE_CAP_SQUARE)
     (cairo-set-line-width cairo 5.0)
     (paint-path cairo (extract-wall-points wall)))
-    ; (cairo-new-path cairo)
-    ; (cairo-move-to cairo
-                   ; (point-coord 'x (wall-point-n wall 1))
-                   ; (point-coord 'y (wall-point-n wall 1)))
-    ; (cairo-line-to cairo
-                   ; (point-coord 'x (wall-point-n wall 2))
-                   ; (point-coord 'y (wall-point-n wall 2)))
-    ; (cairo-stroke cairo))
   ;; Paint doors in the wall
   (define (paint-doors-in-wall wall)
     (for-each
@@ -151,8 +141,6 @@
     (cairo-stroke cairo)
     '())
 
-  (if (> (length (rooms graph)) 1)
-      (paint-room graph (cadr (rooms graph))))
   (for-each
     (lambda
       (elem)
@@ -169,7 +157,7 @@
           ((equal? (car elem) 'pilar)
            (paint-pilar elem))
           ((equal? (car elem) 'room)
-           ;(paint-room graph elem)
+           (paint-room graph elem)
            '())
           ((equal? (car elem) 'entry)
            ;(paint-entry (make-wall-list-from-uids (make-uid-list elem) graph)))
