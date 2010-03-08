@@ -135,7 +135,22 @@
 ;; Merge two rooms
 ;;
 (define (op-merge graph context-selector constraints)
-  '())
+  (let* ((common-wall-uid (find-common-wall (context-selector graph)))
+         (wall-bifurcations (find-wall-bifurcations graph common-wall-uid)))
+    (try-to-merge-almost-parallel-walls (car wall-bifurcations))
+    (try-to-merge-almost-parallel-walls (cadr wall-bifurcations))
+
+    (apply-operation-in-context
+      graph
+      context-selector
+      (list
+        (append `(room (@ (uid ,(make-uuid))))
+                ;; TODO: LISTA DE PAREDES EN LA NUEVA, DEPENDIENDO DEL INTENTO DE FUSION DE CUASI-PARALELAS
+                (list `(wall (@ (uid ,first-wall-uid-1-half))))
+                (list `(wall (@ (uid ,new-wall-uid))))
+                (list `(wall (@ (uid ,second-wall-uid-2-half)))))))
+
+    (remove-element graph wall-uid)))
 
 ;; Create new element
 ;;

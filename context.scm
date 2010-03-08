@@ -5,6 +5,7 @@
 ;;; Functions for filtering out subgraph lists from an architecture graph
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(import (std srfi/1))
 (import graph)
 
 ;; All
@@ -16,7 +17,7 @@
 ;;
 (define smallest-room '())
 
-;; Returns the biggest room as context
+;; Takes the biggest room as context
 ;;
 (define (biggest-room graph)
   (let
@@ -25,12 +26,11 @@
       (null? rooms-list)
       '()
       (car rooms-list)))) ; TODO
-  ; (define (iter graph current-room current-max)
-    ; (if
-      ; (list? graph)
-        ; (if (> (room-area ROOM) current-max)
-            ; (iter REST_OF_GRAPH ROOM (room-area ROOM))
-            ; (iter REST_OF_GRAPH ROOM current-max))
-        ; ROOM))
-  ; (iter graph 0.0)
-  ; '())
+
+;; Takes the two first rooms as context
+;;
+(define (two-rooms graph)
+  (let ((rooms-list (rooms graph)))
+    (if (> (length rooms-list) 1)
+        (take rooms-list 2)
+      '())))

@@ -19,8 +19,8 @@
 (define (make-operation/context-set)
   (lambda (graph)
     (apply-operation
-      op-split
+      op-merge
       graph
-      biggest-room
+      two-rooms
       unconstrained
       all-valid)))

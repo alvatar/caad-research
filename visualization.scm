@@ -125,8 +125,6 @@
     '())
   ;; Paint room
   (define (paint-room graph room)
-    ;(paint-polygon cairo (room-points-raw room))
-    (display (extract-room-points graph room))(newline)
     (cairo-set-source-rgba cairo (random-real) (random-real) (random-real) 0.5)
     (paint-polygon cairo (extract-room-points graph room))
     '())
