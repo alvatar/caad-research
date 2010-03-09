@@ -137,28 +137,26 @@
 ;;
 (define (op-merge graph context-selector constraints)
   (define (update-walls graph wall-list)
-    '())
-  (let* ((merge-rooms (context-selector graph))
-         (room-a (car merge-rooms))
-         (room-b (cadr merge-rooms))
-         (common-wall-uid (find-common-wall merge-rooms))
+    (if (= (length wall-bifurcations) 2) ; did merging work?
+        graph
+      (add-element ; TODO
+        (remove-element ; TODO
+          (remove-element
+            graph
+            (element-uid (cadr wall-list)))
+          (element-uid (car wall-list)))
+        (car wall-list))))
+  (let* ((merged-rooms (context-selector graph))
+         (room-a (car merged-rooms))
+         (room-b (cadr merged-rooms))
+         (common-wall-uid (find-common-wall merged-rooms))
          (wall-bifurcations (find-walls-connected-to graph common-wall-uid)) ; TODO: filter out walls that don't belong to either room
          (possible-uid-1 (make-uuid))
          (possible-uid-2 (make-uuid))
          (touched-walls-a (try-to-merge-if-parallel-walls (car wall-bifurcations) possible-uid-1))
          (touched-walls-b (try-to-merge-if-parallel-walls (cadr wall-bifurcations) possible-uid-2))
-         (rest-of-walls-a (room-remove-walls (car wall-bifurcations) room-a))
-         (rest-of-walls-b (room-remove-walls (cadr wall-bifurcations) room-b))
-         (walls-a
-           (if (> (length touched-walls-a) 1)
-               '()
-             '()))
-        ; It has not been merged, stay like that
-        ; It has been merged: remove two previous and add new one
-         (walls-b
-           (if (> (length touched-walls-b) 1)
-               '()
-             '()))
+         (rest-of-walls-a (remove-element room-a (car wall-bifurcations)))
+         (rest-of-walls-b (remove-element room-b (cadr wall-bifurcations)))
          (graph-with-changed-room
            (apply-operation-in-context
              graph
@@ -166,16 +164,16 @@
              (list
                (append `(room (@ (uid ,(make-uuid))))
                        rest-of-walls-a
-                       walls-a
+                       touched-walls-a
                        rest-of-walls-b
-                       walls-b))))
+                       touched-walls-b))))
          )
     (remove-element
       (update-walls
         (update-walls
           graph-with-changed-room
-          walls-a)
-        walls-b)
+          touched-walls-a)
+        touched-walls-b)
       wall-uid)))
 
 ;; Create new element
@@ -241,7 +239,7 @@
 (define (op-fix-malformed graph context-selector constraints)
   (remove
     (lambda (lst)
-      (if (equal? lst '()) #t #f))
+      (equal? lst '()))
     graph))
 
 ;; Fix room topology
