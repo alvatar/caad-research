@@ -22,71 +22,23 @@
              b)
     (test a b)))
 
-;; Are the point lists equal? (with precision)
-;;
-; (define (equal-point-lists? lis1 lis2 precision)
-  ; (every
-    ; (lambda (a b)
-      ; (every (lambda (e) (< e precision)) (map abs (map - a b))))
-    ; lis1
-    ; lis2))
-
-;-------------------------------------------------------------------------------
-; Points
-;-------------------------------------------------------------------------------
-
-;; Get coordinate from point
-;;
-(define (point-coord coordinate point)
-  (define (find-coordinate point)
-    (cond
-     ((null-list? point)
-      (raise "You sent me a null point. Seriously, what should I do with this?? Boy, I'm having a bad day thanks to you."))
-     ((equal? (caar point) coordinate)
-      (string->number (cadar point)))
-     (else
-      (find-coordinate (cdr point)))))
-  (find-coordinate point))
-
-;; Extract a list of point coordinates
-;;
-(define (extract-point-coords point)
-  `(,(point-coord 'x point)
-    ,(point-coord 'y point)))
-
-;; Get point n from point list
-;;
-(define (point-n n point-list)
-  (cdr (list-ref point-list n)))
-
-;; Make point
-;;
-(define (make-point x y)
-  (if (or (null? x) (null? y))
-      (raise "Error making point: null arguments")
-      (list (list 'y (number->string y))
-            (list 'x (number->string x)))))
-
 ;; Calculate absolute point given segment and percentage
 ;;
 (define (point-from-relative-in-segment point-a point-b percentage)
   (if (or (null-list? point-a) (null-list? point-b))
     (raise "Wrong points passed")
-    (let* ((Ax (point-coord 'x point-a))
-           (Ay (point-coord 'y point-a))
-           (ABx (- (point-coord 'x point-b) Ax))
-           (ABy (- (point-coord 'y point-b) Ay)))
-      (make-point
-        (+ Ax (* ABx percentage))
-        (+ Ay (* ABy percentage))))))
+    (let* ((Ax (car point-a))
+           (Ay (cadr point-a))
+           (ABx (- (car point-b) Ax))
+           (ABy (- (cadr point-b) Ay)))
+        (list (+ Ax (* ABx percentage))
+              (+ Ay (* ABy percentage))))))
 
 ;; Calculate the distance between two points
 ;;
 (define (distance-point-point a b)
-  (let ((p1 (extract-point-coords a))
-        (p2 (extract-point-coords b)))
-    (sqrt (+ (expt (- (car p1) (car p2)) 2)
-             (expt (- (cadr p1) (cadr p2)) 2)))))
+  (sqrt (+ (expt (- (car p1) (car p2)) 2)
+           (expt (- (cadr p1) (cadr p2)) 2))))
 
 ;-------------------------------------------------------------------------------
 ; Segments
@@ -103,3 +55,25 @@
         (and
           (=~ (caadr segment) point-x 0.0001)
           (=~ (cadadr segment) point-y 0.0001)))))
+
+;; Calculate vector length
+;;
+(define (evector-length vec)
+  (sqrt (+ (expt (car vec) 2)
+           (expt (cadr vec) 2))))
+
+;; Normalize vectors
+;;
+(define (evector-normalize vec)
+  (let ((div (evector-length vec)))
+    (list (/ (car vec) div)
+          (/ (cadr vec) div))))
+
+;; Tell whether the segments are parallel
+;;
+(define (parallel? seg1 seg2)
+  (let ((vec1 (list (abs (- (caadr seg1) (caar seg1)))
+                    (abs (- (cadadr seg1) (cadar seg1)))))
+        (vec2 (list (abs (- (caadr seg2) (caar seg2)))
+                    (abs (- (cadadr seg2) (cadar seg2))))))
+    (=~ (evector-normalize vec1) (evector-normalize vec2) 0.1)))

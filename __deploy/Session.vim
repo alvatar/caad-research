@@ -20,11 +20,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
-noremap <F11> :call Compile(1)
-noremap <F10> :call CleanProgram()
-noremap <F9> :call RunProgram()
 nnoremap <F3> :vimgrep // **
+noremap <F9> :call RunProgram()
+noremap <F10> :call CleanProgram()
+noremap <F11> :call Compile(1)
+nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -149,7 +149,7 @@ endif
 set shortmess=aoO
 badd +24 /data/projects/ensanche-core/main.scm
 badd +52 /data/projects/ensanche-core/arch.xml
-badd +216 /data/projects/ensanche-core/graph.scm
+badd +193 /data/projects/ensanche-core/graph.scm
 badd +6 /data/projects/ensanche-core/input.scm
 badd +92 /data/projects/ensanche-core/visualization.scm
 badd +14 /data/projects/ensanche-core/mutation.scm
@@ -159,7 +159,7 @@ badd +1 /data/projects/ensanche-core/constraints.scm
 badd +8 /data/projects/ensanche-core/filters.scm
 badd +23 /data/projects/ensanche-core/utilities.scm
 silent! argdel *
-edit /data/projects/ensanche-core/graph.scm
+edit /data/projects/ensanche-core/operations.scm
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
@@ -269,12 +269,12 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 202 - ((45 * winheight(0) + 46) / 92)
+let s:l = 151 - ((48 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-202
-normal! 0
+151
+normal! 09l
 wincmd w
 argglobal
 edit /data/projects/ensanche-core/visualization.scm

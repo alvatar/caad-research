@@ -98,13 +98,14 @@
                     (list `(wall (@ (uid ,second-wall-uid-1-half))))
                     (list `(wall (@ (uid ,new-wall-uid))))
                     (list `(wall (@ (uid ,first-wall-uid-2-half)))))))
-        (list (create-wall
-                (point-from-relative-in-wall first-wall first-split-point) ; TODO: With constraints (orthogonality and elements)
-                (point-from-relative-in-wall second-wall second-split-point) ; TODO: With constraints (orthogonality and elements)
+        (list (point-list-to-wall
+                (list
+                  (make-archpoint (point-from-relative-in-wall first-wall first-split-point)) ; TODO: With constraints (orthogonality and elements)
+                  (make-archpoint (point-from-relative-in-wall second-wall second-split-point))) ; TODO: With constraints (orthogonality and elements)
           new-wall-uid))
         (if (is-end-point?
               (extract-polywall-points (reference-list-to-elements graph (cdr fore)))
-              (extract-point-coords (wall-first-point first-wall)))
+              (extract-archpoint-coords (wall-first-point first-wall)))
             (create-splitted-wall
               (find-element-with-uid graph (element-uid (car fore)))
               first-split-point
@@ -117,7 +118,7 @@
               first-wall-uid-1-half))
         (if (is-end-point?
               (extract-polywall-points (reference-list-to-elements graph (cdr aft)))
-              (extract-point-coords (wall-first-point second-wall)))
+              (extract-archpoint-coords (wall-first-point second-wall)))
             (create-splitted-wall
               (find-element-with-uid graph (element-uid (car aft)))
               second-split-point
@@ -135,22 +136,47 @@
 ;; Merge two rooms
 ;;
 (define (op-merge graph context-selector constraints)
-  (let* ((common-wall-uid (find-common-wall (context-selector graph)))
-         (wall-bifurcations (find-wall-bifurcations graph common-wall-uid)))
-    (try-to-merge-almost-parallel-walls (car wall-bifurcations))
-    (try-to-merge-almost-parallel-walls (cadr wall-bifurcations))
-
-    (apply-operation-in-context
-      graph
-      context-selector
-      (list
-        (append `(room (@ (uid ,(make-uuid))))
-                ;; TODO: LISTA DE PAREDES EN LA NUEVA, DEPENDIENDO DEL INTENTO DE FUSION DE CUASI-PARALELAS
-                (list `(wall (@ (uid ,first-wall-uid-1-half))))
-                (list `(wall (@ (uid ,new-wall-uid))))
-                (list `(wall (@ (uid ,second-wall-uid-2-half)))))))
-
-    (remove-element graph wall-uid)))
+  (define (update-walls graph wall-list)
+    '())
+  (let* ((merge-rooms (context-selector graph))
+         (room-a (car merge-rooms))
+         (room-b (cadr merge-rooms))
+         (common-wall-uid (find-common-wall merge-rooms))
+         (wall-bifurcations (find-walls-connected-to graph common-wall-uid)) ; TODO: filter out walls that don't belong to either room
+         (possible-uid-1 (make-uuid))
+         (possible-uid-2 (make-uuid))
+         (touched-walls-a (try-to-merge-if-parallel-walls (car wall-bifurcations) possible-uid-1))
+         (touched-walls-b (try-to-merge-if-parallel-walls (cadr wall-bifurcations) possible-uid-2))
+         (rest-of-walls-a (room-remove-walls (car wall-bifurcations) room-a))
+         (rest-of-walls-b (room-remove-walls (cadr wall-bifurcations) room-b))
+         (walls-a
+           (if (> (length touched-walls-a) 1)
+               '()
+             '()))
+        ; It has not been merged, stay like that
+        ; It has been merged: remove two previous and add new one
+         (walls-b
+           (if (> (length touched-walls-b) 1)
+               '()
+             '()))
+         (graph-with-changed-room
+           (apply-operation-in-context
+             graph
+             context-selector
+             (list
+               (append `(room (@ (uid ,(make-uuid))))
+                       rest-of-walls-a
+                       walls-a
+                       rest-of-walls-b
+                       walls-b))))
+         )
+    (remove-element
+      (update-walls
+        (update-walls
+          graph-with-changed-room
+          walls-a)
+        walls-b)
+      wall-uid)))
 
 ;; Create new element
 ;;

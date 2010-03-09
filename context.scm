@@ -21,7 +21,7 @@
 ;;
 (define (biggest-room graph)
   (let
-    ((rooms-list (rooms graph)))
+    ((rooms-list (rooms-in-graph graph)))
     (if
       (null? rooms-list)
       '()
@@ -30,7 +30,7 @@
 ;; Takes the two first rooms as context
 ;;
 (define (two-rooms graph)
-  (let ((rooms-list (rooms graph)))
+  (let ((rooms-list (rooms-in-graph graph)))
     (if (> (length rooms-list) 1)
         (take rooms-list 2)
       '())))
