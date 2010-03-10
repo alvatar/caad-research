@@ -13,9 +13,9 @@
 
 ;; Apply operation to context
 ;;
-(define (apply-operation-in-context graph context-selector new-subgraph)
+(define (apply-operation-in-context graph context new-subgraph)
   (define (matches-context? elem)
-    (equal? elem (context-selector graph))) ; optimize
+    (equal? elem context))
   (define (do-in-context graph-tail)
     (map
      (lambda (elem)
@@ -136,16 +136,6 @@
 ;; Merge two rooms
 ;;
 (define (op-merge graph context-selector constraints)
-  (define (update-walls graph wall-list)
-    (if (= (length wall-bifurcations) 2) ; did merging work?
-        graph
-      (add-element ; TODO
-        (remove-element ; TODO
-          (remove-element
-            graph
-            (element-uid (cadr wall-list)))
-          (element-uid (car wall-list)))
-        (car wall-list))))
   (let* ((merged-rooms (context-selector graph))
          (room-a (car merged-rooms))
          (room-b (cadr merged-rooms))
@@ -155,26 +145,38 @@
          (possible-uid-2 (make-uuid))
          (touched-walls-a (try-to-merge-if-parallel-walls (car wall-bifurcations) possible-uid-1))
          (touched-walls-b (try-to-merge-if-parallel-walls (cadr wall-bifurcations) possible-uid-2))
-         (rest-of-walls-a (remove-element room-a (car wall-bifurcations)))
-         (rest-of-walls-b (remove-element room-b (cadr wall-bifurcations)))
+         (rest-of-walls-a (remove-element (room-wall-refs room-a) (car wall-bifurcations)))
+         (rest-of-walls-b (remove-element (room-wall-refs room-b) (cadr wall-bifurcations)))
          (graph-with-changed-room
            (apply-operation-in-context
-             graph
-             context-selector
-             (list
-               (append `(room (@ (uid ,(make-uuid))))
-                       rest-of-walls-a
-                       touched-walls-a
-                       rest-of-walls-b
-                       touched-walls-b))))
-         )
+             (apply-operation-in-context
+               graph
+               (car merged-rooms)
+               (list
+                 (append `(room (@ (uid ,(make-uuid))))
+                         rest-of-walls-a
+                         (make-refs-from-elements touched-walls-a)
+                         rest-of-walls-b
+                         (make-refs-from-elements touched-walls-b))))
+             (cadr merged-rooms)
+             '())))
+    (define (update-walls graph wall-list)
+      (if (= (length wall-bifurcations) 2) ; did merging work?
+          graph
+        (add-element ; TODO
+          (remove-element
+            (remove-element
+              graph
+              (element-uid (cadr wall-list)))
+            (element-uid (car wall-list)))
+          (car wall-list))))
     (remove-element
       (update-walls
         (update-walls
           graph-with-changed-room
           touched-walls-a)
         touched-walls-b)
-      wall-uid)))
+      (find-element-with-uid graph common-wall-uid))))
 
 ;; Create new element
 ;;

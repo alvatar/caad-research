@@ -63,6 +63,14 @@
       (raise "You sent me a null graph. What should I do with this?")
     (cdr graph)))
 
+;; Remove element from graph
+;;
+(define (remove-element graph element)
+  (remove
+    (lambda (e)
+      (equal? e element))
+    graph))
+
 ;-------------------------------------------------------------------------------
 ; Element references and UID
 ;-------------------------------------------------------------------------------
@@ -100,6 +108,19 @@
         elem-lis
       (iter (append elem-lis (reference-to-element graph (car ref-lis))) (cdr ref-lis))))
   (iter '() ref-lis))
+
+;; Make a reference from an element
+;;
+(define (make-ref-from-element element)
+  `(,(car element) (@ (uid ,(element-uid element)))))
+
+;; Make a reference list from an element list
+;;
+(define (make-refs-from-elements element-list)
+  (map
+    (lambda (e)
+      (make-ref-from-element e))
+    element-list))
 
 ;-------------------------------------------------------------------------------
 ; Points
