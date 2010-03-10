@@ -71,6 +71,21 @@
       (equal? e element))
     graph))
 
+;; Remove element-list from graph
+;;
+(define (remove-elements graph element-list)
+  (remove
+    (lambda (e)
+      (any (lambda (e-in-element-list)
+             (equal? e-in-element-list e))
+           element-list))
+    graph))
+
+;; Add element to graph
+;;
+(define (add-element graph element)
+  (append graph element))
+
 ;-------------------------------------------------------------------------------
 ; Element references and UID
 ;-------------------------------------------------------------------------------
@@ -108,6 +123,11 @@
         elem-lis
       (iter (append elem-lis (reference-to-element graph (car ref-lis))) (cdr ref-lis))))
   (iter '() ref-lis))
+
+;; Make a reference from an UID
+;;
+(define (make-ref-from-uid type element-uid)
+  `(,type (@ (uid ,element-uid))))
 
 ;; Make a reference from an element
 ;;
@@ -423,6 +443,16 @@
               (element-uid first)
             (iter (cdr lis1))))))
     (iter walls-room-b)))
+
+(define (room-order-walls graph room)
+  (let ((walls (room-walls room)))
+    (define (iter ordered remaining)
+      (define (find-next wall-list)
+        '())
+      (if (null-list? remaining)
+          ordered
+        (append ordered (find-next (car ordered)))))
+    (iter (car walls) (cdr walls))))
 
 ;; Calculate room area
 ;;

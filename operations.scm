@@ -145,19 +145,29 @@
          (possible-uid-2 (make-uuid))
          (touched-walls-a (try-to-merge-if-parallel-walls (car wall-bifurcations) possible-uid-1))
          (touched-walls-b (try-to-merge-if-parallel-walls (cadr wall-bifurcations) possible-uid-2))
-         (rest-of-walls-a (remove-element (room-wall-refs room-a) (car wall-bifurcations)))
-         (rest-of-walls-b (remove-element (room-wall-refs room-b) (cadr wall-bifurcations)))
+         (rest-of-walls-a (remove-elements (room-wall-refs room-a) (make-refs-from-elements
+                                                                     (append
+                                                                       (list (make-ref-from-uid 'wall common-wall-uid))
+                                                                       touched-walls-a
+                                                                       touched-walls-b))))
+         (rest-of-walls-b (remove-elements (room-wall-refs room-b) (make-refs-from-elements
+                                                                     (append
+                                                                       (list (make-ref-from-uid 'wall common-wall-uid))
+                                                                       touched-walls-a
+                                                                       touched-walls-b))))
          (graph-with-changed-room
            (apply-operation-in-context
              (apply-operation-in-context
                graph
                (car merged-rooms)
-               (list
-                 (append `(room (@ (uid ,(make-uuid))))
-                         rest-of-walls-a
-                         (make-refs-from-elements touched-walls-a)
-                         rest-of-walls-b
-                         (make-refs-from-elements touched-walls-b))))
+               (room-order-walls
+                 graph
+                 (list
+                   (append `(room (@ (uid ,(make-uuid))))
+                           rest-of-walls-a
+                           (make-refs-from-elements touched-walls-a)
+                           rest-of-walls-b
+                           (make-refs-from-elements touched-walls-b)))))
              (cadr merged-rooms)
              '())))
     (define (update-walls graph wall-list)
