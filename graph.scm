@@ -84,7 +84,7 @@
 ;; Add element to graph
 ;;
 (define (add-element graph element)
-  (append graph element))
+  (append graph `(,element)))
 
 ;-------------------------------------------------------------------------------
 ; Element references and UID
@@ -103,6 +103,7 @@
   (define (iter elem-list-tail)
     (cond
      ((null-list? elem-list-tail)
+      (display "UID: ")(display uid)(newline)
       (raise "Wall with such UID not found"))
      ((equal? (element-uid (car elem-list-tail)) uid)
       (car elem-list-tail))
@@ -113,7 +114,7 @@
 ;; Get the element from a referene element (consisting only of its uid)
 ;;
 (define (reference-to-element graph ref)
-  (list (find-element-with-uid graph (element-uid ref))))
+  (find-element-with-uid graph (element-uid ref)))
 
 ;; Get the element from a referene element (consisting only of its uid)
 ;;
@@ -121,7 +122,7 @@
   (define (iter elem-lis ref-lis)
     (if (null-list? ref-lis)
         elem-lis
-      (iter (append elem-lis (reference-to-element graph (car ref-lis))) (cdr ref-lis))))
+      (iter (append elem-lis (list (reference-to-element graph (car ref-lis))) (cdr ref-lis)))))
   (iter '() ref-lis))
 
 ;; Make a reference from an UID
@@ -240,10 +241,10 @@
   (let ((point-a (car p-list))
         (point-b (cadr p-list)))
     `(wall (@ (uid ,uuid))
-           (pt (@ (y ,(number->string (archpoint-coord 'y point-a)))
-                  (x ,(number->string (archpoint-coord 'x point-a)))))
-           (pt (@ (y ,(number->string (archpoint-coord 'y point-b)))
-                  (x ,(number->string (archpoint-coord 'x point-b))))))))
+           (pt (@ (y ,(number->string (cadr point-a)))
+                  (x ,(number->string (car point-a)))))
+           (pt (@ (y ,(number->string (cadr point-b)))
+                  (x ,(number->string (car point-b))))))))
 
 ;-------------------------------------------------------------------------------
 ; Wall
@@ -298,19 +299,20 @@
   (let ((wall-a (extract-wall-points (car wall-list))) ; TODO: try to generalize
         (wall-b (extract-wall-points (cadr wall-list))))
     (if (parallel? wall-a wall-b)
+    (begin
+    (display wall-a)(newline)
+    (display wall-b)(newline)
         (let ((first-point (if (is-end-point? wall-b (car wall-a))
                                (cadr wall-a)
                              (car wall-a)))
               (second-point (if (is-end-point? wall-a (car wall-b))
-                               (cadr wall-b)
-                             (car wall-b))))
-          ;(point-list-to-wall
-            ;(list first-point second-point)
-            ;new-uid)
-            wall-list
-            ))
-        wall-list))
-        
+                                (cadr wall-b)
+                              (car wall-b))))
+          (list (point-list-to-wall
+                  (list first-point second-point)
+                  new-uid)))
+                  )
+        wall-list)))
 
 ;; Get all walls in the graph
 ;;
@@ -347,6 +349,13 @@
                 (equal? elem wall))
               (find-walls-with-point (extract-archpoint-coords (wall-last-point wall)))))))
  
+;; Are these walls connected?
+;;
+(define (walls-are-connected? wall1 wall2)
+  (segments-are-connected?
+    (extract-wall-points wall1)
+    (extract-wall-points wall2)))
+
 ;-------------------------------------------------------------------------------
 ; Wall inner elements
 ;-------------------------------------------------------------------------------
@@ -432,7 +441,7 @@
 
 ;; Find common wall
 ;;
-(define (find-common-wall rooms)
+(define (room-find-common-wall rooms)
   (let ((walls-room-a (room-wall-refs (car rooms)))
         (walls-room-b (room-wall-refs (cadr rooms))))
     (define (iter lis1)
@@ -444,15 +453,26 @@
             (iter (cdr lis1))))))
     (iter walls-room-b)))
 
-(define (room-order-walls graph room)
-  (let ((walls (room-walls room)))
-    (define (iter ordered remaining)
-      (define (find-next wall-list)
-        '())
+;; Sort walls in a room, so they are connected
+;;
+(define (room-sort-walls graph room) ; TODO: check if the last and the first are really connected
+  (let ((walls (room-wall-refs room)))
+    (define (iter sorted remaining)
+      (define (find-next first wall-list) ; (it sorts backwards)
+        (cond
+         ((null-list? wall-list)
+          (display first)(newline)
+          (raise "room-sort-walls: This wall cannot be connected to any other one"))
+         ((walls-are-connected? (reference-to-element graph first) (reference-to-element graph (car wall-list)))
+          (car wall-list))
+         (else
+          (find-next first (cdr wall-list)))))
       (if (null-list? remaining)
-          ordered
-        (append ordered (find-next (car ordered)))))
-    (iter (car walls) (cdr walls))))
+          sorted
+        (let ((next (find-next (car sorted) remaining)))
+          (iter (cons next sorted) (remove (lambda (e) (equal? e next)) remaining))))) ; (it sorts backwards)
+    `(,(append `(room (@ (uid ,(element-uid room))))
+                         (iter (list (car walls)) (cdr walls))))))
 
 ;; Calculate room area
 ;;

@@ -56,6 +56,12 @@
           (=~ (caadr segment) point-x 0.0001)
           (=~ (cadadr segment) point-y 0.0001)))))
 
+;; Tell whether the two segments are connected
+;;
+(define (segments-are-connected? seg1 seg2)
+  (or (is-end-point? seg2 (car seg1))
+      (is-end-point? seg2 (cadr seg1))))
+
 ;; Calculate vector length
 ;;
 (define (evector-length vec)
@@ -76,4 +82,4 @@
                     (abs (- (cadadr seg1) (cadar seg1)))))
         (vec2 (list (abs (- (caadr seg2) (caar seg2)))
                     (abs (- (cadadr seg2) (cadar seg2))))))
-    (=~ (evector-normalize vec1) (evector-normalize vec2) 0.1)))
+    (=~ (evector-normalize vec1) (evector-normalize vec2) 0.01)))

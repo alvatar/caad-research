@@ -126,8 +126,7 @@
   ;; Paint room
   (define (paint-room graph room)
     (cairo-set-source-rgba cairo (random-real) (random-real) (random-real) 0.5)
-    (paint-polygon cairo (extract-room-points graph room))
-    '())
+    (paint-polygon cairo (extract-room-points graph room)))
   ;; Paint entry
   (define (paint-entry wall)
     (cairo-new-path cairo)
@@ -155,8 +154,7 @@
           ((equal? (car elem) 'pilar)
            (paint-pilar elem))
           ((equal? (car elem) 'room)
-           (paint-room graph elem)
-           '())
+           (paint-room graph elem))
           ((equal? (car elem) 'entry)
            ;(paint-entry (make-wall-list-from-uids (make-uid-list elem) graph)))
            '())
