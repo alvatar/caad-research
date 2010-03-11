@@ -111,12 +111,12 @@
       (iter (cdr elem-list-tail)))))
   (iter (walls-in-graph graph))) ; TODO!!!!!!!!!!!!!!!!!!!! GENERALIZE)
 
-;; Get the element from a referene element (consisting only of its uid)
+;; Get the element from a reference element (consisting only of its uid)
 ;;
 (define (reference-to-element graph ref)
   (find-element-with-uid graph (element-uid ref)))
 
-;; Get the element from a referene element (consisting only of its uid)
+;; Get the element from a reference element (consisting only of its uid)
 ;;
 (define (reference-list-to-elements graph ref-lis)
   (define (iter elem-lis ref-lis)
@@ -299,9 +299,6 @@
   (let ((wall-a (extract-wall-points (car wall-list))) ; TODO: try to generalize
         (wall-b (extract-wall-points (cadr wall-list))))
     (if (parallel? wall-a wall-b)
-    (begin
-    (display wall-a)(newline)
-    (display wall-b)(newline)
         (let ((first-point (if (is-end-point? wall-b (car wall-a))
                                (cadr wall-a)
                              (car wall-a)))
@@ -311,7 +308,6 @@
           (list (point-list-to-wall
                   (list first-point second-point)
                   new-uid)))
-                  )
         wall-list)))
 
 ;; Get all walls in the graph
