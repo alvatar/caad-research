@@ -1,6 +1,7 @@
 *.o[0-9]
 *.o[0-9].c
 *.swp
+*.swo
 ssax-sxml/*/*/*.c
 ssax-sxml/*/*.c
 ssax-sxml/*.c
