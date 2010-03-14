@@ -2,10 +2,11 @@
 ;;; Licensed under the GPLv3 license, see LICENSE file for full description.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Graph filters
+;;; Graph analysis procedures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import graph)
+(define (accept? graph)
+  #f) ; TODO
 
-(define (filter-graphs graph-list)
-  graph-list)
+(define (select-graph graph-list)
+  (car graph-list)) ; TODO

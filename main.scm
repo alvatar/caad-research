@@ -5,29 +5,27 @@
 ;;; Main
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import input)
-(import graph)
-(import utilities)
-(import visualization)
-(import mutation)
+(import analysis)
 (import constraints)
 (import filters)
+(import graph)
+(import input)
+(import mutation)
+(import strategies)
+(import utilities)
+(import visualization)
 
 (define (main)
+  (define (next-step graph)
+    (print-graph graph)
+    (visualize-graph graph)
+    (if (accept? graph)
+        (output graph)
+      (next-step (select-graph (filter-graphs (make-graph-mutations graph))))))
+
   (random-source-randomize! default-random-source) ; Randomizes seed for UUID generation
   (visualize-graph '())
-  (let loop
-    ((archgraph-list (list (generate-graph-from-xml (input)))))
-    (for-each
-      (lambda
-        (graph)
-        (print-graph graph)
-        (visualize-graph graph))
-      archgraph-list)
-    (loop
-      (filter-graph-list
-        (make-graph-mutations (first-or-element archgraph-list)))))
-
+  (next-step (process-through-strategies (generate-graph-from-xml (input))))
   (representation-cleanup)
 
   (exit 0))
