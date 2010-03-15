@@ -16,16 +16,16 @@
 (import visualization)
 
 (define (main)
-  (define (next-step graph)
+  (define (refine-result graph)
     (print-graph graph)
     (visualize-graph graph)
     (if (accept? graph)
         (output graph)
-      (next-step (select-graph (filter-graphs (make-graph-mutations graph))))))
+      (refine-result (select-graph (filter-graphs (make-graph-mutations graph))))))
 
   (random-source-randomize! default-random-source) ; Randomizes seed for UUID generation
   (visualize-graph '())
-  (next-step (process-through-strategies (generate-graph-from-xml (input))))
+  (refine-result (process-through-strategies (generate-graph-from-xml (input))))
   (representation-cleanup)
 
   (exit 0))
