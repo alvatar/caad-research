@@ -6,6 +6,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import termite/termite)
+
+(import global)
+(import graph)
 (import visualization)
 
 (define (process-through-strategies graph)
@@ -22,23 +25,32 @@
 ;;
 (define (place-and-partition graph)
   (define (make-agents)
-    `(,(make-agent 'entrance 20.0 30.0)
-      ,(make-agent 'distrib 30.0 90.0)
-      ,(make-agent 'storage 40.0 20.0)
-      ,(make-agent 'bath 50.0 50.0)
-      ,(make-agent 'room1 60.0 180.0)
-      ,(make-agent 'room2 70.0 30.0)
-      ,(make-agent 'room3 80.0 40.0)
-      ,(make-agent 'living 190.0 30.0)
-      ,(make-agent 'kitchen 100.0 10.0)))
+    (let*
+      ((limit-x (graph-limit-x graph)) ; TODO: This would only work for rectangular limits
+       (limit-y (graph-limit-y graph))
+       (basic-set
+        `(,(make-agent 'entrance (* limit-x (random-real)) (* limit-y (random-real)))
+          ,(make-agent 'bath (* limit-x (random-real)) (* limit-y (random-real)))
+          ,(make-agent 'room1 (* limit-x (random-real)) (* limit-y (random-real)))
+          ,(make-agent 'living (* limit-x (random-real)) (* limit-y (random-real)))
+          ,(make-agent 'kitchen (* limit-x (random-real)) (* limit-y (random-real)))))
+       (more
+        `(,(make-agent 'distrib (* limit-x (random-real)) (* limit-y (random-real)))
+          ,(make-agent 'storage (* limit-x (random-real)) (* limit-y (random-real)))
+          ,(make-agent 'room2 (* limit-x (random-real)) (* limit-y (random-real)))
+          ,(make-agent 'room3 (* limit-x (random-real)) (* limit-y (random-real))))))
+      (append basic-set more)))
   (define (place-agents agents)
-    (pp agents)
+    ;; 1st: pull the agents inside if they are outside the limit
     agents)
   (define (evolve-socially agents)
     (visualize-agents agents)
+    (visualize-now)
+    (visualize-from-scratch)
     agents)
   (define (make-rooms-from-agents agents)
     graph)
+
   (make-rooms-from-agents
     (evolve-socially
       (place-agents (make-agents)))))

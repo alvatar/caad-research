@@ -9,10 +9,14 @@
 (import opengl/gl)
 (import sdl/sdl)
 (import cairo/cairo)
+
+(import global)
 (import graph)
 
-(export visualize-graph)
+(export visualize-graph) ; TODO: Move to graph.scm
 (export visualize-when-possible)
+(export visualize-now)
+(export visualize-from-scratch)
 (export paint-path)
 (export paint-polygon)
 (export paint-set-color)
@@ -21,9 +25,6 @@
 
 (define maxx 500)
 (define maxy 500)
-
-(define pi 3.14159265)
-(define pi2 6.28318531)
 
 (define (representation-init)
   (SDL::initialize SDL::init-everything)
@@ -64,7 +65,8 @@
                  (exit 0)))
               ((= event 32) ; 32 = space TODO!
 
-           ;; This block goes here (*) for continuous redrawing
+               (return))))
+
            (cairo-set-source-rgba cairo 1.0 1.0 1.0 1.0)
            (cairo-rectangle cairo 0.0 0.0 (* maxx 1.0) (* maxy 1.0))
            (cairo-fill cairo)
@@ -75,9 +77,6 @@
              external-procedures)
            (SDL::flip cairo-surface)
 
-               (return))))
-
-           ;(*)
            (loop)))
 
          (return))))
@@ -130,7 +129,8 @@
     '())
   ;; Paint room
   (define (paint-room graph room)
-    (cairo-set-source-rgba cairo (random-real) (random-real) (random-real) 0.5)
+    ;(cairo-set-source-rgba cairo (random-real) (random-real) (random-real) 0.5)
+    (cairo-set-source-rgba cairo 0.0 0.0 0.0 0.5)
     (paint-polygon cairo (extract-room-points graph room)))
   ;; Paint entry
   (define (paint-entry wall)
@@ -172,16 +172,28 @@
 ;;; External access to representation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Receive a procedure for visualization from another module
+;; Receive a procedure for visualization from another module, so it can be
+;; executed at its right time
 ;;
+(define (visualize-when-possible new-procedure)
+  (append-visualization-procedure! external-procedures new-procedure))
+
 (define external-procedures (list (lambda (a) '()))) ; Why should I add something so it is a list?
 (define (append-visualization-procedure! list-procs proc)
   (if (null? (cdr list-procs))
       (set-cdr! list-procs (list proc))
     (append-visualization-procedure! (cdr list-procs) proc)))
 
-(define (visualize-when-possible new-procedure)
-  (append-visualization-procedure! external-procedures new-procedure))
+;; Execute now the full sequence of representation of the graph and external
+;; visualization procedures
+;;
+(define (visualize-now)
+  '())
+
+;; Cleans all the external visualization procedures pending of execution
+;;
+(define (visualize-from-scratch)
+  '())
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; High-level procedures for painting

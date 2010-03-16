@@ -63,6 +63,13 @@
       (raise "You sent me a null graph. What should I do with this?")
     (cdr graph)))
 
+;; Get graph limits (extreme points)
+;;
+(define (graph-limit-x graph)
+  500.0) ; TODO: calculate
+(define (graph-limit-y graph)
+  500.0) ; TODO: calculate
+
 ;; Remove element from graph
 ;;
 (define (remove-element graph element)

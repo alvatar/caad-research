@@ -21,11 +21,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F3> :vimgrep // **
-noremap <F9> :call RunProgram()
-noremap <F10> :call CleanProgram()
-noremap <F11> :call Compile(1)
 nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
+noremap <F11> :call Compile(1)
+noremap <F10> :call CleanProgram()
+noremap <F9> :call RunProgram()
+nnoremap <F3> :vimgrep // **
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -148,11 +148,11 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +32 /data/projects/ensanche-core/main.scm
+badd +16 /data/projects/ensanche-core/main.scm
 badd +52 /data/projects/ensanche-core/arch.xml
 badd +193 /data/projects/ensanche-core/graph.scm
-badd +4 /data/projects/ensanche-core/input.scm
-badd +130 /data/projects/ensanche-core/visualization.scm
+badd +13 /data/projects/ensanche-core/input.scm
+badd +18 /data/projects/ensanche-core/visualization.scm
 badd +14 /data/projects/ensanche-core/mutation.scm
 badd +24 /data/projects/ensanche-core/context.scm
 badd +156 /data/projects/ensanche-core/operations.scm
@@ -161,9 +161,10 @@ badd +8 /data/projects/ensanche-core/filters.scm
 badd +23 /data/projects/ensanche-core/utilities.scm
 badd +4 /data/projects/ensanche-core/output.scm
 badd +11 /data/projects/ensanche-core/analysis.scm
-badd +0 /data/projects/ensanche-core/strategies.scm
+badd +1 /data/projects/ensanche-core/strategies.scm
+badd +9 /data/projects/ensanche-core/global.scm
 silent! argdel *
-edit /data/projects/ensanche-core/input.scm
+edit /data/projects/ensanche-core/graph.scm
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
@@ -273,11 +274,11 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 4 - ((3 * winheight(0) + 46) / 92)
+let s:l = 120 - ((45 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-4
+120
 normal! 0
 wincmd w
 argglobal
@@ -379,15 +380,13 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 9 - ((8 * winheight(0) + 46) / 92)
+let s:l = 30 - ((29 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-9
-normal! 02l
-lcd /data/projects/ensanche-core/__deploy
+30
+normal! 033l
 wincmd w
-2wincmd w
 exe 'vert 1resize ' . ((&columns * 139 + 139) / 279)
 exe 'vert 2resize ' . ((&columns * 139 + 139) / 279)
 tabnext 1
