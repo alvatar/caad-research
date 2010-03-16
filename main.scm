@@ -17,15 +17,17 @@
 
 (define (main)
   (define (refine-result graph)
-    ;(print-graph graph)
+    (print-graph graph)
     (visualize-graph graph)
     (if (accept? graph)
         (output graph)
       (refine-result (select-graph (filter-graphs (make-graph-mutations graph))))))
 
   (random-source-randomize! default-random-source) ; Randomizes seed for UUID generation
-  (visualize-graph '())
-  (refine-result (process-through-strategies (generate-graph-from-xml (input))))
+  ;(visualize-graph '())
+  (let ((graph (generate-graph-from-xml (input))))
+    (visualize-graph graph)
+    (refine-result (process-through-strategies graph)))
   (representation-cleanup)
 
   (exit 0))

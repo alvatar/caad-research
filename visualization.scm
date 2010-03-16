@@ -26,11 +26,6 @@
 (define maxx 500)
 (define maxy 500)
 
-(define (representation-init)
-  (SDL::initialize SDL::init-everything)
-  (SDL::set-window-caption "ensanche-core" "ensanche-core")
-  (display "--> Representation init\n"))
-
 (define (representation-cleanup)
   (SDL::exit))
 
@@ -44,42 +39,48 @@
          (let* ((cairo-surface (SDL::set-video-mode maxx maxy 0 (+ SDL::hwsurface
                                                                    SDL::hwpalette
                                                                    SDL::doublebuf)))
-            (image-surface (cairo-image-surface-create-for-data
-                             (SDL::surface-pixels cairo-surface)
-                             CAIRO_FORMAT_RGB24
-                             maxx
-                             maxy
-                             (SDL::screen-pitch cairo-surface)))
-            (cairo (cairo-create image-surface)))
+                (image-surface (cairo-image-surface-create-for-data
+                                 (SDL::surface-pixels cairo-surface)
+                                 CAIRO_FORMAT_RGB24
+                                 maxx
+                                 maxy
+                                 (SDL::screen-pitch cairo-surface)))
+                (cairo (cairo-create image-surface)))
            (set! return (call/cc
                           (lambda (resume-here)
                             (set! control-state resume-here)
                             (return))))
-         (let loop ()
-           (SDL::delay 4)
-           (let ((event (SDL::event-exit)))
+           (let loop ()
+             (SDL::delay 4)
+             (let ((event (SDL::event-exit)))
+               (cond
+                ((= event 27) ; 27 = escape TODO!
+                 (begin 
+                   (SDL::exit)
+                   (exit 0)))
+                ((= event 32) ; 32 = space TODO!
+
+                 (return))))
+
+             (cairo-set-source-rgba cairo 1.0 1.0 1.0 1.0)
+             (cairo-rectangle cairo 0.0 0.0 (exact->inexact maxx) (exact->inexact maxy))
+             (cairo-fill cairo)
+
+               (graph-to-cairo graph cairo)
+#|
              (cond
-              ((= event 27) ; 27 = escape TODO!
-               (begin 
-                 (SDL::exit)
-                 (exit 0)))
-              ((= event 32) ; 32 = space TODO!
+              ((equal? layer 'graph)
+               (graph-to-cairo graph cairo))
+              ((equal? layer 'external)
+               (for-each
+                 (lambda (e)
+                   (e cairo))
+                 external-procedures)))
+                 |#
 
-               (return))))
+             (SDL::flip cairo-surface)
 
-           (cairo-set-source-rgba cairo 1.0 1.0 1.0 1.0)
-           (cairo-rectangle cairo 0.0 0.0 (* maxx 1.0) (* maxy 1.0))
-           (cairo-fill cairo)
-           (graph-to-cairo graph cairo)
-           (for-each
-             (lambda (e)
-               (e cairo))
-             external-procedures)
-           (SDL::flip cairo-surface)
-
-           (loop)))
-
-         (return))))
+             (loop))))))
 
     (lambda (g)
       (set! graph g)

@@ -28,3 +28,8 @@
        (else
         (iter (append (cdr lis-iter) (list x)) (+ n 1))))))
   (iter lis 0))
+
+;; Call/cc with one extra argument
+;;
+(define (call/cc1 procedure value)
+  (call/cc (lambda (k) (procedure k value))))
