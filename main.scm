@@ -17,7 +17,7 @@
 
 (define (main)
   (define (refine-result graph)
-    (print-graph graph)
+    ;(print-graph graph)
     (visualize-graph graph)
     (if (accept? graph)
         (output graph)

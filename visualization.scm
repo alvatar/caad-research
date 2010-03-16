@@ -12,10 +12,18 @@
 (import graph)
 
 (export visualize-graph)
-(export visualize-graph-list)
+(export visualize-when-possible)
+(export paint-path)
+(export paint-polygon)
+(export paint-set-color)
+(export paint-circle-fill)
+(export paint-circle-border)
 
 (define maxx 500)
 (define maxy 500)
+
+(define pi 3.14159265)
+(define pi2 6.28318531)
 
 (define (representation-init)
   (SDL::initialize SDL::init-everything)
@@ -61,6 +69,10 @@
            (cairo-rectangle cairo 0.0 0.0 (* maxx 1.0) (* maxy 1.0))
            (cairo-fill cairo)
            (graph-to-cairo graph cairo)
+           (for-each
+             (lambda (e)
+               (e cairo))
+             external-procedures)
            (SDL::flip cairo-surface)
 
                (return))))
@@ -79,13 +91,6 @@
 (define (visualize-graph graph)
   (visualize-loop-with-continuation graph))
 
-(define (visualize-graph-list graph-list)
-  (for-each
-    (lambda (graph)
-      (visualize-graph graph))
-    graph-list))
-
-;(import geometry)
 ;; Draw graph
 ;;
 (define (graph-to-cairo graph cairo)
@@ -163,6 +168,25 @@
            '()))))
     (graph-parts graph)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; External access to representation
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Receive a procedure for visualization from another module
+;;
+(define external-procedures (list (lambda (a) '()))) ; Why should I add something so it is a list?
+(define (append-visualization-procedure! list-procs proc)
+  (if (null? (cdr list-procs))
+      (set-cdr! list-procs (list proc))
+    (append-visualization-procedure! (cdr list-procs) proc)))
+
+(define (visualize-when-possible new-procedure)
+  (append-visualization-procedure! external-procedures new-procedure))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; High-level procedures for painting
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Paint a path given a list of 2d points
 ;;
 (define (paint-path cairo points)
@@ -186,18 +210,38 @@
 ;;
 (define (paint-polygon cairo points)
   (if (null-list? points)
-      (raise "Trying to paint a polygon with a null list of points")
-    (begin
-      (cairo-new-path cairo)
-      (cairo-move-to cairo
-                     (caar points)
-                     (cadar points))
-      (for-each
-        (lambda
-          (point)
-          (cairo-line-to cairo
-                         (car point)
-                         (cadr point)))
-        (cdr points))
-      (cairo-close-path cairo)
-      (cairo-fill cairo))))
+    (raise "Trying to paint a polygon with a null list of points"))
+    (cairo-new-path cairo)
+    (cairo-move-to cairo
+                   (caar points)
+                   (cadar points))
+    (for-each
+      (lambda
+        (point)
+        (cairo-line-to cairo
+                       (car point)
+                       (cadr point)))
+      (cdr points))
+    (cairo-close-path cairo)
+    (cairo-fill cairo))
+
+;; Set paint color
+;;
+(define (paint-set-color cairo r g b a)
+  (cairo-set-source-rgba cairo r g b a))
+
+;; Paint a fill circle given a point and a radius
+;;
+(define (paint-circle-fill cairo x y r)
+  (cairo-new-path cairo)
+  (cairo-move-to cairo x y)
+  (cairo-arc cairo x y r 0.0 pi2)
+  (cairo-fill cairo))
+
+;; Paint a circle border given a point and a radius
+;;
+(define (paint-circle-border cairo x y r)
+  (cairo-new-path cairo)
+  (cairo-move-to cairo x y)
+  (cairo-arc cairo x y r 0.0 pi2)
+  (cairo-stroke cairo))

@@ -2,6 +2,7 @@
 *.o[0-9].c
 *.swp
 *.swo
+*.log
 ssax-sxml/*/*/*.c
 ssax-sxml/*/*.c
 ssax-sxml/*.c
