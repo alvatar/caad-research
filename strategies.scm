@@ -26,7 +26,7 @@
 (define (place-and-partition graph)
   (define (make-agents)
     (let*
-      ((limit-x (graph-limit-x graph)) ; TODO: This would only work for rectangular limits
+      ((limit-x (graph-limit-x graph))
        (limit-y (graph-limit-y graph))
        (basic-set
         `(,(make-agent 'entrance (* limit-x (random-real)) (* limit-y (random-real)))
@@ -44,9 +44,13 @@
     ;; 1st: pull the agents inside if they are outside the limit
     agents)
   (define (evolve-socially agents)
-    (visualize-agents agents)
-    (visualize-now)
-    agents)
+    (define (iter agents)
+      (visualize-forget-layers '(agents))
+      (visualize-agents agents)
+      (visualize-now)
+      ;(iter (map (lambda (e) (make-agent 'asdf (* 400 (random-real)) (* 400 (random-real)) )) agents)))
+      agents)
+    (iter agents))
   (define (make-rooms-from-agents agents)
     graph)
 
@@ -61,8 +65,12 @@
     (visualize-when-possible
       'agents
       (lambda (backend)
-        (paint-set-color backend 0.0 0.0 0.0 0.7)
-        (paint-circle-fill backend (agent-x a) (agent-y a) 10.0))))
+        (paint-set-color backend 0.0 0.0 0.0 1.0)
+        (paint-text backend (symbol->string (agent-label a)) "Arial" 10.0 100.0 100.0)
+        (paint-set-color backend 1.0 1.0 1.0 0.9)
+        (paint-circle-fill backend (agent-x a) (agent-y a) 6.0)
+        (paint-set-color backend 1.0 0.0 0.0 0.9)
+        (paint-circle-fill backend (agent-x a) (agent-y a) 3.0))))
   (for-each
     visualize-agent
     agents))

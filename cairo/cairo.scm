@@ -51,6 +51,13 @@
 (define CAIRO_LINE_CAP_ROUND 1)
 (define CAIRO_LINE_CAP_SQUARE 2)
 
+(define CAIRO_FONT_SLANT_NORMAL 0)
+(define CAIRO_FONT_SLANT_ITALIC 1)
+(define CAIRO_FONT_SLANT_OBLIQUE 2)
+
+(define CAIRO_FONT_WEIGHT_NORMAL 0)
+(define CAIRO_FONT_WEIGHT_BOLD 0)
+
 ;;; C types not already known by Gambit
 (c-define-type double*  (pointer double))
 (c-define-type void*  (pointer void))

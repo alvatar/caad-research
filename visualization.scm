@@ -25,6 +25,7 @@
 (export paint-circle-border)
 (export paint-set-line-cap)
 (export paint-set-line-width)
+(export paint-text)
 
 (define maxx 500)
 (define maxy 500)
@@ -54,7 +55,7 @@
                             (set! control-state resume-here)
                             (return))))
            (let loop ()
-             (SDL::delay 4)
+             (SDL::delay 40)
              (let ((event (SDL::event-exit)))
                (cond
                 ((= event 27) ; 27 = escape TODO!
@@ -62,7 +63,6 @@
                    (SDL::exit)
                    (exit 0)))
                 ((= event 32) ; 32 = space TODO!
-
                  (return))))
 
              (cairo-set-source-rgba cairo 1.0 1.0 1.0 1.0)
@@ -76,6 +76,7 @@
                external-painters)
 
              (SDL::flip cairo-surface)
+             (return)
 
              (loop))))))
 
@@ -212,3 +213,11 @@
 ;;
 (define (paint-set-line-width cairo width)
   (cairo-set-line-width cairo width))
+
+;; Paint text
+;;
+(define (paint-text cairo text font size x y)
+  (cairo-set-font-size cairo size)
+  (cairo-select-font-face cairo font CAIRO_FONT_SLANT_NORMAL CAIRO_FONT_WEIGHT_BOLD)
+  (cairo-move-to cairo x y)
+  (cairo-show-text cairo text))
