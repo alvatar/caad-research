@@ -18,15 +18,17 @@
 (define (main)
   (define (refine-result graph)
     (print-graph graph)
+    (visualize-forget-all)
     (visualize-graph graph)
+    (visualize-now-and-forget)
     (if (accept? graph)
         (output graph)
       (refine-result (select-graph (filter-graphs (make-graph-mutations graph))))))
 
   (random-source-randomize! default-random-source) ; Randomizes seed for UUID generation
-  ;(visualize-graph '())
   (let ((graph (generate-graph-from-xml (input))))
     (visualize-graph graph)
+    (visualize-now)
     (refine-result (process-through-strategies graph)))
   (representation-cleanup)
 

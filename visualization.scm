@@ -11,12 +11,13 @@
 (import cairo/cairo)
 
 (import global)
-(import graph)
 
-(export visualize-graph) ; TODO: Move to graph.scm
 (export visualize-when-possible)
 (export visualize-now)
-(export visualize-from-scratch)
+(export visualize-now-layers)
+(export visualize-now-and-forget)
+(export visualize-forget-layers)
+(export visualize-forget-all)
 (export paint-path)
 (export paint-polygon)
 (export paint-set-color)
@@ -33,7 +34,7 @@
 ;;
 (define visualize-loop-with-continuation
   (letrec
-    ((graph #f)
+    ((layer-selector #f)
      (control-state
        (lambda (return)
          (let* ((cairo-surface (SDL::set-video-mode maxx maxy 0 (+ SDL::hwsurface
@@ -66,135 +67,73 @@
              (cairo-rectangle cairo 0.0 0.0 (exact->inexact maxx) (exact->inexact maxy))
              (cairo-fill cairo)
 
-               (graph-to-cairo graph cairo)
-#|
-             (cond
-              ((equal? layer 'graph)
-               (graph-to-cairo graph cairo))
-              ((equal? layer 'external)
-               (for-each
-                 (lambda (e)
-                   (e cairo))
-                 external-procedures)))
-                 |#
+             (for-each
+               (lambda (e)
+                 (if (layer-selector e)
+                     ((painter-procedure e) cairo)))
+               external-painters)
 
              (SDL::flip cairo-surface)
 
              (loop))))))
 
-    (lambda (g)
-      (set! graph g)
+    (lambda (lsel)
+      (set! layer-selector lsel)
       (call/cc control-state))))
 
-;; Visualization entry points
+;; Entry point for visualization with layer selection
+(define (immediate-visualization-selector layer-selector)
+  (visualize-loop-with-continuation layer-selector))
+
+;; Execute now the sequence of representation of the selected layers
 ;;
-(define (visualize-graph graph)
-  (visualize-loop-with-continuation graph))
+(define (visualize-now-layers layers)
+  (immediate-visualization-selector
+    (lambda (e)
+      (any (lambda (l) (equal? (painter-layer e) l))
+           layers))))
 
-;; Draw graph
+;; Execute now the full sequence of representation of the all the layers
 ;;
-(define (graph-to-cairo graph cairo)
-  ;; Paint wall
-  (define (paint-wall wall)
-    (cairo-set-source-rgba cairo 0.1 0.1 0.1 1.0)
-    (cairo-set-line-cap cairo CAIRO_LINE_CAP_SQUARE)
-    (cairo-set-line-width cairo 5.0)
-    (paint-path cairo (extract-wall-points wall)))
-  ;; Paint doors in the wall
-  (define (paint-doors-in-wall wall)
-    (for-each
-      (lambda
-        (door)
-        (cairo-set-line-cap cairo CAIRO_LINE_CAP_BUTT)
-        (cairo-set-source-rgba cairo 1.0 1.0 1.0 1.0)
-        (cairo-set-line-width cairo 6.0)
-        (paint-path cairo (extract-wall-element-points door wall))
-        (cairo-set-source-rgba cairo 1.0 0.1 0.1 1.0)
-        (cairo-set-line-width cairo 3.0)
-        (paint-path cairo (extract-wall-element-points door wall)))
-      (wall-doors wall)))
-  ;; Paint windows in the wall
-  (define (paint-windows-in-wall wall)
-    (cairo-set-source-rgba cairo 1.0 1.0 0.1 1.0)
-    (cairo-set-line-cap cairo CAIRO_LINE_CAP_BUTT)
-    (cairo-set-line-width cairo 3.0)
-    (for-each
-      (lambda
-        (window)
-        (paint-path cairo (extract-wall-element-points window wall)))
-      (wall-windows wall)))
-  ;; Paint pilar
-  (define (paint-pilar pilar)
-    (cairo-new-path cairo)
-    (cairo-stroke cairo)
-    '())
-  ;; Paint room
-  (define (paint-room graph room)
-    ;(cairo-set-source-rgba cairo (random-real) (random-real) (random-real) 0.5)
-    (cairo-set-source-rgba cairo 0.0 0.0 0.0 0.5)
-    (paint-polygon cairo (extract-room-points graph room)))
-  ;; Paint entry
-  (define (paint-entry wall)
-    (cairo-new-path cairo)
-    (cairo-stroke cairo)
-    '())
-  ;; Paint pipe
-  (define (paint-pipe wall)
-    (cairo-new-path cairo)
-    (cairo-stroke cairo)
-    '())
+(define (visualize-now)
+  (immediate-visualization-selector
+    (lambda (e) #t)))
 
-  (for-each
-    (lambda
-      (elem)
-      (if (null-list? elem)
-          (raise "Malformed SXML")
-        (cond
-          ((equal? (car elem) 'wall)
-           (paint-wall
-             elem)
-           (paint-windows-in-wall 
-             elem)
-           (paint-doors-in-wall 
-             elem))
-          ((equal? (car elem) 'pilar)
-           (paint-pilar elem))
-          ((equal? (car elem) 'room)
-           (paint-room graph elem))
-          ((equal? (car elem) 'entry)
-           ;(paint-entry (make-wall-list-from-uids (make-uid-list elem) graph)))
-           '())
-          ((equal? (car elem) 'pipe)
-           ;(paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph))))))
-           '()))))
-    (graph-parts graph)))
+;; Execute now the full sequence of representation of the all the layers
+;;
+(define (visualize-now-and-forget)
+  (visualize-now)
+  (visualize-forget-all))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; External access to representation
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Remove layer
+;;
+(define (visualize-forget-layers layers)
+  (set! external-painters
+    (remove
+      (lambda (e)
+      (any (lambda (l) (equal? (painter-layer e) l))
+           layers))
+      external-painters)))
+
+;; Cleans all the external visualization procedures pending of execution
+;;
+(define (visualize-forget-all)
+  (set! external-painters (list (make-painter 'null (lambda (a) '())))))
 
 ;; Receive a procedure for visualization from another module, so it can be
 ;; executed at its right time
 ;;
-(define (visualize-when-possible new-procedure)
-  (append-visualization-procedure! external-procedures new-procedure))
+(define-structure painter layer procedure)
 
-(define external-procedures (list (lambda (a) '()))) ; Why should I add something so it is a list?
-(define (append-visualization-procedure! list-procs proc)
+(define (visualize-when-possible layer new-procedure)
+  (append-painter! external-painters (make-painter layer new-procedure)))
+
+(define external-painters (list (make-painter 'null (lambda (a) '())))) ; Why should I add something so it is a list?
+
+(define (append-painter! list-procs proc)
   (if (null? (cdr list-procs))
       (set-cdr! list-procs (list proc))
-    (append-visualization-procedure! (cdr list-procs) proc)))
-
-;; Execute now the full sequence of representation of the graph and external
-;; visualization procedures
-;;
-(define (visualize-now)
-  '())
-
-;; Cleans all the external visualization procedures pending of execution
-;;
-(define (visualize-from-scratch)
-  '())
+    (append-painter! (cdr list-procs) proc)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; High-level procedures for painting

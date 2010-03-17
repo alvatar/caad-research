@@ -46,7 +46,6 @@
   (define (evolve-socially agents)
     (visualize-agents agents)
     (visualize-now)
-    (visualize-from-scratch)
     agents)
   (define (make-rooms-from-agents agents)
     graph)
@@ -60,6 +59,7 @@
 (define (visualize-agents agents)
   (define (visualize-agent a)
     (visualize-when-possible
+      'agents
       (lambda (backend)
         (paint-set-color backend 0.0 0.0 0.0 0.7)
         (paint-circle-fill backend (agent-x a) (agent-y a) 10.0))))

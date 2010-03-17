@@ -8,9 +8,22 @@
 (import (std srfi/1))
 (import (std string/xml-to-sxml))
 (import (std misc/uuid))
+(import cairo/cairo)
+;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
+;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
+;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
+;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
+;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
+;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
+;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
+;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
+;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
+
 (import web/parse/ssax-sxml/sxml-tools/sxpath)
-(import utilities)
+
 (import geometry)
+(import utilities)
+(import visualization)
 
 ;; Generate graph from XML
 ;;
@@ -482,3 +495,88 @@
 (define (room-area room)
   ;http://www.mathsisfun.com/geometry/area-irregular-polygons.html
   99.9) ; TODO
+
+;-------------------------------------------------------------------------------
+; Visualization
+;-------------------------------------------------------------------------------
+
+;; Draw graph
+;;
+(define (visualize-graph graph)
+  (visualize-when-possible
+    'graph
+    (lambda (backend)
+      ;; Paint wall
+      (define (paint-wall wall)
+        (cairo-set-source-rgba backend 0.1 0.1 0.1 1.0)
+        (cairo-set-line-cap backend CAIRO_LINE_CAP_SQUARE)
+        (cairo-set-line-width backend 5.0)
+        (paint-path backend (extract-wall-points wall)))
+      ;; Paint doors in the wall
+      (define (paint-doors-in-wall wall)
+        (for-each
+          (lambda
+            (door)
+            (cairo-set-line-cap backend CAIRO_LINE_CAP_BUTT)
+            (cairo-set-source-rgba backend 1.0 1.0 1.0 1.0)
+            (cairo-set-line-width backend 6.0)
+            (paint-path backend (extract-wall-element-points door wall))
+            (cairo-set-source-rgba backend 1.0 0.1 0.1 1.0)
+            (cairo-set-line-width backend 3.0)
+            (paint-path backend (extract-wall-element-points door wall)))
+          (wall-doors wall)))
+      ;; Paint windows in the wall
+      (define (paint-windows-in-wall wall)
+        (cairo-set-source-rgba backend 1.0 1.0 0.1 1.0)
+        (cairo-set-line-cap backend CAIRO_LINE_CAP_BUTT)
+        (cairo-set-line-width backend 3.0)
+        (for-each
+          (lambda
+            (window)
+            (paint-path backend (extract-wall-element-points window wall)))
+          (wall-windows wall)))
+      ;; Paint pilar
+      (define (paint-pilar pilar)
+        (cairo-new-path backend)
+        (cairo-stroke backend)
+        '())
+      ;; Paint room
+      (define (paint-room graph room)
+        ;(cairo-set-source-rgba backend (random-real) (random-real) (random-real) 0.5)
+        (cairo-set-source-rgba backend 0.0 0.0 0.0 0.5)
+        (paint-polygon backend (extract-room-points graph room)))
+      ;; Paint entry
+      (define (paint-entry wall)
+        (cairo-new-path backend)
+        (cairo-stroke backend)
+        '())
+      ;; Paint pipe
+      (define (paint-pipe wall)
+        (cairo-new-path backend)
+        (cairo-stroke backend)
+        '())
+
+      (for-each
+        (lambda
+          (elem)
+          (if (null-list? elem)
+              (raise "Malformed SXML")
+            (cond
+              ((equal? (car elem) 'wall)
+               (paint-wall
+                 elem)
+               (paint-windows-in-wall 
+                 elem)
+               (paint-doors-in-wall 
+                 elem))
+              ((equal? (car elem) 'pilar)
+               (paint-pilar elem))
+              ((equal? (car elem) 'room)
+               (paint-room graph elem))
+              ((equal? (car elem) 'entry)
+               ;(paint-entry (make-wall-list-from-uids (make-uid-list elem) graph)))
+               '())
+              ((equal? (car elem) 'pipe)
+               ;(paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph))))))
+               '()))))
+        (graph-parts graph)))))
