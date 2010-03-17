@@ -23,6 +23,8 @@
 (export paint-set-color)
 (export paint-circle-fill)
 (export paint-circle-border)
+(export paint-set-line-cap)
+(export paint-set-line-width)
 
 (define maxx 500)
 (define maxy 500)
@@ -143,39 +145,38 @@
 ;;
 (define (paint-path cairo points)
   (if (null-list? points)
-      (raise "Trying to paint a path with a null list of points")
-    (begin
-      (cairo-new-path cairo)
-      (cairo-move-to cairo
-                     (caar points)
-                     (cadar points))
-      (for-each
-        (lambda
-          (point)
-          (cairo-line-to cairo
-                         (car point)
-                         (cadr point)))
-        (cdr points))
-      (cairo-stroke cairo))))
+      (raise "Trying to paint a path with a null list of points"))
+  (cairo-new-path cairo)
+  (cairo-move-to cairo
+                 (caar points)
+                 (cadar points))
+  (for-each
+    (lambda
+      (point)
+      (cairo-line-to cairo
+                     (car point)
+                     (cadr point)))
+    (cdr points))
+  (cairo-stroke cairo))
 
 ;; Paint a polygon given a list of 2d points
 ;;
 (define (paint-polygon cairo points)
   (if (null-list? points)
-    (raise "Trying to paint a polygon with a null list of points"))
-    (cairo-new-path cairo)
-    (cairo-move-to cairo
-                   (caar points)
-                   (cadar points))
-    (for-each
-      (lambda
-        (point)
-        (cairo-line-to cairo
-                       (car point)
-                       (cadr point)))
-      (cdr points))
-    (cairo-close-path cairo)
-    (cairo-fill cairo))
+      (raise "Trying to paint a polygon with a null list of points"))
+  (cairo-new-path cairo)
+  (cairo-move-to cairo
+                 (caar points)
+                 (cadar points))
+  (for-each
+    (lambda
+      (point)
+      (cairo-line-to cairo
+                     (car point)
+                     (cadr point)))
+    (cdr points))
+  (cairo-close-path cairo)
+  (cairo-fill cairo))
 
 ;; Set paint color
 ;;
@@ -197,3 +198,17 @@
   (cairo-move-to cairo x y)
   (cairo-arc cairo x y r 0.0 pi2)
   (cairo-stroke cairo))
+
+;; Set line cap
+;;
+(define (paint-set-line-cap cairo style)
+  (cond
+    ((equal? style 'square)
+     (cairo-set-line-cap cairo CAIRO_LINE_CAP_SQUARE))
+    ((equal? style 'butt)
+     (cairo-set-line-cap cairo CAIRO_LINE_CAP_BUTT))))
+
+;; Set line style
+;;
+(define (paint-set-line-width cairo width)
+  (cairo-set-line-width cairo width))

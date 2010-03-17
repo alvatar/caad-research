@@ -8,16 +8,6 @@
 (import (std srfi/1))
 (import (std string/xml-to-sxml))
 (import (std misc/uuid))
-(import cairo/cairo)
-;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
-;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
-;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
-;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
-;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
-;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
-;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
-;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
-;;;;;;;;;;;;;; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARG
 
 (import web/parse/ssax-sxml/sxml-tools/sxpath)
 
@@ -508,28 +498,28 @@
     (lambda (backend)
       ;; Paint wall
       (define (paint-wall wall)
-        (cairo-set-source-rgba backend 0.1 0.1 0.1 1.0)
-        (cairo-set-line-cap backend CAIRO_LINE_CAP_SQUARE)
-        (cairo-set-line-width backend 5.0)
+        (paint-set-color backend 0.1 0.1 0.1 1.0)
+        (paint-set-line-cap backend 'square)
+        (paint-set-line-width backend 5.0)
         (paint-path backend (extract-wall-points wall)))
       ;; Paint doors in the wall
       (define (paint-doors-in-wall wall)
         (for-each
           (lambda
             (door)
-            (cairo-set-line-cap backend CAIRO_LINE_CAP_BUTT)
-            (cairo-set-source-rgba backend 1.0 1.0 1.0 1.0)
-            (cairo-set-line-width backend 6.0)
+            (paint-set-line-cap backend 'butt)
+            (paint-set-color backend 1.0 1.0 1.0 1.0)
+            (paint-set-line-width backend 6.0)
             (paint-path backend (extract-wall-element-points door wall))
-            (cairo-set-source-rgba backend 1.0 0.1 0.1 1.0)
-            (cairo-set-line-width backend 3.0)
+            (paint-set-color backend 1.0 0.1 0.1 1.0)
+            (paint-set-line-width backend 3.0)
             (paint-path backend (extract-wall-element-points door wall)))
           (wall-doors wall)))
       ;; Paint windows in the wall
       (define (paint-windows-in-wall wall)
-        (cairo-set-source-rgba backend 1.0 1.0 0.1 1.0)
-        (cairo-set-line-cap backend CAIRO_LINE_CAP_BUTT)
-        (cairo-set-line-width backend 3.0)
+        (paint-set-color backend 1.0 1.0 0.1 1.0)
+        (paint-set-line-cap backend 'butt)
+        (paint-set-line-width backend 3.0)
         (for-each
           (lambda
             (window)
@@ -537,23 +527,17 @@
           (wall-windows wall)))
       ;; Paint pilar
       (define (paint-pilar pilar)
-        (cairo-new-path backend)
-        (cairo-stroke backend)
         '())
       ;; Paint room
       (define (paint-room graph room)
-        ;(cairo-set-source-rgba backend (random-real) (random-real) (random-real) 0.5)
-        (cairo-set-source-rgba backend 0.0 0.0 0.0 0.5)
+        ;(paint-set-color backend (random-real) (random-real) (random-real) 0.5)
+        (paint-set-color backend 0.0 0.0 0.0 0.5)
         (paint-polygon backend (extract-room-points graph room)))
       ;; Paint entry
       (define (paint-entry wall)
-        (cairo-new-path backend)
-        (cairo-stroke backend)
         '())
       ;; Paint pipe
       (define (paint-pipe wall)
-        (cairo-new-path backend)
-        (cairo-stroke backend)
         '())
 
       (for-each
