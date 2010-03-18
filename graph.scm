@@ -531,7 +531,7 @@
       ;; Paint room
       (define (paint-room graph room)
         ;(paint-set-color backend (random-real) (random-real) (random-real) 0.5)
-        (paint-set-color backend 0.0 0.0 0.0 0.5)
+        (paint-set-color backend 0.0 0.0 0.3 0.3)
         (paint-polygon backend (extract-room-points graph room)))
       ;; Paint entry
       (define (paint-entry wall)

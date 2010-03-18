@@ -21,11 +21,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
-noremap <F11> :call Compile(1)
-noremap <F10> :call CleanProgram()
-noremap <F9> :call RunProgram()
 nnoremap <F3> :vimgrep // **
+noremap <F9> :call RunProgram()
+noremap <F10> :call CleanProgram()
+noremap <F11> :call Compile(1)
+nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -150,7 +150,7 @@ endif
 set shortmess=aoO
 badd +16 /data/projects/ensanche-core/main.scm
 badd +52 /data/projects/ensanche-core/arch.xml
-badd +193 /data/projects/ensanche-core/graph.scm
+badd +147 /data/projects/ensanche-core/graph.scm
 badd +13 /data/projects/ensanche-core/input.scm
 badd +18 /data/projects/ensanche-core/visualization.scm
 badd +14 /data/projects/ensanche-core/mutation.scm
@@ -163,8 +163,9 @@ badd +4 /data/projects/ensanche-core/output.scm
 badd +11 /data/projects/ensanche-core/analysis.scm
 badd +1 /data/projects/ensanche-core/strategies.scm
 badd +9 /data/projects/ensanche-core/global.scm
+badd +0 /data/projects/ensanche-core/geometry.scm
 silent! argdel *
-edit /data/projects/ensanche-core/graph.scm
+edit /data/projects/ensanche-core/geometry.scm
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
@@ -274,12 +275,13 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 120 - ((45 * winheight(0) + 46) / 92)
+let s:l = 53 - ((52 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-120
-normal! 0
+53
+normal! 010l
+lcd /data/projects/ensanche-core/__deploy
 wincmd w
 argglobal
 edit /data/projects/ensanche-core/strategies.scm
@@ -380,12 +382,12 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 30 - ((29 * winheight(0) + 46) / 92)
+let s:l = 13 - ((9 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-30
-normal! 033l
+13
+normal! 0
 wincmd w
 exe 'vert 1resize ' . ((&columns * 139 + 139) / 279)
 exe 'vert 2resize ' . ((&columns * 139 + 139) / 279)

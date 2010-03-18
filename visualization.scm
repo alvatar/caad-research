@@ -76,7 +76,7 @@
                external-painters)
 
              (SDL::flip cairo-surface)
-             (return)
+             ;(return)
 
              (loop))))))
 
