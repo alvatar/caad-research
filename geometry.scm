@@ -24,14 +24,19 @@
 
 ;; Is equal? (with precision) for inexacts
 ;;
-(define (=~ a b precision)
-  (< (abs (- a b)) precision))
+(define (=~e a b e)
+  (< (abs (- a b)) e))
+
+;; Is equal? with defined precision
+;;
+(define (=~ a b)
+  (=~e a b 0.0000001)) ; TODO: Find the right accuracy
 
 ;-------------------------------------------------------------------------------
 ; Points
 ;-------------------------------------------------------------------------------
 
-;; Point type : TODO!!! PROPAGATE!!!
+;; Point type : TODO!!! PROPAGATE and REFACTOR
 ;;
 #;(define-record-type point
   (make-point x y)
@@ -118,6 +123,35 @@
               (+ Ay (* ABy percentage))))))
 
 ;-------------------------------------------------------------------------------
+; Polygons
+;-------------------------------------------------------------------------------
+
+;; Is point in polygon?
+;;
+;; http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+(define (point-in-polygon? polygon point)
+  (define (iter-intersection counter p1 ptail)
+    (if (null-list? ptail)
+        counter
+      (let* ((p2 (car ptail))
+             (p1x (point-x p1))
+             (p1y (point-y p1))
+             (p2x (point-x p2))
+             (p2y (point-y p2))
+             (px (point-x point))
+             (py (point-y point)))
+        (if (and (>= py (min p1y p2y)) ; Should this be > ? Handles borders better
+                 (<= py (max p1y p2y))
+                 (<= px (max p1x p2x))
+                 (not (=~ (point-y p1) (point-y p2)))
+                 (or (=~ p1x p2x)
+                     (<= px (/ (* (- py p1y) (- p2x p1x))
+                               (+ (- p2y p1y) p1x)))))
+            (iter-intersection (+ counter 1) p2 (cdr ptail))
+          (iter-intersection counter p2 (cdr ptail))))))
+  (odd? (iter-intersection 0 (car polygon) (cdr polygon))))
+
+;-------------------------------------------------------------------------------
 ; Intersections
 ;-------------------------------------------------------------------------------
 
@@ -140,8 +174,8 @@
                     (- (point-x a2) (point-x a1)))
                  (* (- (point-x b2) (point-x b1))
                     (- (point-y a2) (point-y a1))))))
-    (if (=~ u-b 0.0 0.000001) ; TODO: find the right precision
-        (if (or (=~ ua-t 0.0 0.000001) (=~ ub-t 0.0 0.000001))
+    (if (=~ u-b 0.0) ; TODO: find the right precision
+        (if (or (=~ ua-t 0.0) (=~ ub-t 0.0))
             'coincident
           'parallel)
       (let ((ua (/ ua-t u-b))
