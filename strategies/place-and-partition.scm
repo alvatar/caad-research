@@ -9,54 +9,76 @@
 ;;; 3. Partition algorithm makes a first approach of the space partitioning
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import ../termite/termite)
 (import ../graph)
 (import ../visualization)
 (import ../global)
 
+(import termites)
+
+;; Place and partition algorithm
+;;
 (define (place-and-partition graph)
   (make-rooms-from-agents
     graph
     (evolve-socially
-      (place-agents (make-agents graph)))))
+      graph
+      (place-agents
+        graph
+        (make-agents)))))
 
-(define (make-agents graph)
+;; Make the agents
+;;
+(define (make-agents)
   (let*
-    ((limit-x (graph-limit-x graph))
-     (limit-y (graph-limit-y graph))
+    ((limit-x 400.0) ; TODO
+     (limit-y 400.0)
      (basic-set
-      `(,(make-agent 'entrance (* limit-x (random-real)) (* limit-y (random-real)))
-        ,(make-agent 'bath (* limit-x (random-real)) (* limit-y (random-real)))
-        ,(make-agent 'room1 (* limit-x (random-real)) (* limit-y (random-real)))
-        ,(make-agent 'living (* limit-x (random-real)) (* limit-y (random-real)))
-        ,(make-agent 'kitchen (* limit-x (random-real)) (* limit-y (random-real)))))
+      `(,(make-agent 'entrance (* limit-x (random-real)) (* limit-y (random-real)) #f)
+        ,(make-agent 'bath (* limit-x (random-real)) (* limit-y (random-real)) #f)
+        ,(make-agent 'room1 (* limit-x (random-real)) (* limit-y (random-real)) #f)
+        ,(make-agent 'living (* limit-x (random-real)) (* limit-y (random-real)) #f)
+        ,(make-agent 'kitchen (* limit-x (random-real)) (* limit-y (random-real)) #f)))
      (more
-      `(,(make-agent 'distrib (* limit-x (random-real)) (* limit-y (random-real)))
-        ,(make-agent 'storage (* limit-x (random-real)) (* limit-y (random-real)))
-        ,(make-agent 'room2 (* limit-x (random-real)) (* limit-y (random-real)))
-        ,(make-agent 'room3 (* limit-x (random-real)) (* limit-y (random-real))))))
+      `(,(make-agent 'distrib (* limit-x (random-real)) (* limit-y (random-real)) #f)
+        ,(make-agent 'storage (* limit-x (random-real)) (* limit-y (random-real)) #f)
+        ,(make-agent 'room2 (* limit-x (random-real)) (* limit-y (random-real)) #f)
+        ,(make-agent 'room3 (* limit-x (random-real)) (* limit-y (random-real)) #f))))
     (append basic-set more)))
-(define (place-agents agents)
+
+;; Place the agents inside the limits
+;;
+(define (place-agents graph agents)
   ;; 1st: pull the agents inside if they are outside the limit
   agents)
-(define (evolve-socially agents)
-  (define (iter agents)
-    (visualize-forget-layers '(agents))
-    (visualize-agents agents)
-    (visualize-now)
-    (iter (map (lambda (e) (make-agent (agent-label e) (* 400 (random-real)) (* 400 (random-real)) )) agents)))
-    ;agents)
-  (iter agents))
+
+;; Introduce them the social environment: evolve them
+;;
+(define (evolve-socially graph agents)
+  (send-broadcast world agents)
+  (visualize-forget-layers '(agents))
+  (visualize-agents agents)
+  (visualize-now)
+  (evolve-socially agents))
+
+    ;(iter (map (lambda (e) (make-agent (agent-label e) (* 400 (random-real)) (* 400 (random-real)) #f)) agents)))
+
+;; Build geometry from agents' current positions
+;;
 (define (make-rooms-from-agents graph agents)
   graph)
 
+;; Agent type
+;;
 (define-record-type agent
-  (make-agent label x y)
+  (make-agent label x y proc)
   agent?
   (label agent-label)
   (x agent-x)
-  (y agent-y))
+  (y agent-y)
+  (proc agent-proc))
 
+;; Agent visualization
+;;
 (define (visualize-agents agents)
   (define (visualize-agent a)
     (visualize-when-possible
@@ -76,30 +98,3 @@
   (for-each
     visualize-agent
     agents))
-
-;-------------------------------------------------------------------------------
-; Agents
-;-------------------------------------------------------------------------------
-
-(define-type cell
-  id: 713cb0a4-16ea-4b18-a18e-7a9e33e7b92b
-  unprintable:
-  pid)
-
-(define (cell obj)
-  (make-cell
-   (spawn
-     (lambda ()
-       (cell-loop obj)))))
-
-(define (cell-loop obj)
-  (recv
-    ((from tag 'ref)
-     (! from (list tag obj))
-     (cell-loop obj))
-   
-    (('set! obj) 
-     (cell-loop obj))))
-
-(define (cell-ref c) (!? (cell-pid c) 'ref))
-(define (cell-set! c obj) (! (cell-pid c) (list 'set! obj)))

@@ -7,7 +7,7 @@
 
 (define (input)
   (let*
-    ((xml-file (open-input-file "arch_2.xml"))
+    ((xml-file (open-input-file "data/arch_2.xml"))
      (xml-string (read-line xml-file #f))
      (close-port xml-file))
      xml-string))
