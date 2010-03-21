@@ -7,6 +7,12 @@
 
 (import (std srfi/1))
 
+;; snoc
+;;
+(define snoc
+  (lambda (ls x)
+    (append ls (list x))))
+
 ;; Take the first one of a list, if is not a list, take the element itself
 ;;
 (define (first-or-element list-or-element)

@@ -89,3 +89,31 @@
 
 ;; (define-macro (vector3d-set! vector i j k val)
 ;;   `(vector-set! (vector2d-ref ,vector ,i ,j) ,k ,val))
+
+
+#|
+;;; Malloc & Free Xenoids [them wierd alien thingies]
+;;; =============
+(define SDL::free
+  (c-lambda ((pointer void)) void "free"))
+
+;; @@FIXME: move to macro include file..
+(define-macro (SDL::malloc proc-name type size-string)
+  `(let ( [obj
+           ((c-lambda ()
+                      ,type
+                      ,(string-append
+                        "___result_voidstar = malloc("
+                        size-string
+                        ");")))
+           ]
+        )
+     (if (not obj)
+       (error ,(string-append proc-name " failed")))
+     (make-will obj (lambda (obj) (SDL::free
+                                   (cast-pointer
+                                    ,type
+                                    (pointer void)
+                                    obj))))
+     obj))
+     |#

@@ -10,7 +10,9 @@
 ;; @@FIXME: Throw Gambit errors
 
 (compile-options cc-options: "-I/usr/include/SDL" ld-options: "-lSDL" force-compile: #t)
-(include "scm-lib-macro.scm")
+
+(define pointer) ; FIXME: What? Why?
+(define cast-pointer)
 
 (c-declare #<<end-of-c-declare
 
@@ -384,31 +386,6 @@ char *SDL_GetError(void);
                         (SDL::GetError)))
 )
 
-;;; Malloc & Free Xenoids [them wierd alien thingies]
-;;; =============
-(define SDL::free
-  (c-lambda ((pointer void)) void "free"))
-
-;; @@FIXME: move to macro include file..
-(define-macro (SDL::malloc proc-name type size-string)
-  `(let ( [obj
-           ((c-lambda ()
-                      ,type
-                      ,(string-append
-                        "___result_voidstar = malloc("
-                        size-string
-                        ");")))
-           ]
-        )
-     (if (not obj)
-       (error ,(string-append proc-name " failed")))
-     (make-will obj (lambda (obj) (SDL::free
-                                   (cast-pointer
-                                    ,type
-                                    (pointer void)
-                                    obj))))
-     obj))
-
 ;;;
 ;;; SDL Functions 
 ;;; =============
@@ -537,9 +514,11 @@ char *SDL_GetError(void);
   (c-lambda ((pointer "SDL_Event")) bool "SDL_PollEvent"))
 
 
+#|
 (define (SDL::malloc-event-struct)
   (SDL::malloc "SDL::malloc-event-struct" (pointer "SDL_Event") "sizeof(SDL_Event)")
 )
+|#
 
 (define SDL::raw-event-type
   (c-lambda ((pointer "SDL_Event")) unsigned-int8 "___result = ___arg1->type;"))

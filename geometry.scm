@@ -174,7 +174,7 @@
                     (- (point-x a2) (point-x a1)))
                  (* (- (point-x b2) (point-x b1))
                     (- (point-y a2) (point-y a1))))))
-    (if (=~ u-b 0.0) ; TODO: find the right precision
+    (if (=~ u-b 0.0)
         (if (or (=~ ua-t 0.0) (=~ ub-t 0.0))
             'coincident
           'parallel)
