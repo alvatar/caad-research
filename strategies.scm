@@ -7,7 +7,7 @@
 
 (import visualization)
 
-(import place-and-partition)
+(import strategies/place-and-partition)
 
 (define (process-through-strategies graph)
   (define (select-strategy)
