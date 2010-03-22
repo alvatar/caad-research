@@ -20,15 +20,16 @@
 (define (place-and-partition graph)
   (make-rooms-from-agents
     graph
-    (evolve-socially
-      graph
-      (place-agents
+    (world-agents
+      (evolve-socially
         graph
-        (make-agents)))))
+        (bind-agents
+          graph
+          (make-world))))))
 
-;; Make the agents
+;; Make the agents and environment
 ;;
-(define (make-agents)
+(define (make-world)
   (let*
     ((limit-x 400.0) ; TODO
      (limit-y 400.0)
@@ -45,20 +46,33 @@
         ,(make-agent 'room3 (* limit-x (random-real)) (* limit-y (random-real)) #f))))
     (append basic-set more)))
 
-;; Place the agents inside the limits
+;; Place the agents inside the limits and bind them to the graph
 ;;
-(define (place-agents graph agents)
+(define (bind-agents graph world)
   ;; 1st: pull the agents inside if they are outside the limit
-  agents)
+  world)
 
 ;; Introduce them the social environment: evolve them
 ;;
-(define (evolve-socially graph agents)
-  (send-broadcast world agents)
-  (visualize-forget-layers '(agents))
-  (visualize-agents agents)
+(define (evolve-socially graph world)
+  (define (stop?) #f)
+
+  (visualize-forget-layers '(place-and-partition))
+  (visualize-world world)
   (visualize-now)
-  (evolve-socially agents))
+  (if (stop?)
+      world
+    (evolve-socially 
+      graph
+      (world-merge-cells
+        world
+        (map ; Produce a list of cells with their new state
+          (lambda (a)
+            ;; Sends a message with the "world" argument to
+            ;; agent a to produce its new state
+            (agent-new-state world a)
+            '())
+          (world-agents world))))))
 
     ;(iter (map (lambda (e) (make-agent (agent-label e) (* 400 (random-real)) (* 400 (random-real)) #f)) agents)))
 
@@ -77,12 +91,20 @@
   (y agent-y)
   (proc agent-proc))
 
-;; Agent visualization
+;; World type
 ;;
-(define (visualize-agents agents)
+(define-record-type world
+  (make-world agents maps)
+  world?
+  (agents world-agents)
+  (maps world-maps))
+
+;; World visualization
+;;
+(define (visualize-world world)
   (define (visualize-agent a)
     (visualize-when-possible
-      'agents
+      'place-and-partition
       (lambda (backend)
         (paint-set-color backend 1.0 1.0 1.0 0.9)
         (paint-circle-fill backend (agent-x a) (agent-y a) 6.0)
@@ -97,4 +119,4 @@
           (+ (agent-y a) 3.0)))))
   (for-each
     visualize-agent
-    agents))
+    (world-agents world)))

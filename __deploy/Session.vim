@@ -21,11 +21,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F3> :vimgrep // **
-noremap <F9> :call RunProgram()
-noremap <F10> :call CleanProgram()
-noremap <F11> :call Compile(1)
 nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
+noremap <F11> :call Compile(1)
+noremap <F10> :call CleanProgram()
+noremap <F9> :call RunProgram()
+nnoremap <F3> :vimgrep // **
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -161,11 +161,13 @@ badd +8 /data/projects/ensanche-core/filters.scm
 badd +23 /data/projects/ensanche-core/utilities.scm
 badd +4 /data/projects/ensanche-core/output.scm
 badd +11 /data/projects/ensanche-core/analysis.scm
-badd +1 /data/projects/ensanche-core/strategies.scm
+badd +15 /data/projects/ensanche-core/strategies.scm
 badd +9 /data/projects/ensanche-core/global.scm
-badd +0 /data/projects/ensanche-core/geometry.scm
+badd +59 /data/projects/ensanche-core/geometry.scm
+badd +0 /data/projects/ensanche-core/strategies/termites.scm
+badd +0 /data/projects/ensanche-core/strategies/place-and-partition.scm
 silent! argdel *
-edit /data/projects/ensanche-core/geometry.scm
+edit /data/projects/ensanche-core/strategies/place-and-partition.scm
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
@@ -275,16 +277,16 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 53 - ((52 * winheight(0) + 46) / 92)
+let s:l = 61 - ((52 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-53
-normal! 010l
+61
+normal! 02l
 lcd /data/projects/ensanche-core/__deploy
 wincmd w
 argglobal
-edit /data/projects/ensanche-core/strategies.scm
+edit /data/projects/ensanche-core/strategies/termites.scm
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
@@ -382,12 +384,13 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 13 - ((9 * winheight(0) + 46) / 92)
+let s:l = 40 - ((39 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-13
+40
 normal! 0
+lcd /data/projects/ensanche-core/__deploy
 wincmd w
 exe 'vert 1resize ' . ((&columns * 139 + 139) / 279)
 exe 'vert 2resize ' . ((&columns * 139 + 139) / 279)
