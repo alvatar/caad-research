@@ -9,11 +9,10 @@
 ;;; 3. Partition algorithm makes a first approach of the space partitioning
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import ../graph)
 (import ../visualization)
+(import ../geometry)
 (import ../global)
-
-(import termites)
+(import ../graph)
 
 ;; Place and partition algorithm
 ;;
@@ -23,39 +22,79 @@
     (world-agents
       (evolve-socially
         graph
-        (bind-agents
+        (init-world
           graph
-          (make-world))))))
+          (describe-world))))))
 
-;; Make the agents and environment
+;; Create all necessary things to begin simulation
 ;;
-(define (make-world)
+(define (describe-world)
   (let*
     ((limit-x 400.0) ; TODO
      (limit-y 400.0)
      (basic-set
-      `(,(make-agent 'entrance (* limit-x (random-real)) (* limit-y (random-real)) #f)
-        ,(make-agent 'bath (* limit-x (random-real)) (* limit-y (random-real)) #f)
-        ,(make-agent 'room1 (* limit-x (random-real)) (* limit-y (random-real)) #f)
-        ,(make-agent 'living (* limit-x (random-real)) (* limit-y (random-real)) #f)
-        ,(make-agent 'kitchen (* limit-x (random-real)) (* limit-y (random-real)) #f)))
+      `(,(make-agent
+           'entrance
+           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
+           (lambda (world agent) agent))
+        ,(make-agent
+           'bath
+           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
+           (lambda (world agent) agent))
+        ,(make-agent
+           'room1
+           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
+           (lambda (world agent) agent))
+        ,(make-agent
+           'living
+           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
+           (lambda (world agent) agent))
+        ,(make-agent
+           'kitchen
+           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
+           (lambda (world agent) agent))))
      (more
-      `(,(make-agent 'distrib (* limit-x (random-real)) (* limit-y (random-real)) #f)
-        ,(make-agent 'storage (* limit-x (random-real)) (* limit-y (random-real)) #f)
-        ,(make-agent 'room2 (* limit-x (random-real)) (* limit-y (random-real)) #f)
-        ,(make-agent 'room3 (* limit-x (random-real)) (* limit-y (random-real)) #f))))
-    (append basic-set more)))
+      `(,(make-agent
+           'distrib
+           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
+           (lambda (world agent) agent))
+        ,(make-agent
+           'storage
+           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
+           (lambda (world agent) agent))
+        ,(make-agent
+           'room2
+           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
+           (lambda (world agent) agent))
+        ,(make-agent
+           'room3
+           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
+           (lambda (world agent) agent)))))
+    (make-world 
+      (append basic-set more)
+      '())))
 
-;; Place the agents inside the limits and bind them to the graph
+;; Do all initial things with the world prior to simulation
 ;;
-(define (bind-agents graph world)
+(define (init-world graph world)
   ;; 1st: pull the agents inside if they are outside the limit
   world)
 
 ;; Introduce them the social environment: evolve them
 ;;
 (define (evolve-socially graph world)
+  ;; Stop condition
   (define (stop?) #f)
+  ;; Distribution method
+  (define (agents-receive-new-states)
+    (map ; Produce a list of cells with their new state
+      (lambda (a)
+        ;; Sends a message with the "world" argument to
+        ;; agents, in order to let them produce their new state
+        (agent-new-state a world))
+      (world-agents world)))
+  (define (world-merge-agents world agents-list)
+    world)
 
   (visualize-forget-layers '(place-and-partition))
   (visualize-world world)
@@ -64,32 +103,65 @@
       world
     (evolve-socially 
       graph
-      (world-merge-cells
+      (world-merge-agents
         world
-        (map ; Produce a list of cells with their new state
-          (lambda (a)
-            ;; Sends a message with the "world" argument to
-            ;; agent a to produce its new state
-            (agent-new-state world a)
-            '())
-          (world-agents world))))))
-
-    ;(iter (map (lambda (e) (make-agent (agent-label e) (* 400 (random-real)) (* 400 (random-real)) #f)) agents)))
+        (agents-receive-new-states)))))
 
 ;; Build geometry from agents' current positions
 ;;
 (define (make-rooms-from-agents graph agents)
   graph)
 
+;-------------------------------------------------------------------------------
+; Agents
+;-------------------------------------------------------------------------------
+
+;; Node type
+;;
+(define-record-type node
+  (make-node position)
+  node?
+  (position node-position))
+
 ;; Agent type
 ;;
 (define-record-type agent
-  (make-agent label x y proc)
+  (make-agent label nodes proc)
   agent?
   (label agent-label)
-  (x agent-x)
-  (y agent-y)
+  (nodes agent-nodes)
   (proc agent-proc))
+
+;; Agent new state evaluation
+;;
+(define (agent-new-state agent world)
+  (if (agent? agent)
+      ((agent-proc agent) world agent)
+    (raise "agent-new-state: argument #1 is not an agent")))
+
+(define (visualize-agent a)
+  (visualize-when-possible
+    'place-and-partition
+    (lambda (backend)
+      (for-each
+        (lambda (n)
+          (let ((pos (node-position n)))
+            (paint-set-color backend 1.0 1.0 1.0 0.9)
+            (paint-circle-fill backend (point-x pos) (point-y pos) 6.0)
+            (paint-set-color backend 1.0 0.0 0.0 0.9)
+            (paint-circle-fill backend (point-x pos) (point-y pos) 3.0)
+            (paint-set-color backend 0.3 0.3 0.3 1.0)
+            (paint-text backend
+                        (symbol->string (agent-label a))
+                        "montecarlo"
+                        10.0
+                        (+ (point-x pos) 9.0)
+                        (+ (point-y pos) 3.0))))
+      (agent-nodes a)))))
+
+;-------------------------------------------------------------------------------
+; Agents
+;-------------------------------------------------------------------------------
 
 ;; World type
 ;;
@@ -102,21 +174,6 @@
 ;; World visualization
 ;;
 (define (visualize-world world)
-  (define (visualize-agent a)
-    (visualize-when-possible
-      'place-and-partition
-      (lambda (backend)
-        (paint-set-color backend 1.0 1.0 1.0 0.9)
-        (paint-circle-fill backend (agent-x a) (agent-y a) 6.0)
-        (paint-set-color backend 1.0 0.0 0.0 0.9)
-        (paint-circle-fill backend (agent-x a) (agent-y a) 3.0)
-        (paint-set-color backend 0.3 0.3 0.3 1.0)
-        (paint-text backend
-          (symbol->string (agent-label a))
-          "montecarlo"
-          10.0
-          (+ (agent-x a) 9.0)
-          (+ (agent-y a) 3.0)))))
   (for-each
     visualize-agent
     (world-agents world)))
