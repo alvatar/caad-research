@@ -1,9 +1,10 @@
 #!/bin/sh
 
-declare -x PROJECT_DIR="/data/projects/ensanche-core"
-declare -x PROGRAM="bsc -:d- -exe -o $PROJECT_DIR/__deploy/bin/ensanche-core main"
+declare -x PATH_TO_SOURCE=`dirname $0`/..
+declare -x PROGRAM_NAME=ensanche-core
+declare -x COMPILER="bsc -:d- -exe -o $PATH_TO_SOURCE/__deploy/bin/$PROGRAM_NAME main"
 
-cd $PROJECT_DIR/__deploy
+cd $PATH_TO_SOURCE/__deploy
 if [[ ! -d bin ]]; then mkdir bin; fi;
-cd $PROJECT_DIR
-$PROGRAM
+cd $PATH_TO_SOURCE
+$COMPILER

@@ -1,8 +1,8 @@
 #/bin/sh
 
 
-declare -x PROJECT_DIR="/data/projects/ensanche-core"
+declare -x PATH_TO_SOURCE=`dirname $0`/..
 declare -x PROGRAM="bsc -:d- -i main"
 
-cd $PROJECT_DIR
+cd $PATH_TO_SOURCE
 $PROGRAM

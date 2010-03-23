@@ -35,7 +35,10 @@
      (basic-set
       `(,(make-agent
            'entrance
-           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
+           (let ((a (* limit-x (random-real)))
+                 (b (* limit-x (random-real))))
+             (list (make-node (make-point a b))
+                   (make-node (make-point (+ 50.0 a) (+ 50.0 b)))))
            (lambda (world agent) agent))
         ,(make-agent
            'bath
@@ -72,7 +75,7 @@
            (lambda (world agent) agent)))))
     (make-world 
       (append basic-set more)
-      '())))
+      (make-maps))))
 
 ;; Do all initial things with the world prior to simulation
 ;;
@@ -93,8 +96,8 @@
         ;; agents, in order to let them produce their new state
         (agent-new-state a world))
       (world-agents world)))
-  (define (world-merge-agents world agents-list)
-    world)
+  (define (world-merge-agents world agents)
+    (make-world agents (world-maps world)))
 
   (visualize-forget-layers '(place-and-partition))
   (visualize-world world)
@@ -139,28 +142,57 @@
       ((agent-proc agent) world agent)
     (raise "agent-new-state: argument #1 is not an agent")))
 
+;; Calculate agent's center of gravity
+;;
+(define (agent-center-of-gravity agent)
+      (define (iter center nodes-tail)
+        (cond
+         ((null? nodes-tail)
+          center)
+         (else
+          (iter
+            (mid-point
+              center
+              (node-position (car nodes-tail)))
+            (cdr nodes-tail)))))
+  (if (agent? agent)
+      (let ((nodes (agent-nodes agent)))
+        (iter (node-position (car nodes)) (cdr nodes)))
+    (raise "agent-center-of-gravity: argument #1 is not an agent")))
+
 (define (visualize-agent a)
   (visualize-when-possible
     'place-and-partition
     (lambda (backend)
+      (let ((pos (agent-center-of-gravity a)))
+        (paint-set-color backend 0.3 0.3 0.3 1.0)
+        (paint-text backend
+                    (symbol->string (agent-label a))
+                    "montecarlo"
+                    10.0
+                    (+ (point-x pos) 9.0)
+                    (+ (point-y pos) 3.0)))
       (for-each
         (lambda (n)
           (let ((pos (node-position n)))
             (paint-set-color backend 1.0 1.0 1.0 0.9)
             (paint-circle-fill backend (point-x pos) (point-y pos) 6.0)
             (paint-set-color backend 1.0 0.0 0.0 0.9)
-            (paint-circle-fill backend (point-x pos) (point-y pos) 3.0)
-            (paint-set-color backend 0.3 0.3 0.3 1.0)
-            (paint-text backend
-                        (symbol->string (agent-label a))
-                        "montecarlo"
-                        10.0
-                        (+ (point-x pos) 9.0)
-                        (+ (point-y pos) 3.0))))
+            (paint-circle-fill backend (point-x pos) (point-y pos) 3.0)))
       (agent-nodes a)))))
 
 ;-------------------------------------------------------------------------------
-; Agents
+; Maps
+;-------------------------------------------------------------------------------
+
+(define (make-map data)
+  data)
+
+(define (make-maps)
+  '())
+
+;-------------------------------------------------------------------------------
+; World
 ;-------------------------------------------------------------------------------
 
 ;; World type

@@ -2,35 +2,12 @@
 ;;; Licensed under the GPLv3 license, see LICENSE file for full description.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Basic geometrical operations
+;;; Geometrical operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1))
 
-;-------------------------------------------------------------------------------
-; Mathematical
-;-------------------------------------------------------------------------------
-
-;; Is equal? (with precision) for lists
-;;
-(define (list=~ a b precision)
-  (define (test t1 t2)
-    (< (abs (- a b)) precision))
-  (if (and (list? a) (list? b))
-      (every (lambda (e1 e2) (list=~ e1 e2 precision))
-             a
-             b)
-    (test a b)))
-
-;; Is equal? (with precision) for inexacts
-;;
-(define (=~e a b e)
-  (< (abs (- a b)) e))
-
-;; Is equal? with defined precision
-;;
-(define (=~ a b)
-  (=~e a b 0.0000001)) ; TODO: Find the right accuracy
+(import math)
 
 ;-------------------------------------------------------------------------------
 ; Points
@@ -65,6 +42,12 @@
 (define (distance-point-point a b)
   (sqrt (+ (expt (- (car p1) (car p2)) 2)
            (expt (- (cadr p1) (cadr p2)) 2))))
+
+;; Calculate the mid point between two points
+;;
+(define (mid-point a b)
+  (make-point (average (point-x a) (point-x b))
+              (average (point-y a) (point-y b))))
 
 ;-------------------------------------------------------------------------------
 ; Segments
