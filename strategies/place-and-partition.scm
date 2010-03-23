@@ -37,42 +37,83 @@
            'entrance
            (let ((a (* limit-x (random-real)))
                  (b (* limit-x (random-real))))
-             (list (make-node (make-point a b))
-                   (make-node (make-point (+ 50.0 a) (+ 50.0 b)))))
-           (lambda (world agent) agent))
+             (list (make-point a b)
+                   (make-point (+ (* 50.0 (random-real)) a) (+ (* 50.0 (random-real)) b))
+                   (make-point (+ (* 50.0 (random-real)) a) (+ (* 50.0 (random-real)) b))))
+           (lambda (world agent)
+             (make-agent
+               (agent-label agent)
+               (let ((a (* limit-x (random-real)))
+                     (b (* limit-x (random-real))))
+                 (list (make-point a b)
+                       (make-point (+ (* 50.0 (random-real)) a) (+ (* 50.0 (random-real)) b))
+                       (make-point (+ (* 50.0 (random-real)) a) (+ (* 50.0 (random-real)) b))))
+               (agent-proc agent))))
         ,(make-agent
            'bath
-           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
-           (lambda (world agent) agent))
+           (list (make-point (* limit-x (random-real)) (* limit-y (random-real))))
+           (lambda (world agent)
+             (make-agent
+               (agent-label agent)
+               (agent-node-positions agent)
+               (agent-proc agent))))
         ,(make-agent
            'room1
-           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
-           (lambda (world agent) agent))
+           (list (make-point (* limit-x (random-real)) (* limit-y (random-real))))
+           (lambda (world agent)
+             (make-agent
+               (agent-label agent)
+               (agent-node-positions agent)
+               (agent-proc agent))))
         ,(make-agent
            'living
-           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
-           (lambda (world agent) agent))
+           (list (make-point (* limit-x (random-real)) (* limit-y (random-real))))
+           (lambda (world agent)
+             (make-agent
+               (agent-label agent)
+               (agent-node-positions agent)
+               (agent-proc agent))))
         ,(make-agent
            'kitchen
-           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
-           (lambda (world agent) agent))))
+           (list (make-point (* limit-x (random-real)) (* limit-y (random-real))))
+           (lambda (world agent)
+             (make-agent
+               (agent-label agent)
+               (agent-node-positions agent)
+               (agent-proc agent))))))
      (more
       `(,(make-agent
            'distrib
-           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
-           (lambda (world agent) agent))
+           (list (make-point (* limit-x (random-real)) (* limit-y (random-real))))
+           (lambda (world agent)
+             (make-agent
+               (agent-label agent)
+               (agent-node-positions agent)
+               (agent-proc agent))))
         ,(make-agent
            'storage
-           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
-           (lambda (world agent) agent))
+           (list (make-point (* limit-x (random-real)) (* limit-y (random-real))))
+           (lambda (world agent)
+             (make-agent
+               (agent-label agent)
+               (agent-node-positions agent)
+               (agent-proc agent))))
         ,(make-agent
            'room2
-           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
-           (lambda (world agent) agent))
+           (list (make-point (* limit-x (random-real)) (* limit-y (random-real))))
+           (lambda (world agent)
+             (make-agent
+               (agent-label agent)
+               (agent-node-positions agent)
+               (agent-proc agent))))
         ,(make-agent
            'room3
-           (list (make-node (make-point (* limit-x (random-real)) (* limit-y (random-real)))))
-           (lambda (world agent) agent)))))
+           (list (make-point (* limit-x (random-real)) (* limit-y (random-real))))
+           (lambda (world agent)
+             (make-agent
+               (agent-label agent)
+               (agent-node-positions agent)
+               (agent-proc agent)))))))
     (make-world 
       (append basic-set more)
       (make-maps))))
@@ -119,20 +160,13 @@
 ; Agents
 ;-------------------------------------------------------------------------------
 
-;; Node type
-;;
-(define-record-type node
-  (make-node position)
-  node?
-  (position node-position))
-
 ;; Agent type
 ;;
 (define-record-type agent
-  (make-agent label nodes proc)
+  (make-agent label node-positions proc)
   agent?
   (label agent-label)
-  (nodes agent-nodes)
+  (node-positions agent-node-positions)
   (proc agent-proc))
 
 ;; Agent new state evaluation
@@ -142,44 +176,33 @@
       ((agent-proc agent) world agent)
     (raise "agent-new-state: argument #1 is not an agent")))
 
-;; Calculate agent's center of gravity
+;; Agent visualization
 ;;
-(define (agent-center-of-gravity agent)
-      (define (iter center nodes-tail)
-        (cond
-         ((null? nodes-tail)
-          center)
-         (else
-          (iter
-            (mid-point
-              center
-              (node-position (car nodes-tail)))
-            (cdr nodes-tail)))))
-  (if (agent? agent)
-      (let ((nodes (agent-nodes agent)))
-        (iter (node-position (car nodes)) (cdr nodes)))
-    (raise "agent-center-of-gravity: argument #1 is not an agent")))
-
 (define (visualize-agent a)
   (visualize-when-possible
     'place-and-partition
     (lambda (backend)
-      (let ((pos (agent-center-of-gravity a)))
-        (paint-set-color backend 0.3 0.3 0.3 1.0)
+      ;; Paint nodes string
+      (paint-set-color backend 0.1 0.1 0.1 1.0)
+      (paint-set-line-width backend 0.5)
+      (paint-path backend (agent-node-positions a))
+      ;; Paint nodes
+      (for-each
+        (lambda (pos)
+          (paint-set-color backend 1.0 1.0 1.0 0.9)
+          (paint-circle-fill backend (point-x pos) (point-y pos) 5.0)
+          (paint-set-color backend 1.0 0.0 0.0 0.9)
+          (paint-circle-fill backend (point-x pos) (point-y pos) 3.0))
+      (agent-node-positions a))
+      ;; Paint label
+      (let ((pos (point-list-right-most (agent-node-positions a))))
+        (paint-set-color backend 0.4 0.4 0.4 1.0)
         (paint-text backend
                     (symbol->string (agent-label a))
                     "montecarlo"
                     10.0
                     (+ (point-x pos) 9.0)
-                    (+ (point-y pos) 3.0)))
-      (for-each
-        (lambda (n)
-          (let ((pos (node-position n)))
-            (paint-set-color backend 1.0 1.0 1.0 0.9)
-            (paint-circle-fill backend (point-x pos) (point-y pos) 6.0)
-            (paint-set-color backend 1.0 0.0 0.0 0.9)
-            (paint-circle-fill backend (point-x pos) (point-y pos) 3.0)))
-      (agent-nodes a)))))
+                    (+ (point-y pos) 3.0))))))
 
 ;-------------------------------------------------------------------------------
 ; Maps

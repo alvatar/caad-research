@@ -29,6 +29,38 @@
 (define (point? p)
   (and (list? p) (number? (car p)) (number? (cadr p))))
 
+;; Point + Point
+;;
+(define (point+point a b)
+  (if (and (point? a) (point? b))
+      (make-point (+ (point-x a) (point-x b))
+                  (+ (point-y a) (point-y b)))
+    (raise "point-point+: both arguments #1 and #2 must be points")))
+
+;; Point - Point
+;;
+(define (point-point a b)
+  (if (and (point? a) (point? b))
+      (make-point (- (point-x a) (point-x b))
+                  (- (point-y a) (point-y b)))
+    (raise "point-point+: both arguments #1 and #2 must be points")))
+
+;; Point * scalar
+;;
+(define (point*scalar a b)
+  (if (and (point? a) (number? b))
+      (make-point (/ (point-x a) b)
+                  (/ (point-y a) b))
+    (raise "point-scalar/: argument #1 must be a point and #2 must be a scalar")))
+
+;; Point / scalar
+;;
+(define (point/scalar a b)
+  (if (and (point? a) (number? b))
+      (make-point (/ (point-x a) b)
+                  (/ (point-y a) b))
+    (raise "point-scalar/: argument #1 must be a point and #2 must be a scalar")))
+
 ;; Is equal? (with precision) for points
 ;;
 (define (point=~ a b precision)
@@ -106,8 +138,42 @@
               (+ Ay (* ABy percentage))))))
 
 ;-------------------------------------------------------------------------------
-; Polygons
+; Point-lists: Polygons and Paths
 ;-------------------------------------------------------------------------------
+
+;; Point-list centroid
+;;
+(define (point-list-centroid plis)
+  (define (iter n sum plis-tail)
+    (cond
+     ((null? plis-tail)
+      (point/scalar sum (exact->inexact n)))
+     (else
+      (iter
+        (+ 1 n)
+        (point+point sum (car plis-tail))
+        (cdr plis-tail)))))
+  (cond
+   ((null? plis)
+    (raise "point-list-centroid: argument #1 should be a point list"))
+   (else
+    (iter 0 (make-point 0.0 0.0) plis))))
+
+;; Point-list right-most point
+;;
+(define (point-list-right-most plis)
+  (define (iter current plis-tail)
+    (cond
+     ((null? plis-tail)
+      current)
+     (else
+      (let ((next (car plis-tail)))
+        (if (> (point-x next) (point-x current))
+            (iter next (cdr plis-tail))
+          (iter current (cdr plis-tail)))))))
+  (if (null-list? plis)
+      (raise "point-list-right-most: argument #1 must be a point list")
+    (iter (car plis) (cdr plis))))
 
 ;; Is point in polygon?
 ;;
