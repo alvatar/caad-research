@@ -10,6 +10,7 @@
 (import sdl/sdl)
 (import cairo/cairo)
 
+(import geometry)
 (import global)
 
 (export visualize-when-possible)
@@ -151,14 +152,14 @@
    (else
     (cairo-new-path cairo)
     (cairo-move-to cairo
-                   (caar points)
-                   (cadar points))
+                   (point-x (car points))
+                   (point-y (car points)))
     (for-each
       (lambda
         (point)
         (cairo-line-to cairo
-                       (car point)
-                       (cadr point)))
+                       (point-x point)
+                       (point-y point)))
       (cdr points))
     (cairo-stroke cairo))))
 
@@ -171,14 +172,14 @@
    (else
     (cairo-new-path cairo)
     (cairo-move-to cairo
-                   (caar points)
-                   (cadar points))
+                   (point-x (car points))
+                   (point-y (car points)))
     (for-each
       (lambda
         (point)
         (cairo-line-to cairo
-                       (car point)
-                       (cadr point)))
+                       (point-x point)
+                       (point-y point)))
       (cdr points))
     (cairo-close-path cairo)
     (cairo-fill cairo))))

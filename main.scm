@@ -30,7 +30,6 @@
     (visualize-graph graph)
     (visualize-now)
     (refine-result (process-through-strategies graph)))
-  (representation-cleanup)
 
   (exit 0))
 (main)

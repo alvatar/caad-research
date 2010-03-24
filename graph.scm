@@ -132,7 +132,7 @@
   (define (iter elem-lis ref-lis)
     (if (null-list? ref-lis)
         elem-lis
-      (iter (append elem-lis (list (reference-to-element graph (car ref-lis))) (cdr ref-lis)))))
+      (iter (append elem-lis (list (reference-to-element graph (car ref-lis)))) (cdr ref-lis))))
   (iter '() ref-lis))
 
 ;; Make a reference from an UID
@@ -178,8 +178,8 @@
 ;; Make point
 ;;
 (define (make-archpoint p)
-  (if (null-list? p)
-      (raise "Error making point: null arguments")
+  (if (point? p)
+      (raise "Error making point: argument #1 is not a point")
       (list (list 'y (number->string (cadr p)))
             (list 'x (number->string (car p))))))
 
@@ -189,36 +189,36 @@
 
 ;; Extract the basic list of point coordinates
 ;;
-(define (extract-archpoint-coords point)
-  `(,(archpoint-coord 'x point)
-    ,(archpoint-coord 'y point)))
+(define (archpoint->point point)
+  (make-point (archpoint-coord 'x point)
+              (archpoint-coord 'y point)))
 
 ;; Extract wall points as a list
 ;;
-(define (extract-wall-points wall)
+(define (wall->point-list wall) ; TODO: cons not append
   (define (iter point-list to-process)
     (if (null-list? to-process)
         point-list
       (iter
-        (append point-list (list (extract-archpoint-coords (cdar to-process))))
+        (append point-list (list (archpoint->point (cdar to-process))))
         (cdr to-process))))
     (iter '() (wall-points wall)))
 
 ;; Extract poly wall points as a list
 ;;
-(define (extract-polywall-points wall-lis)
+(define (polywall->point-list wall-lis)
   (define (iter pt-lis lis)
     (if (null-list? lis)
         pt-lis
-      (iter (append pt-lis (extract-wall-points (car lis))) (cdr lis))))
+      (iter (append pt-lis (wall->point-list (car lis))) (cdr lis))))
   (iter '() wall-lis))
 
 ;; Calculate the points that enclose a room polygon as a list
 ;;
 (define (extract-room-points graph room)
   (define (get-next-points a-wall b-wall)
-    (let ((a-wall-points (extract-wall-points a-wall))
-          (b-wall-points (extract-wall-points b-wall)))
+    (let ((a-wall-points (wall->point-list a-wall))
+          (b-wall-points (wall->point-list b-wall)))
       (cond
        ((is-end-point? b-wall-points (car a-wall-points)) ; then the a-wall is reversed
         (reverse a-wall-points))
@@ -247,14 +247,14 @@
 
 ;; Convert a point list into a wall
 ;;
-(define (point-list-to-wall p-list uuid)
-  (let ((point-a (car p-list))
-        (point-b (cadr p-list)))
+(define (point-list->wall p-list uuid)
+  (let* ((pa (car p-list))
+         (pb (cadr p-list)))
     `(wall (@ (uid ,uuid))
-           (pt (@ (y ,(number->string (cadr point-a)))
-                  (x ,(number->string (car point-a)))))
-           (pt (@ (y ,(number->string (cadr point-b)))
-                  (x ,(number->string (car point-b))))))))
+           (pt (@ (y ,(number->string (point-y pa)))
+                  (x ,(number->string (point-x pa)))))
+           (pt (@ (y ,(number->string (point-y pb)))
+                  (x ,(number->string (point-x pb))))))))
 
 ;-------------------------------------------------------------------------------
 ; Wall
@@ -283,41 +283,41 @@
 ;; Is the wall described in a reverse order from a given reference?
 ;;
 (define (wall-is-reversed? wall point)
-  (> (distance-point-point (extract-wall-points point) (extract-wall-points (wall-first-point wall)))
-     (distance-point-point (extract-wall-points point) (extract-wall-points (wall-last-point wall)))))
+  (> (distance-point-point (wall->point-list point) (wall->point-list (wall-first-point wall)))
+     (distance-point-point (wall->point-list point) (wall->point-list (wall-last-point wall)))))
 
 ;; Create 2 walls splitting one in a point
 ;;
 (define (create-splitted-wall wall split-point-relative uuid1 uuid2)
-  (let ((split-point (make-archpoint (point-from-relative-in-wall wall split-point-relative)))
+  (let ((split-point (point-from-relative-in-wall wall split-point-relative))
         (first-point (wall-first-point wall))
         (second-point (wall-last-point wall)))
   `((wall (@ (uid ,uuid1))
          (pt (@ (y ,(number->string (archpoint-coord 'y first-point)))
                 (x ,(number->string (archpoint-coord 'x first-point)))))
-         (pt (@ (y ,(number->string (archpoint-coord 'y split-point)))
-                (x ,(number->string (archpoint-coord 'x split-point))))))
+         (pt (@ (y ,(number->string (point-y split-point)))
+                (x ,(number->string (point-x split-point))))))
    (wall (@ (uid ,uuid2))
-         (pt (@ (y ,(number->string (archpoint-coord 'y split-point)))
-                (x ,(number->string (archpoint-coord 'x split-point)))))
+         (pt (@ (y ,(number->string (point-y split-point)))
+                (x ,(number->string (point-x split-point)))))
          (pt (@ (y ,(number->string (archpoint-coord 'y second-point)))
                 (x ,(number->string (archpoint-coord 'x second-point)))))))))
 
 ;; Try to merge into one wall if the two given are parallel
 ;;
 (define (try-to-merge-if-parallel-walls wall-list new-uid)
-  (let ((wall-a (extract-wall-points (car wall-list))) ; TODO: try to generalize
-        (wall-b (extract-wall-points (cadr wall-list))))
-    (if (parallel? wall-a wall-b)
-        (let ((first-point (if (is-end-point? wall-b (car wall-a))
-                               (cadr wall-a)
-                             (car wall-a)))
-              (second-point (if (is-end-point? wall-a (car wall-b))
-                                (cadr wall-b)
-                              (car wall-b))))
-          (list (point-list-to-wall
-                  (list first-point second-point)
-                  new-uid)))
+  (let ((wall-a-points (wall->point-list (car wall-list))) ; TODO: try to generalize
+        (wall-b-points (wall->point-list (cadr wall-list))))
+    (if (parallel? wall-a-points wall-b-points)
+        (let ((first-point (if (is-end-point? wall-b-points (car wall-a-points))
+                               (cadr wall-a-points)
+                             (car wall-a-points)))
+              (second-point (if (is-end-point? wall-a-points (car wall-b-points))
+                                (cadr wall-b-points)
+                              (car wall-b-points))))
+          (list (point-list->wall
+                (list first-point second-point)
+                new-uid)))
         wall-list)))
 
 ;; Get all walls in the graph
@@ -329,9 +329,10 @@
 ;;
 (define (point-from-relative-in-wall wall percentage)
   (point-from-relative-in-segment
-   (extract-archpoint-coords (wall-point-n wall 1))
-   (extract-archpoint-coords (wall-point-n wall 2))
-   percentage))
+    (list
+      (archpoint->point (wall-point-n wall 1))
+      (archpoint->point (wall-point-n wall 2)))
+    percentage))
 
 ;; Find walls connected to a given one
 ;;
@@ -343,24 +344,24 @@
             connected-walls
           (iter
             (cdr wall-list)
-            (if (is-end-point? (extract-wall-points (car wall-list)) point)
+            (if (is-end-point? (wall->point-list (car wall-list)) point)
                 (append connected-walls (list (car wall-list)))
               connected-walls))))
       (iter (walls-in-graph graph) '()))
     (list
       (remove (lambda (elem)
                 (equal? elem wall))
-              (find-walls-with-point (extract-archpoint-coords (wall-first-point wall))))
+              (find-walls-with-point (archpoint->point (wall-first-point wall))))
       (remove (lambda (elem)
                 (equal? elem wall))
-              (find-walls-with-point (extract-archpoint-coords (wall-last-point wall)))))))
+              (find-walls-with-point (archpoint->point (wall-last-point wall)))))))
  
 ;; Are these walls connected?
 ;;
 (define (walls-are-connected? wall1 wall2)
   (segments-are-connected?
-    (extract-wall-points wall1)
-    (extract-wall-points wall2)))
+    (wall->point-list wall1)
+    (wall->point-list wall2)))
 
 ;-------------------------------------------------------------------------------
 ; Wall inner elements
@@ -391,8 +392,8 @@
                (Ay (archpoint-coord 'y (wall-point-n wall 1)))
                (ABx (- (archpoint-coord 'x (wall-point-n wall 2)) Ax))
                (ABy (- (archpoint-coord 'y (wall-point-n wall 2)) Ay)))
-          (list `(,(+ Ax (* ABx from)) ,(+ Ay (* ABy from)))
-                `(,(+ Ax (* ABx to)) ,(+ Ay (* ABy to)))))
+          (list (make-point (+ Ax (* ABx from)) (+ Ay (* ABy from)))
+                (make-point (+ Ax (* ABx to)) (+ Ay (* ABy to)))))
         (raise "Error - wall element has more than 2 relative points\n"))))
       ; Else:
         ; 1. Precalcular lista de puntos relativos
@@ -501,7 +502,7 @@
         (paint-set-color backend 0.1 0.1 0.1 1.0)
         (paint-set-line-cap backend 'square)
         (paint-set-line-width backend 5.0)
-        (paint-path backend (extract-wall-points wall)))
+        (paint-path backend (wall->point-list wall)))
       ;; Paint doors in the wall
       (define (paint-doors-in-wall wall)
         (for-each

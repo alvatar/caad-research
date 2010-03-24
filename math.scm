@@ -5,6 +5,8 @@
 ;;; Mathematical operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(import (std srfi/1))
+
 ;-------------------------------------------------------------------------------
 ; Arithmetic
 ;-------------------------------------------------------------------------------
@@ -34,3 +36,38 @@
 ;;
 (define (average a b)
   (/ (+ a b) 2.0))
+
+;-------------------------------------------------------------------------------
+; Vector dimension 2
+;-------------------------------------------------------------------------------
+
+(define-structure vect2 u v)
+
+;; Vector addition
+;;
+(define (vect2-+-vect2 v1 v2)
+  (make-vect2 (+ (vect2-u v1)
+                 (vect2-u v2))
+              (+ (vect2-v v1)
+                 (vect2-v v2))))
+
+;; Vector substraction
+;;
+(define (vect2---vect2 v1 v2)
+  (make-vect2 (- (vect2-u v1)
+                 (vect2-u v2))
+              (- (vect2-v v1)
+                 (vect2-v v2))))
+
+;; Calculate vector length TODO: any length
+;;
+(define (vect2-length vec)
+  (sqrt (+ (expt (vect2-u vec) 2)
+           (expt (vect2-v vec) 2))))
+
+;; Normalize vectors
+;;
+(define (vect2-normalize vec)
+  (let ((div (vect2-length vec)))
+    (list (/ (abs (vect2-u vec)) div)
+          (/ (abs (vect2-v vec)) div))))

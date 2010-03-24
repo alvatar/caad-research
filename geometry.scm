@@ -13,53 +13,19 @@
 ; Points
 ;-------------------------------------------------------------------------------
 
-;; Point type : TODO!!! PROPAGATE and REFACTOR
+;; Point type
 ;;
-#;(define-record-type point
-  (make-point x y)
-  point?
-  (x point-x)
-  (y point-y))
-(define (point-x point)
-  (car point))
-(define (point-y point)
-  (cadr point))
-(define (make-point x y)
-  (list x y))
-(define (point? p)
-  (and (list? p) (number? (car p)) (number? (cadr p))))
+(define-structure point x y)
 
-;; Point + Point
+;; Point to vector
 ;;
-(define (point+point a b)
-  (if (and (point? a) (point? b))
-      (make-point (+ (point-x a) (point-x b))
-                  (+ (point-y a) (point-y b)))
-    (raise "point-point+: both arguments #1 and #2 must be points")))
+(define (point->vect2 p)
+  (make-vect2 (point-x p) (point-y p)))
 
-;; Point - Point
+;; Point to vector
 ;;
-(define (point-point a b)
-  (if (and (point? a) (point? b))
-      (make-point (- (point-x a) (point-x b))
-                  (- (point-y a) (point-y b)))
-    (raise "point-point+: both arguments #1 and #2 must be points")))
-
-;; Point * scalar
-;;
-(define (point*scalar a b)
-  (if (and (point? a) (number? b))
-      (make-point (/ (point-x a) b)
-                  (/ (point-y a) b))
-    (raise "point-scalar/: argument #1 must be a point and #2 must be a scalar")))
-
-;; Point / scalar
-;;
-(define (point/scalar a b)
-  (if (and (point? a) (number? b))
-      (make-point (/ (point-x a) b)
-                  (/ (point-y a) b))
-    (raise "point-scalar/: argument #1 must be a point and #2 must be a scalar")))
+(define (vect2->point vec)
+  (make-point (vect2-u vec) (vect2-v vec)))
 
 ;; Is equal? (with precision) for points
 ;;
@@ -85,57 +51,67 @@
 ; Segments
 ;-------------------------------------------------------------------------------
 
+;; First point of segment
+;;
+(define (segment-first-point seg)
+  (car seg))
+
+;; Second point of segment
+;;
+(define (segment-second-point seg)
+  (cadr seg))
+
+;; Segment vector
+;;
+(define (segment->vect2 seg)
+  (vect2---vect2
+    (point->vect2 (segment-second-point seg))
+    (point->vect2 (segment-first-point seg))))
+
+;; Segment length
+;;
+(define (segment-length seg)
+  (vect2-length (segment->vect2 seg)))
+
 ;; Tell whether the point is an end point of the segment
 ;;
 (define (is-end-point? segment point)
-  (let ((point-x (car point))
-        (point-y (cadr point)))
+  (let* ((px (point-x point))
+        (py (point-y point))
+        (a (segment-first-point segment))
+        (ax (point-x a))
+        (ay (point-y a))
+        (b (segment-second-point segment))
+        (bx (point-x b))
+        (by (point-y b)))
     (or (and
-          (list=~ (caar segment) point-x 0.0001)
-          (list=~ (cadar segment) point-y 0.0001))
+          (list=~ ax px 0.0001)
+          (list=~ ay py 0.0001))
         (and
-          (list=~ (caadr segment) point-x 0.0001)
-          (list=~ (cadadr segment) point-y 0.0001)))))
+          (list=~ bx px 0.0001)
+          (list=~ by py 0.0001)))))
 
 ;; Tell whether the two segments are connected
 ;;
 (define (segments-are-connected? seg1 seg2)
-  (or (is-end-point? seg2 (car seg1))
-      (is-end-point? seg2 (cadr seg1))))
-
-;; Calculate vector length
-;;
-(define (evector-length vec)
-  (sqrt (+ (expt (car vec) 2)
-           (expt (cadr vec) 2))))
-
-;; Normalize vectors
-;;
-(define (evector-normalize vec)
-  (let ((div (evector-length vec)))
-    (list (/ (car vec) div)
-          (/ (cadr vec) div))))
+  (or (is-end-point? seg2 (segment-first-point seg1))
+      (is-end-point? seg2 (segment-second-point seg1))))
 
 ;; Tell whether the segments are parallel
 ;;
 (define (parallel? seg1 seg2)
-  (let ((vec1 (list (abs (- (caadr seg1) (caar seg1)))
-                    (abs (- (cadadr seg1) (cadar seg1)))))
-        (vec2 (list (abs (- (caadr seg2) (caar seg2)))
-                    (abs (- (cadadr seg2) (cadar seg2))))))
-    (list=~ (evector-normalize vec1) (evector-normalize vec2) 0.01)))
+  (list=~
+    (vect2-normalize (segment->vect2 seg1))
+    (vect2-normalize (segment->vect2 seg2))
+    0.01))
 
 ;; Calculate absolute point given segment and percentage
 ;;
-(define (point-from-relative-in-segment point-a point-b percentage)
-  (if (or (null-list? point-a) (null-list? point-b))
-    (raise "Wrong points passed")
-    (let* ((Ax (car point-a))
-           (Ay (cadr point-a))
-           (ABx (- (car point-b) Ax))
-           (ABy (- (cadr point-b) Ay)))
-        (list (+ Ax (* ABx percentage))
-              (+ Ay (* ABy percentage))))))
+(define (point-from-relative-in-segment seg percentage)
+  (let ((vec (segment->vect2 seg))
+        (O (segment-first-point seg)))
+    (make-point (+ (point-x O) (* (vect2-u vec) percentage))
+                (+ (point-y O) (* (vect2-v vec) percentage)))))
 
 ;-------------------------------------------------------------------------------
 ; Point-lists: Polygons and Paths
