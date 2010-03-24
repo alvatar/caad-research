@@ -17,6 +17,21 @@
 ;;
 (define-structure point x y)
 
+;; Are these points equal?
+;;
+(define (point=? v1 v2)
+  (point=?e v1 v2 equal-accuracy)) ; TODO: Find the right accuracy
+
+;; Are these points equal? (with epsilon)
+;;
+(define (point=?e v1 v2 e)
+  (and (=~e (point-x v1)
+            (point-x v2)
+            e)
+       (=~e (point-y v1)
+            (point-y v2)
+            e)))
+
 ;; Point to vector
 ;;
 (define (point->vect2 p)
@@ -77,19 +92,19 @@
 ;;
 (define (is-end-point? segment point)
   (let* ((px (point-x point))
-        (py (point-y point))
-        (a (segment-first-point segment))
-        (ax (point-x a))
-        (ay (point-y a))
-        (b (segment-second-point segment))
-        (bx (point-x b))
-        (by (point-y b)))
+         (py (point-y point))
+         (a (segment-first-point segment))
+         (ax (point-x a))
+         (ay (point-y a))
+         (b (segment-second-point segment))
+         (bx (point-x b))
+         (by (point-y b)))
     (or (and
-          (list=~ ax px 0.0001)
-          (list=~ ay py 0.0001))
+          (=~ ax px)
+          (=~ ay py))
         (and
-          (list=~ bx px 0.0001)
-          (list=~ by py 0.0001)))))
+          (=~ bx px)
+          (=~ by py)))))
 
 ;; Tell whether the two segments are connected
 ;;
@@ -100,7 +115,7 @@
 ;; Tell whether the segments are parallel
 ;;
 (define (parallel? seg1 seg2)
-  (list=~
+  (vect2=?e
     (vect2-normalize (segment->vect2 seg1))
     (vect2-normalize (segment->vect2 seg2))
     0.01))

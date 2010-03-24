@@ -10,8 +10,8 @@
 (import sdl/sdl)
 (import cairo/cairo)
 
+(import constants)
 (import geometry)
-(import global)
 
 (export visualize-when-possible)
 (export visualize-now)

@@ -6,6 +6,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1))
+(import constants)
 
 ;-------------------------------------------------------------------------------
 ; Arithmetic
@@ -13,14 +14,12 @@
 
 ;; Is equal? (with precision) for lists
 ;;
-(define (list=~ a b precision)
-  (define (test t1 t2)
-    (< (abs (- a b)) precision))
+(define (=~e* a b precision)
   (if (and (list? a) (list? b))
-      (every (lambda (e1 e2) (list=~ e1 e2 precision))
+      (every (lambda (e1 e2) (=~e* e1 e2 precision))
              a
              b)
-    (test a b)))
+    (=~e a b precision)))
 
 ;; Is equal? (with precision) for inexacts
 ;;
@@ -30,7 +29,7 @@
 ;; Is equal? with defined precision
 ;;
 (define (=~ a b)
-  (=~e a b 0.0000001)) ; TODO: Find the right accuracy
+  (=~e a b equal-accuracy))
 
 ;; Average between two values
 ;;
@@ -59,15 +58,30 @@
               (- (vect2-v v1)
                  (vect2-v v2))))
 
-;; Calculate vector length TODO: any length
+;; Are these vectors equal?
+;;
+(define (vect2=? v1 v2)
+  (vect2=?e v1 v2 equal-accuracy))
+
+;; Are these vectors equal? (with epsilon)
+;;
+(define (vect2=?e v1 v2 e)
+  (and (=~e (vect2-u v1)
+            (vect2-u v2)
+            e)
+       (=~e (vect2-v v1)
+            (vect2-v v2)
+            e)))
+
+;; Calculate vector length
 ;;
 (define (vect2-length vec)
   (sqrt (+ (expt (vect2-u vec) 2)
            (expt (vect2-v vec) 2))))
 
-;; Normalize vectors
+;; Normalize vector
 ;;
 (define (vect2-normalize vec)
   (let ((div (vect2-length vec)))
-    (list (/ (abs (vect2-u vec)) div)
-          (/ (abs (vect2-v vec)) div))))
+    (make-vect2 (/ (abs (vect2-u vec)) div)
+                (/ (abs (vect2-v vec)) div))))

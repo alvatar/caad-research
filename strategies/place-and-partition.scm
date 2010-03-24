@@ -9,10 +9,10 @@
 ;;; 3. Partition algorithm makes a first approach of the space partitioning
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import ../visualization)
+(import ../constants)
 (import ../geometry)
-(import ../global)
 (import ../graph)
+(import ../visualization)
 
 ;; Place and partition algorithm
 ;;
