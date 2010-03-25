@@ -9,7 +9,7 @@
 (import (std misc/uuid))
 (import geometry)
 (import graph)
-(import utilities)
+(import utils/misc)
 
 ;; Apply operation to context
 ;;

@@ -21,12 +21,17 @@
              b)
     (=~e a b precision)))
 
+;; Is equal? for lists
+;;
+(define (=~* a b precision)
+  (=~e* a b equal-accuracy))
+
 ;; Is equal? (with precision) for inexacts
 ;;
 (define (=~e a b e)
   (< (abs (- a b)) e))
 
-;; Is equal? with defined precision
+;; Is equal? for inexacts
 ;;
 (define (=~ a b)
   (=~e a b equal-accuracy))

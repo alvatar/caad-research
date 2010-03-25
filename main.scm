@@ -12,7 +12,7 @@
 (import input)
 (import mutation)
 (import strategies)
-(import utilities)
+(import utils/misc)
 (import visualization)
 
 (define (main)

@@ -23,7 +23,7 @@
             ID are near zero.
             -->
             <wall uid="DB7F49A3-BBF6-40F3-95A1-038CCACE1D88">
-                <pt x="50.0" y="50.0"/>
+                <pt x="0.0" y="0.0"/>
                 <pt x="180.0" y="60.0"/>
                 <!--
                 Windows can be described with a pair of ranges (from 0.0 to 1.0) which define
@@ -56,7 +56,7 @@
 
             <wall uid="DDBD1B66-AA23-43A0-A906-CE3ED6F915FC">
                 <pt x="50.0" y="350.0"/>
-                <pt x="50.0" y="50.0"/>
+                <pt x="0.0" y="0.0"/>
                 <window from="0.4" to="0.7"/>
             </wall>
 

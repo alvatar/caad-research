@@ -17,11 +17,6 @@
 ;;
 (define-structure point x y)
 
-;; Are these points equal?
-;;
-(define (point=? v1 v2)
-  (point=?e v1 v2 equal-accuracy)) ; TODO: Find the right accuracy
-
 ;; Are these points equal? (with epsilon)
 ;;
 (define (point=?e v1 v2 e)
@@ -31,6 +26,11 @@
        (=~e (point-y v1)
             (point-y v2)
             e)))
+
+;; Are these points equal?
+;;
+(define (point=? v1 v2)
+  (point=?e v1 v2 equal-accuracy)) ; TODO: Find the right accuracy
 
 ;; Point to vector
 ;;

@@ -12,7 +12,7 @@
 (import web/parse/ssax-sxml/sxml-tools/sxpath)
 
 (import geometry)
-(import utilities)
+(import utils/misc)
 (import visualization)
 
 ;; Generate graph from XML
@@ -564,4 +564,5 @@
               ((equal? (car elem) 'pipe)
                ;(paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph))))))
                '()))))
-        (graph-parts graph)))))
+        (graph-parts graph))))
+  (visualization:layer-depth-set! 'graph 5))

@@ -10,6 +10,7 @@
 (import sdl/sdl)
 (import cairo/cairo)
 
+(import utils/sort)
 (import constants)
 (import geometry)
 
@@ -19,6 +20,7 @@
 (export visualize-now-and-forget)
 (export visualize-forget-layers)
 (export visualize-forget-all)
+(export visualization:layer-depth-set!)
 (export paint-path)
 (export paint-polygon)
 (export paint-set-color)
@@ -27,6 +29,7 @@
 (export paint-set-line-cap)
 (export paint-set-line-width)
 (export paint-text)
+(export paint-image)
 
 (define maxx 500)
 (define maxy 500)
@@ -124,15 +127,50 @@
 (define (visualize-forget-all)
   (set! external-painters (list (make-painter 'null (lambda (a) '())))))
 
+;; Does this layer exist already?
+;;
+(define (visualization:layer-exists? layer)
+  (any
+    (lambda (p)
+      (equal? (painter-layer p) layer))
+    external-painters))
+
+;; Layer depth
+;;
+(define (visualization:layer-depth layer)
+  (painter-depth (find ; Only looks at first occurence of layer
+                   (lambda (p)
+                     (equal? (painter-layer p) layer))
+                   external-painters)))
+
+;; Layer depth set
+;;
+(define (visualization:layer-depth-set! layer depth)
+  (for-each
+    (lambda (p)
+      (if (equal? (painter-layer p) layer)
+        (painter-depth-set! p depth)
+        p))
+    external-painters))
+
 ;; Receive a procedure for visualization from another module, so it can be
 ;; executed at its right time
 ;;
-(define-structure painter layer procedure)
+(define-structure painter layer depth procedure)
 
 (define (visualize-when-possible layer new-procedure)
-  (append-painter! external-painters (make-painter layer new-procedure)))
+  (append-painter! external-painters (make-painter
+                                       layer
+                                       (if (visualization:layer-exists? layer)
+                                           (visualization:layer-depth layer)
+                                         0)
+                                       new-procedure))
+  (sort!
+    external-painters
+    (lambda (p1 p2)
+      (< (painter-depth p1) (painter-depth p2)))))
 
-(define external-painters (list (make-painter 'null (lambda (a) '())))) ; Why should I add something so it is a list?
+(define external-painters (list (make-painter 'null 0 (lambda (a) '())))) ; Why should I add something so it is a list?
 
 (define (append-painter! list-procs proc)
   (if (null? (cdr list-procs))
@@ -226,3 +264,13 @@
   (cairo-select-font-face cairo font CAIRO_FONT_SLANT_NORMAL CAIRO_FONT_WEIGHT_BOLD)
   (cairo-move-to cairo x y)
   (cairo-show-text cairo text))
+
+;; Paint image
+;;
+(define paint-image
+  (let* ((image (cairo-image-surface-create-from-data #| TODO |#))
+         (w (cairo-image-surface-get-width image))
+         (h (cairo-image-surface-get-height image)))
+    (lambda (cairo)
+      (cairo-set-source-surface cairo image 0.0 0.0)
+      (cairo-paint cairo)))) ; (cairo-surface-destroy image) TODO: This should be destroyed with a WILL

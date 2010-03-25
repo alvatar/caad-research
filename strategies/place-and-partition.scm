@@ -124,6 +124,7 @@
   ;; 1st: pull the agents inside if they are outside the limit
   world)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TODO
 ;; Introduce them the social environment: evolve them
 ;;
 (define (evolve-socially graph world)
@@ -140,6 +141,7 @@
   (define (world-merge-agents world agents)
     (make-world agents (world-maps world)))
 
+  (visualize-maps)
   (visualize-forget-layers '(place-and-partition))
   (visualize-world world)
   (visualize-now)
@@ -202,7 +204,8 @@
                     "montecarlo"
                     10.0
                     (+ (point-x pos) 9.0)
-                    (+ (point-y pos) 3.0))))))
+                    (+ (point-y pos) 3.0)))))
+  (visualization:layer-depth-set! 'place-and-partition 10))
 
 ;-------------------------------------------------------------------------------
 ; Maps
@@ -213,6 +216,13 @@
 
 (define (make-maps)
   '())
+
+(define (visualize-maps)
+  (visualize-when-possible
+    'maps
+    (lambda (backend)
+      (paint-image backend)))
+  (visualization:layer-depth-set! 'maps 1))
 
 ;-------------------------------------------------------------------------------
 ; World
