@@ -316,6 +316,7 @@
 
 
 
+(define cairo-format-stride-for-width (c-lambda (cairo-format-t int) int "cairo_format_stride_for_width"))
 (define cairo-image-surface-create (c-lambda (cairo-format-t int int) cairo-surface-t* "cairo_image_surface_create"))
 (define cairo-image-surface-create-for-data (c-lambda (unsigned-char* cairo-format-t int int int) cairo-surface-t* "cairo_image_surface_create_for_data"))
 (define cairo-image-surface-get-data (c-lambda (cairo-surface-t*) unsigned-char* "cairo_image_surface_get_data"))
@@ -399,10 +400,13 @@
 
 
 (define cairo-image-surface-create-from-png (c-lambda (char-string) cairo-surface-t* "cairo_image_surface_create_from_png"))
-#;(define |(*cairo-read-func-t)| (c-lambda (void* unsigned-char* unsigned-int) cairo-status-t "(*cairo_read_func_t)"))
+;(define |(*cairo-read-func-t)| (c-lambda (void* unsigned-char* unsigned-int) cairo-status-t "(*cairo_read_func_t)"))
+
 (define cairo-image-surface-create-from-png-stream (c-lambda (cairo-read-func-t void*) cairo-surface-t* "cairo_image_surface_create_from_png_stream"))
+
 (define cairo-surface-write-to-png (c-lambda (cairo-surface-t* char-string) cairo-status-t "cairo_surface_write_to_png"))
-#;(define |(*cairo-write-func-t)| (c-lambda (void* unsigned-char* unsigned-int) cairo-status-t "(*cairo_write_func_t)"))
+
+;(define |(*cairo-write-func-t)| (c-lambda (void* unsigned-char* unsigned-int) cairo-status-t "(*cairo_write_func_t)"))
 (define cairo-surface-write-to-png-stream (c-lambda (cairo-surface-t* cairo-write-func-t void*) cairo-status-t "cairo_surface_write_to_png_stream"))
 
 
@@ -505,3 +509,24 @@
 (define cairo-xlib-surface-get-width (c-lambda (cairo-surface-t*) int "cairo_xlib_surface_get_width"))
 (define cairo-xlib-surface-get-height (c-lambda (cairo-surface-t*) int "cairo_xlib_surface_get_height"))
 (define cairo-xlib-surface-get-depth (c-lambda (cairo-surface-t*) int "cairo_xlib_surface_get_depth"))
+
+;==============================================================;
+;==============================================================;
+
+(define make-cairo-a8-image
+  (c-lambda (int int)
+            cairo-surface-t*
+            "
+    int stride;
+    unsigned char *data;
+    cairo_surface_t *surface;
+    int format = CAIRO_FORMAT_A8;
+    
+    stride = cairo_format_stride_for_width (format, ___arg1);
+    data = malloc (stride * ___arg2);
+    surface = cairo_image_surface_create_for_data (data, format,
+              ___arg1, ___arg2,
+              stride);
+    ___result_voidstar = surface;
+            "))
+

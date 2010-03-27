@@ -268,9 +268,7 @@
 ;; Paint image
 ;;
 (define paint-image
-  (let* ((image (cairo-image-surface-create-from-data #| TODO |#))
-         (w (cairo-image-surface-get-width image))
-         (h (cairo-image-surface-get-height image)))
+  (let* ((image (make-cairo-a8-image maxx maxy)))
     (lambda (cairo)
       (cairo-set-source-surface cairo image 0.0 0.0)
       (cairo-paint cairo)))) ; (cairo-surface-destroy image) TODO: This should be destroyed with a WILL
