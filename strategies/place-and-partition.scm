@@ -116,7 +116,7 @@
                (agent-proc agent)))))))
     (make-world 
       (append basic-set more)
-      (make-maps))))
+      '())))
 
 ;; Do all initial things with the world prior to simulation
 ;;
@@ -211,18 +211,20 @@
 ; Maps
 ;-------------------------------------------------------------------------------
 
-(define (make-map data)
-  data)
-
-(define (make-maps)
-  '())
+(define (make-maps backend)
+  (list 
+    (create-image backend)))
 
 (define (visualize-maps)
-  (visualize-when-possible
-    'maps
-    (lambda (backend)
-      (paint-image backend)))
-  (visualization:layer-depth-set! 'maps 1))
+    (visualize-when-possible
+      'maps
+      (lambda (backend)
+        (let ((images (make-maps backend)))
+          (for-each
+            (lambda (m)
+              (paint-image backend m))
+            images))))
+    (visualization:layer-depth-set! 'maps 1))
 
 ;-------------------------------------------------------------------------------
 ; World

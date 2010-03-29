@@ -513,7 +513,7 @@
 ;==============================================================;
 ;==============================================================;
 
-(define make-cairo-a8-image
+(define make-cairo-a8-image-WRONG
   (c-lambda (int int)
             cairo-surface-t*
             "
@@ -530,3 +530,53 @@
     ___result_voidstar = surface;
             "))
 
+(define-structure data-image data-ptr paint-ptr stride)
+
+(define (make-cairo-a8-image cairo size-x size-y)
+  (let* ((stride (cairo-format-stride-for-width CAIRO_FORMAT_A8 size-x))
+         (data (malloc-a8-image stride size-y))
+         (image (cairo-image-surface-create-for-data data CAIRO_FORMAT_A8 size-x size-y stride)))
+    (if (not image)
+        (error "make-cairo-a8-image: image could not be created"))
+    (make-will image (lambda (img) (cairo-surface-destroy img)))
+    (make-will data (lambda (data) (free-a8-image data)))
+    (make-data-image data image stride)))
+
+(define malloc-a8-image
+  (c-lambda (int int)
+            unsigned-char*
+            "
+unsigned char *data;
+int total_size = ___arg1 * ___arg2;
+data = malloc(total_size);
+int i;
+for(i = 0; i < total_size; i++) {
+    data[i] = 0;
+}
+___result_voidstar = data;
+            "))
+
+(define free-a8-image
+  (c-lambda (unsigned-char*)
+            void
+            "
+if(___arg1 == 0) {
+    printf(\"This is bad: I could not deallocate the memory of an image\");
+} else {
+    free(___arg1);
+}
+            "))
+
+(define (cairo-a8-image-set-pixel! image pix-i pix-j value)
+  (set-pixel-a8-image! (data-image-data-ptr image)
+                       (data-image-stride image)
+                       pix-i
+                       pix-j
+                       value))
+
+(define set-pixel-a8-image!
+  (c-lambda (unsigned-char* int int int int)
+            void
+            "
+___arg1[100] = 255;
+            "))

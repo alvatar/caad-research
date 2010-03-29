@@ -29,6 +29,7 @@
 (export paint-set-line-cap)
 (export paint-set-line-width)
 (export paint-text)
+(export create-image)
 (export paint-image)
 
 (define maxx 500)
@@ -265,10 +266,18 @@
   (cairo-move-to cairo x y)
   (cairo-show-text cairo text))
 
+;; Create image surface
+;;
+(define (create-image cairo)
+  (make-cairo-a8-image cairo maxx maxy))
+
+
 ;; Paint image
 ;;
-(define paint-image
-  (let* ((image (make-cairo-a8-image maxx maxy)))
-    (lambda (cairo)
-      (cairo-set-source-surface cairo image 0.0 0.0)
-      (cairo-paint cairo)))) ; (cairo-surface-destroy image) TODO: This should be destroyed with a WILL
+(define (paint-image cairo image)
+              (cairo-a8-image-set-pixel! image 100 100 0)
+  (cairo-set-source-surface cairo (data-image-paint-ptr image) 0.0 0.0)
+              ;(cairo-a8-image-set-pixel! image 100 101 0)
+              ;(cairo-a8-image-set-pixel! image 100 102 0)
+              ;(cairo-a8-image-set-pixel! image 100 103 0)
+  (cairo-paint cairo))
