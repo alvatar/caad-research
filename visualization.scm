@@ -275,9 +275,5 @@
 ;; Paint image
 ;;
 (define (paint-image cairo image)
-              (cairo-a8-image-set-pixel! image 100 100 0)
-  (cairo-set-source-surface cairo (data-image-paint-ptr image) 0.0 0.0)
-              ;(cairo-a8-image-set-pixel! image 100 101 0)
-              ;(cairo-a8-image-set-pixel! image 100 102 0)
-              ;(cairo-a8-image-set-pixel! image 100 103 0)
+  (cairo-set-source-surface cairo (data-image-surface-ptr image) 0.0 0.0)
   (cairo-paint cairo))

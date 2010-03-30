@@ -142,9 +142,9 @@
     (make-world agents (world-maps world)))
 
   (visualize-maps)
-  (visualize-forget-layers '(place-and-partition))
   (visualize-world world)
   (visualize-now)
+  (visualize-forget-layers '(place-and-partition maps))
   (if (stop?)
       world
     (evolve-socially 

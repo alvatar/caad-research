@@ -530,7 +530,7 @@
     ___result_voidstar = surface;
             "))
 
-(define-structure data-image data-ptr paint-ptr stride)
+(define-structure data-image data-ptr surface-ptr stride size)
 
 (define (make-cairo-a8-image cairo size-x size-y)
   (let* ((stride (cairo-format-stride-for-width CAIRO_FORMAT_A8 size-x))
@@ -540,7 +540,7 @@
         (error "make-cairo-a8-image: image could not be created"))
     (make-will image (lambda (img) (cairo-surface-destroy img)))
     (make-will data (lambda (data) (free-a8-image data)))
-    (make-data-image data image stride)))
+    (make-data-image data image stride (* stride size-y))))
 
 (define malloc-a8-image
   (c-lambda (int int)
@@ -567,16 +567,39 @@ if(___arg1 == 0) {
 }
             "))
 
+(define (grayscale-color-from-normalized value)
+  (- 255 (modulo (inexact->exact (round (* 255 value))) 255)))
+  
+
 (define (cairo-a8-image-set-pixel! image pix-i pix-j value)
   (set-pixel-a8-image! (data-image-data-ptr image)
                        (data-image-stride image)
                        pix-i
                        pix-j
-                       value))
+                       (grayscale-color-from-normalized value)))
 
 (define set-pixel-a8-image!
   (c-lambda (unsigned-char* int int int int)
             void
             "
-___arg1[100] = 255;
+___arg1[___arg2*___arg4+___arg3] = ___arg5;
+            "))
+
+(define (cairo-a8-image-set! image vect)
+  (set-a8-image! (data-image-data-ptr image) (data-image-size image) vect (u8vector-length vect)))
+
+(define set-a8-image!
+  (c-lambda (unsigned-char* int scheme-object int) ; image-data, 
+            void
+            "
+//void *u8vectorptr = ___CAST(void*,&___FETCH_U8(___BODY(___arg3),___INT(0)));
+//void *u8vectorptr = ___CAST(void*,&___FETCH_U8(___arg3,0));
+//void *u8vectorptr = ___CAST(void*,___BODY(___arg3));
+
+unsigned char *u8vectorptr = ___CAST(___U8*,___BODY_AS(___arg3,___tSUBTYPED));
+
+int i;
+for (i = 0; i < ___arg2 && i < ___arg4; i++) {
+    ___arg1[i] = u8vectorptr[i];
+}
             "))
