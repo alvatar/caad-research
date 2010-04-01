@@ -5,6 +5,8 @@
 ;;; Geometrical operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;(compile-options cc-options: "-w" force-compile: #t)
+
 (import (std srfi/1))
 
 (import math)
@@ -49,12 +51,6 @@
     (< (abs (- f1 f2)) precision))
   (and (test (point-x a) (point-x b))
        (test (point-y a) (point-y b))))
-
-;; Calculate the distance between two points
-;;
-(define (distance-point-point a b)
-  (sqrt (+ (expt (- (car p1) (car p2)) 2)
-           (expt (- (cadr p1) (cadr p2)) 2))))
 
 ;; Calculate the mid point between two points
 ;;
@@ -190,6 +186,32 @@
             (iter-intersection (+ counter 1) p2 (cdr ptail))
           (iter-intersection counter p2 (cdr ptail))))))
   (odd? (iter-intersection 0 (car polygon) (cdr polygon))))
+
+;-------------------------------------------------------------------------------
+; Distance
+;-------------------------------------------------------------------------------
+
+;; Calculate the distance between two points
+;;
+(define (distance-point-point a b)
+  (sqrt (+ (expt (- (point-x a) (point-x b)) 2)
+           (expt (- (point-y a) (point-y b)) 2))))
+
+;; Calculate the distance between two points (integer arithmetic)
+;;
+(define (distance-point-point-integer a b)
+  (integer-sqrt (+ (expt (- (point-x a) (point-x b)) 2)
+           (expt (- (point-y a) (point-y b)) 2))))
+
+;; Calculate the distance between point and segment
+;;
+(define (distance-point-segment p sg)
+  0.0)
+
+;; Calculate the distance between a point and a point list
+;;
+(define (distance-point-point-list p plis)
+  0.0)
 
 ;-------------------------------------------------------------------------------
 ; Intersections

@@ -9,9 +9,12 @@
 ;;; 3. Partition algorithm makes a first approach of the space partitioning
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(import (std srfi/1))
+
 (import ../constants)
 (import ../geometry)
 (import ../graph)
+(import ../utils/misc)
 (import ../visualization)
 
 ;; Place and partition algorithm
@@ -24,14 +27,14 @@
         graph
         (init-world
           graph
-          (describe-world))))))
+          (describe-world graph))))))
 
 ;; Create all necessary things to begin simulation
 ;;
-(define (describe-world)
+(define (describe-world graph)
   (let*
-    ((limit-x 400.0) ; TODO
-     (limit-y 400.0)
+    ((limit-x 500) ; TODO
+     (limit-y 500)
      (basic-set
       `(,(make-agent
            'entrance
@@ -113,10 +116,11 @@
              (make-agent
                (agent-label agent)
                (agent-node-positions agent)
-               (agent-proc agent)))))))
+               (agent-proc agent))))))
+     (light-field (make-light-field graph limit-x limit-y)))
     (make-world 
       (append basic-set more)
-      '())))
+      (list light-field))))
 
 ;; Do all initial things with the world prior to simulation
 ;;
@@ -139,12 +143,9 @@
         (agent-new-state a world))
       (world-agents world)))
   (define (world-merge-agents world agents)
-    (make-world agents (world-maps world)))
+    (make-world agents (world-fields world)))
 
-  (visualize-maps)
   (visualize-world world)
-  (visualize-now)
-  (visualize-forget-layers '(place-and-partition maps))
   (if (stop?)
       world
     (evolve-socially 
@@ -181,50 +182,106 @@
 ;; Agent visualization
 ;;
 (define (visualize-agent a)
-  (visualize-when-possible
-    'place-and-partition
+  (visualization:do-later
+    'agents
     (lambda (backend)
       ;; Paint nodes string
-      (paint-set-color backend 0.1 0.1 0.1 1.0)
-      (paint-set-line-width backend 0.5)
-      (paint-path backend (agent-node-positions a))
+      (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
+      (visualization:paint-set-line-width backend 0.5)
+      (visualization:paint-path backend (agent-node-positions a))
       ;; Paint nodes
       (for-each
         (lambda (pos)
-          (paint-set-color backend 1.0 1.0 1.0 0.9)
-          (paint-circle-fill backend (point-x pos) (point-y pos) 5.0)
-          (paint-set-color backend 1.0 0.0 0.0 0.9)
-          (paint-circle-fill backend (point-x pos) (point-y pos) 3.0))
+          (visualization:paint-set-color backend 1.0 1.0 1.0 0.9)
+          (visualization:paint-circle-fill backend (point-x pos) (point-y pos) 5.0)
+          (visualization:paint-set-color backend 1.0 0.0 0.0 0.9)
+          (visualization:paint-circle-fill backend (point-x pos) (point-y pos) 3.0))
       (agent-node-positions a))
       ;; Paint label
       (let ((pos (point-list-right-most (agent-node-positions a))))
-        (paint-set-color backend 0.4 0.4 0.4 1.0)
-        (paint-text backend
-                    (symbol->string (agent-label a))
-                    "montecarlo"
-                    10.0
-                    (+ (point-x pos) 9.0)
-                    (+ (point-y pos) 3.0)))))
-  (visualization:layer-depth-set! 'place-and-partition 10))
+        (visualization:paint-set-color backend 0.4 0.4 0.4 1.0)
+        (visualization:paint-text backend
+                                  (symbol->string (agent-label a))
+                                  "Arial"
+                                  10.0
+                                  (+ (point-x pos) 9.0)
+                                  (+ (point-y pos) 3.0)))))
+  (visualization:layer-depth-set! 'agents 10))
 
 ;-------------------------------------------------------------------------------
-; Maps
+; Fields
 ;-------------------------------------------------------------------------------
 
-(define (make-maps backend)
-  (list 
-    (create-image backend)))
+(define (visualize-field field)
+  (visualization:do-later
+    'fields
+    (lambda (backend)
+      (let ((image (visualization:create-image backend))) ; TODO: created in other place
+        (visualization:image-set! image field)
+        (visualization:paint-image backend image))))
+  (visualization:layer-depth-set! 'fields 1))
 
-(define (visualize-maps)
-    (visualize-when-possible
-      'maps
-      (lambda (backend)
-        (let ((images (make-maps backend)))
-          (for-each
-            (lambda (m)
-              (paint-image backend m))
-            images))))
-    (visualization:layer-depth-set! 'maps 1))
+;; Produce 2d fields with a lambda
+;;
+(define (produce-2d-field size-x size-y proc)
+  (let ((limit-x (- size-x 1))
+        (limit-y (- size-y 1)))
+    (define (iter x y lis)
+      (cond
+       ((and (= x 0) (= y 0))
+        lis)
+       ((= x 0)
+        (iter limit-x (- y 1) (cons (proc (make-point 0 y)) lis)))
+       (else
+        (iter (- x 1) y (cons (proc (make-point x y)) lis)))))
+    (iter limit-x limit-y '())))
+#|
+(define (produce-2d-field size-x size-y proc)
+  (let ((len (* size-x size-y)))
+    (do ((vec (make-u8vector len))
+         (i 0 (+ i 1)))
+        ((>= i len) vec)
+      (u8vector-set! vec i (proc (make-point
+                                         (modulo i size-y)
+                                         (floor (/ i size-y))))))))
+  |#
+
+;; Flatten a list of fields (merge them)
+;;
+(define (flatten-2d-fields field-list)
+  (list->u8vector
+    (reduce
+      (lambda (f1 f2)
+        (map (lambda (a b) (+ a b)) f1 f2))
+      '()
+      field-list)))
+
+;; Make light field
+;;
+(define (make-light-field graph size-x size-y)
+  (time
+  (flatten-2d-fields
+    (let ((light-sources `(,(make-point 200 80)))) ; TODO
+      (map ; produces a field per light-source
+        (lambda (s)
+            (cond
+             ((point? s)
+              (produce-2d-field
+                size-x
+                size-y
+                (lambda (p) (let ((d (distance-point-point-integer p s)))
+                              (if (> d 255) 255 d)))))
+             ((= (length s) 2)
+              (produce-2d-field-list
+                size-x
+                size-y
+                (lambda (p) 0.6)))
+             ((>= (length s) 3)
+              (produce-2d-field-list
+                size-x
+                size-y
+                (lambda (p) 0.7)))))
+      light-sources)))))
 
 ;-------------------------------------------------------------------------------
 ; World
@@ -232,15 +289,16 @@
 
 ;; World type
 ;;
-(define-record-type world
-  (make-world agents maps)
-  world?
-  (agents world-agents)
-  (maps world-maps))
+(define-structure world agents fields)
 
 ;; World visualization
 ;;
 (define (visualize-world world)
   (for-each
+    visualize-field
+    (world-fields world))
+  (for-each
     visualize-agent
-    (world-agents world)))
+    (world-agents world))
+  (visualization:do-now)
+  (visualization:forget-layers '(agents fields)))

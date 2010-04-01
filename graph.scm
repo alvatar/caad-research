@@ -494,37 +494,37 @@
 ;; Draw graph
 ;;
 (define (visualize-graph graph)
-  (visualize-when-possible
+  (visualization:do-later
     'graph
     (lambda (backend)
       ;; Paint wall
       (define (paint-wall wall)
-        (paint-set-color backend 0.1 0.1 0.1 1.0)
-        (paint-set-line-cap backend 'square)
-        (paint-set-line-width backend 5.0)
-        (paint-path backend (wall->point-list wall)))
+        (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
+        (visualization:paint-set-line-cap backend 'square)
+        (visualization:paint-set-line-width backend 5.0)
+        (visualization:paint-path backend (wall->point-list wall)))
       ;; Paint doors in the wall
       (define (paint-doors-in-wall wall)
         (for-each
           (lambda
             (door)
-            (paint-set-line-cap backend 'butt)
-            (paint-set-color backend 1.0 1.0 1.0 1.0)
-            (paint-set-line-width backend 6.0)
-            (paint-path backend (extract-wall-element-points door wall))
-            (paint-set-color backend 1.0 0.1 0.1 1.0)
-            (paint-set-line-width backend 3.0)
-            (paint-path backend (extract-wall-element-points door wall)))
+            (visualization:paint-set-line-cap backend 'butt)
+            (visualization:paint-set-color backend 1.0 1.0 1.0 1.0)
+            (visualization:paint-set-line-width backend 6.0)
+            (visualization:paint-path backend (extract-wall-element-points door wall))
+            (visualization:paint-set-color backend 1.0 0.1 0.1 1.0)
+            (visualization:paint-set-line-width backend 3.0)
+            (visualization:paint-path backend (extract-wall-element-points door wall)))
           (wall-doors wall)))
       ;; Paint windows in the wall
       (define (paint-windows-in-wall wall)
-        (paint-set-color backend 1.0 1.0 0.1 1.0)
-        (paint-set-line-cap backend 'butt)
-        (paint-set-line-width backend 3.0)
+        (visualization:paint-set-color backend 1.0 1.0 0.1 1.0)
+        (visualization:paint-set-line-cap backend 'butt)
+        (visualization:paint-set-line-width backend 3.0)
         (for-each
           (lambda
             (window)
-            (paint-path backend (extract-wall-element-points window wall)))
+            (visualization:paint-path backend (extract-wall-element-points window wall)))
           (wall-windows wall)))
       ;; Paint pilar
       (define (paint-pilar pilar)
@@ -532,8 +532,8 @@
       ;; Paint room
       (define (paint-room graph room)
         ;(paint-set-color backend (random-real) (random-real) (random-real) 0.5)
-        (paint-set-color backend 0.0 0.0 0.3 0.3)
-        (paint-polygon backend (extract-room-points graph room)))
+        (visualization:paint-set-color backend 0.0 0.0 0.3 0.3)
+        (visualization:paint-polygon backend (extract-room-points graph room)))
       ;; Paint entry
       (define (paint-entry wall)
         '())

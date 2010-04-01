@@ -14,23 +14,23 @@
 (import constants)
 (import geometry)
 
-(export visualize-when-possible)
-(export visualize-now)
-(export visualize-now-layers)
-(export visualize-now-and-forget)
-(export visualize-forget-layers)
-(export visualize-forget-all)
+(export visualization:do-later)
+(export visualization:do-now)
+(export visualization:do-now-layers)
+(export visualization:forget-layers)
+(export visualization:forget-all)
 (export visualization:layer-depth-set!)
-(export paint-path)
-(export paint-polygon)
-(export paint-set-color)
-(export paint-circle-fill)
-(export paint-circle-border)
-(export paint-set-line-cap)
-(export paint-set-line-width)
-(export paint-text)
-(export create-image)
-(export paint-image)
+(export visualization:paint-path)
+(export visualization:paint-polygon)
+(export visualization:paint-set-color)
+(export visualization:paint-circle-fill)
+(export visualization:paint-circle-border)
+(export visualization:paint-set-line-cap)
+(export visualization:paint-set-line-width)
+(export visualization:paint-text)
+(export visualization:create-image)
+(export visualization:paint-image)
+(export visualization:image-set!)
 
 (define maxx 500)
 (define maxy 500)
@@ -95,7 +95,7 @@
 
 ;; Execute now the sequence of representation of the selected layers
 ;;
-(define (visualize-now-layers layers)
+(define (visualization:do-now-layers layers)
   (immediate-visualization-selector
     (lambda (e)
       (any (lambda (l) (equal? (painter-layer e) l))
@@ -103,19 +103,13 @@
 
 ;; Execute now the full sequence of representation of the all the layers
 ;;
-(define (visualize-now)
+(define (visualization:do-now)
   (immediate-visualization-selector
     (lambda (e) #t)))
 
-;; Execute now the full sequence of representation of the all the layers
-;;
-(define (visualize-now-and-forget)
-  (visualize-now)
-  (visualize-forget-all))
-
 ;; Remove layer
 ;;
-(define (visualize-forget-layers layers)
+(define (visualization:forget-layers layers)
   (set! external-painters
     (remove
       (lambda (e)
@@ -125,7 +119,7 @@
 
 ;; Cleans all the external visualization procedures pending of execution
 ;;
-(define (visualize-forget-all)
+(define (visualization:forget-all)
   (set! external-painters (list (make-painter 'null (lambda (a) '())))))
 
 ;; Does this layer exist already?
@@ -159,7 +153,7 @@
 ;;
 (define-structure painter layer depth procedure)
 
-(define (visualize-when-possible layer new-procedure)
+(define (visualization:do-later layer new-procedure)
   (append-painter! external-painters (make-painter
                                        layer
                                        (if (visualization:layer-exists? layer)
@@ -184,7 +178,7 @@
 
 ;; Paint a path given a list of 2d points
 ;;
-(define (paint-path cairo points)
+(define (visualization:paint-path cairo points)
   (cond
    ((null? points)
     (raise "Trying to paint a path with a null list of points"))
@@ -204,7 +198,7 @@
 
 ;; Paint a polygon given a list of 2d points
 ;;
-(define (paint-polygon cairo points)
+(define (visualization:paint-polygon cairo points)
   (cond
    ((null? points)
     (raise "Trying to paint a polygon with a null list of points"))
@@ -225,12 +219,12 @@
 
 ;; Set paint color
 ;;
-(define (paint-set-color cairo r g b a)
+(define (visualization:paint-set-color cairo r g b a)
   (cairo-set-source-rgba cairo r g b a))
 
 ;; Paint a fill circle given a point and a radius
 ;;
-(define (paint-circle-fill cairo x y r)
+(define (visualization:paint-circle-fill cairo x y r)
   (cairo-new-path cairo)
   (cairo-move-to cairo x y)
   (cairo-arc cairo x y r 0.0 pi2)
@@ -238,7 +232,7 @@
 
 ;; Paint a circle border given a point and a radius
 ;;
-(define (paint-circle-border cairo x y r)
+(define (visualization:paint-circle-border cairo x y r)
   (cairo-new-path cairo)
   (cairo-move-to cairo x y)
   (cairo-arc cairo x y r 0.0 pi2)
@@ -246,7 +240,7 @@
 
 ;; Set line cap
 ;;
-(define (paint-set-line-cap cairo style)
+(define (visualization:paint-set-line-cap cairo style)
   (cond
     ((equal? style 'square)
      (cairo-set-line-cap cairo CAIRO_LINE_CAP_SQUARE))
@@ -255,12 +249,12 @@
 
 ;; Set line style
 ;;
-(define (paint-set-line-width cairo width)
+(define (visualization:paint-set-line-width cairo width)
   (cairo-set-line-width cairo width))
 
 ;; Paint text
 ;;
-(define (paint-text cairo text font size x y)
+(define (visualization:paint-text cairo text font size x y)
   (cairo-set-font-size cairo size)
   (cairo-select-font-face cairo font CAIRO_FONT_SLANT_NORMAL CAIRO_FONT_WEIGHT_BOLD)
   (cairo-move-to cairo x y)
@@ -268,12 +262,16 @@
 
 ;; Create image surface
 ;;
-(define (create-image cairo)
+(define (visualization:create-image cairo)
   (make-cairo-a8-image cairo maxx maxy))
-
 
 ;; Paint image
 ;;
-(define (paint-image cairo image)
+(define (visualization:paint-image cairo image)
   (cairo-set-source-surface cairo (data-image-surface-ptr image) 0.0 0.0)
   (cairo-paint cairo))
+
+;; Set image
+;;
+(define (visualization:image-set! image vect)
+  (cairo-a8-image-set! image vect))

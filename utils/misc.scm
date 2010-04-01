@@ -7,6 +7,13 @@
 
 (import (std srfi/1))
 
+;(compile-options cc-options: "-w" force-compile: #t)
+
+;; 0.0-1.0 range to u8 integer
+;;
+(define (normalized-inexact->integer value)
+  (modulo (inexact->exact (round (* 255 value))) 255))
+
 ;; snoc
 ;;
 (define snoc
