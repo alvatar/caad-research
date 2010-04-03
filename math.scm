@@ -5,6 +5,9 @@
 ;;; Mathematical operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declare (standard-bindings)(extended-bindings)(block)(not safe))
+(compile-options force-compile: #t)
+
 (import (std srfi/1))
 (import constants)
 
@@ -41,6 +44,26 @@
 (define (average a b)
   (/ (+ a b) 2.0))
 
+;; Fixnum square
+;;
+(define (fxsquare x)
+  (fx* x x))
+
+;; Square
+;;
+(define (square x)
+  (* x x))
+
+;; Fixnum increment
+;;
+(define (incr x)
+  (fx+ x 1))
+
+;; Fixnum decrement
+;;
+(define (decr x)
+  (fx- x 1))
+
 ;-------------------------------------------------------------------------------
 ; Vector dimension 2
 ;-------------------------------------------------------------------------------
@@ -49,7 +72,7 @@
 
 ;; Vector addition
 ;;
-(define (vect2-+-vect2 v1 v2)
+(define (vect2+vect2 v1 v2)
   (make-vect2 (+ (vect2-u v1)
                  (vect2-u v2))
               (+ (vect2-v v1)
@@ -57,11 +80,17 @@
 
 ;; Vector substraction
 ;;
-(define (vect2---vect2 v1 v2)
+(define (vect2-vect2 v1 v2)
   (make-vect2 (- (vect2-u v1)
                  (vect2-u v2))
               (- (vect2-v v1)
                  (vect2-v v2))))
+
+;; Vector / scalar
+;;
+(define (vect2/scalar v a)
+  (make-vect2 (/ (vect2-u v) a)
+              (/ (vect2-v v) a)))
 
 ;; Are these vectors equal?
 ;;

@@ -5,11 +5,12 @@
 ;;; Geometrical operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;(declare (standard-bindings)(extended-bindings)(block)(not safe))
-;(compile-options force-compile: #t)
+(declare (standard-bindings)(extended-bindings)(block)(not safe))
+(compile-options force-compile: #t)
 
 (import (std srfi/1))
 
+(import constants)
 (import math)
 
 ;-------------------------------------------------------------------------------
@@ -33,7 +34,7 @@
 ;; Are these points equal?
 ;;
 (define (point=? v1 v2)
-  (point=?e v1 v2 equal-accuracy)) ; TODO: Find the right accuracy
+  (point=?e v1 v2 equal-accuracy))
 
 ;; Point to vector
 ;;
@@ -76,7 +77,7 @@
 ;; Segment vector
 ;;
 (define (segment->vect2 seg)
-  (vect2---vect2
+  (vect2-vect2
     (point->vect2 (segment-second-point seg))
     (point->vect2 (segment-first-point seg))))
 
@@ -135,11 +136,11 @@
   (define (iter n sum plis-tail)
     (cond
      ((null? plis-tail)
-      (point/scalar sum (exact->inexact n)))
+      (vect2/scalar sum (exact->inexact n)))
      (else
       (iter
         (+ 1 n)
-        (point+point sum (car plis-tail))
+        (vect2+vect2 (point->vect2 sum) (point->vect2 (car plis-tail)))
         (cdr plis-tail)))))
   (cond
    ((null? plis)
@@ -192,29 +193,15 @@
 ; Distance
 ;-------------------------------------------------------------------------------
 
-(define (fxsquare x)
-  (fx* x x))
-
-(define (square x)
-  (* x x))
-
 ;; Calculate the distance between two points
 ;;
 (define (distance-point-point a b)
   (sqrt (+ (square (- (point-x a) (point-x b)))
            (square (- (point-y a) (point-y b))))))
 
-(define (distance-point-point-integer a b)
- (##flonum.->fixnum (flsqrt (fixnum->flonum (fx+ (fxsquare (fx- (point-x a) (point-x b)))
+(define (fx-distance-point-point a b)
+  (##flonum.->fixnum (flsqrt (fixnum->flonum (fx+ (fxsquare (fx- (point-x a) (point-x b)))
                                                  (fxsquare (fx- (point-y a) (point-y b))))))))
-
-;; Calculate the distance between two points (integer arithmetic)
-;;
-#|
-(define (distance-point-point-integer a b)
-  (integer-sqrt (fx+ (expt (fx- (point-x a) (point-x b)) 2)
-                     (expt (fx- (point-y a) (point-y b)) 2))))
-                     |#
 
 ;; Calculate the distance between point and segment
 ;;
@@ -236,12 +223,35 @@
       (set! u 1))
      ((< u 0)
       (set! u 0)))
-    
     (let* ((x (+ p1x (* u su)))
            (y (+ p1y (* u sv)))
            (dx (- x px))
            (dy (- y py)))
       (sqrt (+ (* dx dx) (* dy dy))))))
+
+(define (fx-distance-point-segment p sg)
+  (let* ((p1x (point-x (segment-first-point sg)))
+         (p1y (point-y (segment-first-point sg)))
+         (p2x (point-x (segment-second-point sg)))
+         (p2y (point-y (segment-second-point sg)))
+         (px (point-x p))
+         (py (point-y p))
+         (su (fx- p2x p1x))
+         (sv (fx- p2y p1y))
+         (div (fx+ (fx* su su) (fx* sv sv)))
+         (u (/ (fx+ (fx* (fx- px p1x) su)
+                    (fx* (fx- py p1y) sv))
+               div)))
+    (cond
+     ((> u 1)
+      (set! u 1))
+     ((< u 0)
+      (set! u 0)))
+    (let* ((x (fx+ p1x (round (* u su))))
+           (y (fx+ p1y (round (* u sv))))
+           (dx (fx- x px))
+           (dy (fx- y py)))
+      (##flonum.->fixnum (sqrt (fixnum->flonum (fx+ (fx* dx dx) (fx* dy dy))))))))
 
 ;; Calculate the distance between a point and a point list
 ;;
@@ -308,15 +318,47 @@
 ; Vector fields
 ;-------------------------------------------------------------------------------
 
-(define (make-2d-u8field size-x size-y proc) (let ((point (make-point 0 0)))
-  (let ((len (fx* size-x size-y)))
-    (do ((vec (make-u8vector len))
-         (i 0 (fx+ i 1)))
-        ((fx>= i len) vec)
-      (point-x-set! point (fxmodulo i size-y))
-      (point-y-set! point (fxquotient i size-y))
-      (u8vector-set! vec i (proc point))))))
+;; Make bidimensional u8 integers field
+;;
+(define (make-2d-u8field size-x size-y proc)
+  (let ((point (make-point 0 0))
+        (len (fx* size-x size-y)))
+      (do ((vec (make-u8vector len))
+           (i 0 (fx+ i 1))) ((fx>= i len) vec)
+        (point-x-set! point (fxmodulo i size-y))
+        (point-y-set! point (fxquotient i size-y))
+        (u8vector-set! vec i (proc point)))))
 
+;; Make bidimensional u8 integers field (scaled)
+;;
+(define (make-2d-scaled-u8field res size-x size-y proc)
+  (define (set-area! vec i j value)
+    (let it-j ((area-j 0))
+      (cond
+       ((fx< area-j res)
+        (let it-i ((area-i 0))
+          (cond
+           ((fx< area-i res)
+            (u8vector-set! vec
+                           (fx+ (fx+ i (fx* size-x (fx+ j area-j))) area-i)
+                           value)
+            (it-i (incr area-i)))
+           (else #t)))
+        (it-j (incr area-j)))
+       (else #t))))
+  (let ((point (make-point 0 0))
+        (len (fx* size-x size-y)))
+    (do ((vec (make-u8vector len))
+         (j 0 (fx+ j res)))
+      ((fx>= j size-y) vec)
+      (do ((i 0 (fx+ i res)))
+        ((fx>= i size-x))
+        (point-x-set! point i)
+        (point-y-set! point j)
+        (set-area! vec i j (proc point))))))
+
+;; Merge bidimesional u8 integer fields
+;;
 (define (merge-2d-u8fields fields proc)
   (define (merge-point value p rest-fields)
     (cond
@@ -350,16 +392,16 @@
 ;; Produce 2d fields with a lambda
 ;;
 (define (make-2d-field size-x size-y proc)
-  (let ((limit-x (- size-x 1))
-        (limit-y (- size-y 1)))
+  (let ((limit-x (decr size-x))
+        (limit-y (decr size-y)))
     (define (iter x y lis)
       (cond
-       ((and (= x 0) (= y 0))
+       ((and (fx= x 0) (fx= y 0))
         lis)
-       ((= x 0)
-        (iter limit-x (- y 1) (cons (proc (make-point 0 y)) lis)))
+       ((fx= x 0)
+        (iter limit-x (decr y) (cons (proc (make-point 0 y)) lis)))
        (else
-        (iter (- x 1) y (cons (proc (make-point x y)) lis)))))
+        (iter (decr x) y (cons (proc (make-point x y)) lis)))))
     (iter limit-x limit-y '())))
 
 ;; Flatten a list of fields (merge them)

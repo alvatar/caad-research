@@ -228,28 +228,31 @@
         (lambda (source)
             (cond
              ((point? source)
-              (make-2d-u8field
+              (make-2d-scaled-u8field
+                10
                 size-x
                 size-y
                 (lambda (p) (if #t ; (point-in-polygon? (graph-external-point-list graph) p)
-                                (let ((d (distance-point-point-integer p source)))
+                                (let ((d (fx* 2 (fx-distance-point-point p source))))
                                   (if (> d 255) 255 d))
                               0))))
              ((= (length source) 2)
-              (make-2d-u8field
+              (make-2d-scaled-u8field
+                10
                 size-x
                 size-y
-                (lambda (p) (let ((d (inexact->exact (round (distance-point-segment p source)))))
-                              (if (> d 255) 255 d)))))
+                (lambda (p) (let ((d (fx* 2 (fx-distance-point-segment p source))))
+                              (if (fx> d 255) 255 d)))))
              ((>= (length source) 3)
-              (make-2d-u8field
+              (make-2d-scaled-u8field
+                10
                 size-x
                 size-y
                 (lambda (p) 0.7)))))
       light-sources))
     (lambda (a b)
-      (let ((sum (- 255 (+ (- 255 a) (- 255 b)))))
-                             (if (< sum 0) 0 sum))))))
+      (let ((sum (fx- 255 (fx+ (fx- 255 a) (fx- 255 b)))))
+                             (if (fx< sum 0) 0 sum))))))
 
 ;-------------------------------------------------------------------------------
 ; World
