@@ -165,12 +165,7 @@
 
 ;; Agent type
 ;;
-(define-record-type agent
-  (make-agent label node-positions proc)
-  agent?
-  (label agent-label)
-  (node-positions agent-node-positions)
-  (proc agent-proc))
+(define-structure agent label node-positions proc)
 
 ;; Agent new state evaluation
 ;;
@@ -221,67 +216,40 @@
         (visualization:paint-image backend image))))
   (visualization:layer-depth-set! 'fields 1))
 
-;; Produce 2d fields with a lambda
-;;
-(define (produce-2d-field size-x size-y proc)
-  (let ((limit-x (- size-x 1))
-        (limit-y (- size-y 1)))
-    (define (iter x y lis)
-      (cond
-       ((and (= x 0) (= y 0))
-        lis)
-       ((= x 0)
-        (iter limit-x (- y 1) (cons (proc (make-point 0 y)) lis)))
-       (else
-        (iter (- x 1) y (cons (proc (make-point x y)) lis)))))
-    (iter limit-x limit-y '())))
-#|
-(define (produce-2d-field size-x size-y proc)
-  (let ((len (* size-x size-y)))
-    (do ((vec (make-u8vector len))
-         (i 0 (+ i 1)))
-        ((>= i len) vec)
-      (u8vector-set! vec i (proc (make-point
-                                         (modulo i size-y)
-                                         (floor (/ i size-y))))))))
-  |#
-
-;; Flatten a list of fields (merge them)
-;;
-(define (flatten-2d-fields field-list)
-  (list->u8vector
-    (reduce
-      (lambda (f1 f2)
-        (map (lambda (a b) (+ a b)) f1 f2))
-      '()
-      field-list)))
-
 ;; Make light field
 ;;
 (define (make-light-field graph size-x size-y)
   (time
-  (flatten-2d-fields
-    (let ((light-sources `(,(make-point 200 80)))) ; TODO
+  (merge-2d-u8fields
+    (let ((light-sources `(,(make-point 0 0)
+                           ,(make-point 200 200)
+                           (,(make-point 50 400) ,(make-point 380 420))))) ; TODO
       (map ; produces a field per light-source
-        (lambda (s)
+        (lambda (source)
             (cond
-             ((point? s)
-              (produce-2d-field
+             ((point? source)
+              (make-2d-u8field
                 size-x
                 size-y
-                (lambda (p) (let ((d (distance-point-point-integer p s)))
+                (lambda (p) (if #t ; (point-in-polygon? (graph-external-point-list graph) p)
+                                (let ((d (distance-point-point-integer p source)))
+                                  (if (> d 255) 255 d))
+                              0))))
+             ((= (length source) 2)
+              (make-2d-u8field
+                size-x
+                size-y
+                (lambda (p) (let ((d (inexact->exact (round (distance-point-segment p source)))))
                               (if (> d 255) 255 d)))))
-             ((= (length s) 2)
-              (produce-2d-field-list
-                size-x
-                size-y
-                (lambda (p) 0.6)))
-             ((>= (length s) 3)
-              (produce-2d-field-list
+             ((>= (length source) 3)
+              (make-2d-u8field
                 size-x
                 size-y
                 (lambda (p) 0.7)))))
-      light-sources)))))
+      light-sources))
+    (lambda (a b)
+      (let ((sum (- 255 (+ (- 255 a) (- 255 b)))))
+                             (if (< sum 0) 0 sum))))))
 
 ;-------------------------------------------------------------------------------
 ; World

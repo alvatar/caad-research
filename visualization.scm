@@ -6,11 +6,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1))
+(import (std srfi/95))
 (import opengl/gl)
 (import sdl/sdl)
 (import cairo/cairo)
 
-(import utils/sort)
 (import constants)
 (import geometry)
 

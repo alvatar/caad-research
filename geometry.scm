@@ -5,7 +5,8 @@
 ;;; Geometrical operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;(compile-options cc-options: "-w" force-compile: #t)
+;(declare (standard-bindings)(extended-bindings)(block)(not safe))
+;(compile-options force-compile: #t)
 
 (import (std srfi/1))
 
@@ -191,22 +192,56 @@
 ; Distance
 ;-------------------------------------------------------------------------------
 
+(define (fxsquare x)
+  (fx* x x))
+
+(define (square x)
+  (* x x))
+
 ;; Calculate the distance between two points
 ;;
 (define (distance-point-point a b)
-  (sqrt (+ (expt (- (point-x a) (point-x b)) 2)
-           (expt (- (point-y a) (point-y b)) 2))))
+  (sqrt (+ (square (- (point-x a) (point-x b)))
+           (square (- (point-y a) (point-y b))))))
+
+(define (distance-point-point-integer a b)
+ (##flonum.->fixnum (flsqrt (fixnum->flonum (fx+ (fxsquare (fx- (point-x a) (point-x b)))
+                                                 (fxsquare (fx- (point-y a) (point-y b))))))))
 
 ;; Calculate the distance between two points (integer arithmetic)
 ;;
+#|
 (define (distance-point-point-integer a b)
-  (integer-sqrt (+ (expt (- (point-x a) (point-x b)) 2)
-           (expt (- (point-y a) (point-y b)) 2))))
+  (integer-sqrt (fx+ (expt (fx- (point-x a) (point-x b)) 2)
+                     (expt (fx- (point-y a) (point-y b)) 2))))
+                     |#
 
 ;; Calculate the distance between point and segment
 ;;
 (define (distance-point-segment p sg)
-  0.0)
+  (let* ((p1x (point-x (segment-first-point sg)))
+         (p1y (point-y (segment-first-point sg)))
+         (p2x (point-x (segment-second-point sg)))
+         (p2y (point-y (segment-second-point sg)))
+         (px (point-x p))
+         (py (point-y p))
+         (su (- p2x p1x))
+         (sv (- p2y p1y))
+         (div (+ (* su su) (* sv sv)))
+         (u (/ (+ (* (- px p1x) su)
+                  (* (- py p1y) sv))
+               div)))
+    (cond
+     ((> u 1)
+      (set! u 1))
+     ((< u 0)
+      (set! u 0)))
+    
+    (let* ((x (+ p1x (* u su)))
+           (y (+ p1y (* u sv)))
+           (dx (- x px))
+           (dy (- y py)))
+      (sqrt (+ (* dx dx) (* dy dy))))))
 
 ;; Calculate the distance between a point and a point list
 ;;
@@ -268,3 +303,74 @@
 ;;
 (define (segment-polygon-intersection seg pol)
   (segment-polyline-intersection seg (append pol (list (car pol)))))
+
+;-------------------------------------------------------------------------------
+; Vector fields
+;-------------------------------------------------------------------------------
+
+(define (make-2d-u8field size-x size-y proc) (let ((point (make-point 0 0)))
+  (let ((len (fx* size-x size-y)))
+    (do ((vec (make-u8vector len))
+         (i 0 (fx+ i 1)))
+        ((fx>= i len) vec)
+      (point-x-set! point (fxmodulo i size-y))
+      (point-y-set! point (fxquotient i size-y))
+      (u8vector-set! vec i (proc point))))))
+
+(define (merge-2d-u8fields fields proc)
+  (define (merge-point value p rest-fields)
+    (cond
+     ((null? rest-fields)
+      value)
+     (else
+      (merge-point
+        (proc value (u8vector-ref (car rest-fields) p))
+        p
+        (cdr rest-fields)))))
+  (cond
+   ((< (length fields) 1) ; Improve
+    '())
+   ((< (length fields) 2)
+    (car fields))
+   (else
+    (let ((len (u8vector-length (car fields))))
+      (do ((vec (make-u8vector len))
+           (i 0 (fx+ i 1)))
+          ((fx>= i len) vec)
+        (u8vector-set! vec
+                       i
+                       (merge-point (u8vector-ref (car fields) i)
+                                    i
+                                    (cdr fields))))))))
+
+;-------------------------------------------------------------------------------
+; List fields
+;-------------------------------------------------------------------------------
+
+;; Produce 2d fields with a lambda
+;;
+(define (make-2d-field size-x size-y proc)
+  (let ((limit-x (- size-x 1))
+        (limit-y (- size-y 1)))
+    (define (iter x y lis)
+      (cond
+       ((and (= x 0) (= y 0))
+        lis)
+       ((= x 0)
+        (iter limit-x (- y 1) (cons (proc (make-point 0 y)) lis)))
+       (else
+        (iter (- x 1) y (cons (proc (make-point x y)) lis)))))
+    (iter limit-x limit-y '())))
+
+;; Flatten a list of fields (merge them)
+;;
+(define (flatten-2d-fields field-list)
+  (list->u8vector
+    (reduce
+      (lambda (f1 f2)
+        (map (lambda (a b) (let ((sum (- 255 (+ (- 255 a) (- 255 b)))))
+                             (if (< sum 0) 0 sum)))
+             f1
+             f2))
+      '()
+      field-list)))
