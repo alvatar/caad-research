@@ -15,44 +15,11 @@
 (import utils/misc)
 (import visualization)
 
-;; Generate graph from XML
-;;
-(define (generate-graph-from-xml xml-string)
-  (let* ((sxml (xml-string->sxml xml-string))
-         (architecture
-          (car
-           ((sxpath '(ensanche floorPlan architecture)) sxml))))
-    architecture))
+;-------------------------------------------------------------------------------
+; Constants
+;-------------------------------------------------------------------------------
 
-;; Print graph
-;;
-(define (print-graph sxml)
-  (define-macro (pp-code-eval . thunk) ; Pretty print the code as it is evatuated
-    `(begin
-       ,@(apply
-          append  ; should better use `map-union' from "sxpathlib.scm"
-          (map
-           (lambda (s-expr)
-             (cond
-               ((string? s-expr)  ; string - just display it
-                `((display ,s-expr)
-                  (newline)))
-               ((and (pair? s-expr) (eq? (car s-expr) 'define))
-                ; definition - pp and eval it
-                `((pp ',s-expr)
-                  ,s-expr))
-               ((and (pair? s-expr)
-                     (memq (car s-expr) '(newline cond-expand)))
-                ; just eval it
-                `(,s-expr))
-               (else  ; for anything else - pp it and pp result
-                `((pp ',s-expr)
-                  (display "==>")
-                  (newline)
-                  (pp ,s-expr)
-                  (newline)))))
-           thunk))))
-  (pp-code-eval sxml))
+(define wall-thickness 12.5)
 
 ;-------------------------------------------------------------------------------
 ; General
@@ -65,6 +32,29 @@
   (if (null-list? graph)
       (error "You sent me a null graph. What should I do with this?")
     (cdr graph)))
+
+;; Get all walls in the graph
+;;
+(define (graph-walls graph)
+  ((sxpath '(wall)) graph))
+
+;; Make the maximum room possible
+;;
+(define (graph-exterior-walls graph)
+  (define (iter external-walls rest-walls)
+    (cond
+     ((null? rest-walls)
+      external-walls) ; TODO: check if closed and do something about it
+     ((exterior-wall? (car rest-walls) graph)
+      (iter (cons (car rest-walls) external-walls) (cdr rest-walls)))
+     (else
+      (iter external-walls (cdr rest-walls)))))
+  (sort-wall-list-connected graph (iter '() (graph-walls graph))))
+
+;; Get rooms in the graph
+;;
+(define (graph-rooms graph)
+  ((sxpath '(room)) graph))
 
 ;; Get graph limits (extreme points)
 ;;
@@ -184,7 +174,7 @@
             (list 'x (number->string (car p))))))
 
 ;-------------------------------------------------------------------------------
-; Point-list extraction
+; Point-list conversion
 ;-------------------------------------------------------------------------------
 
 ;; Extract the basic list of point coordinates
@@ -193,7 +183,7 @@
   (make-point (archpoint-coord 'x point)
               (archpoint-coord 'y point)))
 
-;; Extract wall points as a list
+;; Convert a wall into a list of points
 ;;
 (define (wall->point-list wall) ; TODO: cons not append
   (define (iter point-list to-process)
@@ -204,18 +194,9 @@
         (cdr to-process))))
     (iter '() (wall-points wall)))
 
-;; Extract poly wall points as a list
+;; Convert a list of walls into a list of points
 ;;
-(define (polywall->point-list wall-lis)
-  (define (iter pt-lis lis)
-    (if (null-list? lis)
-        pt-lis
-      (iter (append pt-lis (wall->point-list (car lis))) (cdr lis))))
-  (iter '() wall-lis))
-
-;; Calculate the points that enclose a room polygon as a list
-;;
-(define (extract-room-points graph room)
+(define (wall-list->point-list wall-list)
   (define (get-next-points a-wall b-wall)
     (let ((a-wall-points (wall->point-list a-wall))
           (b-wall-points (wall->point-list b-wall)))
@@ -231,19 +212,19 @@
          (display "Wall B:\n")
          (display (element-uid b-wall))(newline)
          (display b-wall-points)(newline)
-         (error "extract-room-points: Room must be a closed polygon. TODO: Polyline walls")))))
+         (error "room->point-list: Room must be a closed polygon. TODO: Polyline walls")))))
   (define (iter point-list walls)
     (if (< (length walls) 2)
         point-list
       (iter
         (append point-list (get-next-points (car walls) (cadr walls)))
         (cdr walls))))
-  (let* ((walls (room-walls graph room)))
-    (iter '() walls)))
+  (iter '() wall-list))
 
-;-------------------------------------------------------------------------------
-; Point-list conversion
-;-------------------------------------------------------------------------------
+;; Calculate the points that enclose a room polygon as a list
+;;
+(define (room->point-list graph room)
+  (wall-list->point-list (room-walls graph room)))
 
 ;; Convert a point list into a wall
 ;;
@@ -286,6 +267,34 @@
   (> (distance-point-point (wall->point-list point) (wall->point-list (wall-first-point wall)))
      (distance-point-point (wall->point-list point) (wall->point-list (wall-last-point wall)))))
 
+;;; Is this wall exterior?
+(define (exterior-wall? wall graph)
+  (define (point-in-any-room? p)
+    (any (lambda (room) (point-in-room? graph room p))
+         (graph-rooms graph)))
+  (let ((p1 (make-point 0.0 0.0))
+        (p2 (make-point 0.0 0.0)))
+    (not (and (point-in-any-room? p1)
+              (point-in-any-room? p2)))))
+
+;;; Sort walls in a wall list so they are connected properly
+(define (sort-wall-list-connected graph wall-list) ; TODO: check if the last and the first are really connected
+  (define (iter sorted remaining)
+    (define (find-next first wall-list) ; (it sorts backwards)
+      (cond
+       ((null-list? wall-list)
+        (display first)(newline)
+        (error "room-sort-walls: This wall cannot be connected to any other one"))
+       ((walls-are-connected? (reference-to-element graph first) (reference-to-element graph (car wall-list)))
+        (car wall-list))
+       (else
+        (find-next first (cdr wall-list)))))
+    (if (null-list? remaining)
+        sorted
+      (let ((next (find-next (car sorted) remaining)))
+        (iter (cons next sorted) (remove (lambda (e) (equal? e next)) remaining))))) ; (it sorts backwards)
+  (iter (list (car wall-list)) (cdr wall-list)))
+
 ;; Create 2 walls splitting one in a point
 ;;
 (define (create-splitted-wall wall split-point-relative uuid1 uuid2)
@@ -319,11 +328,6 @@
                 (list first-point second-point)
                 new-uid)))
         wall-list)))
-
-;; Get all walls in the graph
-;;
-(define (graph-walls graph)
-  ((sxpath '(wall)) graph))
 
 ;; Calculate point given wall and percentage
 ;;
@@ -384,7 +388,7 @@
 
 ;; Calculate wall element (door, wall...) points a list
 ;;
-(define (extract-wall-element-points element wall)
+(define (wall-element->point-list element wall)
   (let ((from (wall-element-relative-points 'from element))
         (to (wall-element-relative-points 'to element)))
     (if (= (length (wall-points wall)) 2)
@@ -403,31 +407,26 @@
 
 ;; Calculate all wall elements point lists of the same type
 ;;
-(define (extract-all-wall-element-points type wall)
+(define (all-wall-element-points->point-list type wall)
   (map
     (lambda (e)
-      (extract-wall-element-points e wall))
+      (wall-element->point-list e wall))
   ((sxpath `(,type)) wall)))
 
 ;; Calculate all wall elements point lists of the same type of all walls
 ;;
-(define (extract-all-wall-element-points-all-walls type graph)
+(define (all-wall-element-points-all-walls->point-list type graph)
   (define (iter lis walls)
     (cond
      ((null? walls)
       lis)
      (else
-      (iter (append lis (extract-all-wall-element-points type (car walls))) (cdr walls)))))
+      (iter (append lis (all-wall-element-points->point-list type (car walls))) (cdr walls)))))
   (iter '() (graph-walls graph)))
 
 ;-------------------------------------------------------------------------------
 ; Room
 ;-------------------------------------------------------------------------------
-
-;; Get rooms in the graph
-;;
-(define (rooms-in-graph graph)
-  ((sxpath '(room)) graph))
 
 ;; Get a wall in the room by index
 ;;
@@ -482,6 +481,7 @@
 ;; Sort walls in a room, so they are connected
 ;;
 (define (room-sort-walls graph room) ; TODO: check if the last and the first are really connected
+;;;;; IS THIS RIGHT? ISn't sort-walls-connected better?
   (let ((walls (room-wall-refs room)))
     (define (iter sorted remaining)
       (define (find-next first wall-list) ; (it sorts backwards)
@@ -506,12 +506,15 @@
   ;http://www.mathsisfun.com/geometry/area-irregular-polygons.html
   99.9) ; TODO
 
+;;; Is point in room?
+(define (point-in-room? graph room point)
+  (point-in-polygon? (room->point-list graph room) point))
+
 ;-------------------------------------------------------------------------------
-; Visualization
+; Graph output
 ;-------------------------------------------------------------------------------
 
-;; Draw graph
-;;
+;;; Draw graph
 (define (visualize-graph graph)
   (visualization:do-later
     'graph
@@ -530,10 +533,10 @@
             (visualization:paint-set-line-cap backend 'butt)
             (visualization:paint-set-color backend 1.0 1.0 1.0 1.0)
             (visualization:paint-set-line-width backend 6.0)
-            (visualization:paint-path backend (extract-wall-element-points door wall))
+            (visualization:paint-path backend (wall-element->point-list door wall))
             (visualization:paint-set-color backend 1.0 0.1 0.1 1.0)
             (visualization:paint-set-line-width backend 3.0)
-            (visualization:paint-path backend (extract-wall-element-points door wall)))
+            (visualization:paint-path backend (wall-element->point-list door wall)))
           (wall-doors wall)))
       ;; Paint windows in the wall
       (define (paint-windows-in-wall wall)
@@ -543,16 +546,15 @@
         (for-each
           (lambda
             (window)
-            (visualization:paint-path backend (extract-wall-element-points window wall)))
+            (visualization:paint-path backend (wall-element->point-list window wall)))
           (wall-windows wall)))
       ;; Paint pilar
       (define (paint-pilar pilar)
         '())
       ;; Paint room
       (define (paint-room graph room)
-        ;(paint-set-color backend (random-real) (random-real) (random-real) 0.5)
         (visualization:paint-set-color backend 0.0 0.0 0.3 0.3)
-        (visualization:paint-polygon backend (extract-room-points graph room)))
+        (visualization:paint-polygon backend (room->point-list graph room)))
       ;; Paint entry
       (define (paint-entry wall)
         '())
@@ -585,3 +587,44 @@
                '()))))
         (graph-parts graph))))
   (visualization:layer-depth-set! 'graph 5))
+
+;;; Print graph
+(define (print-graph sxml)
+  (define-macro (pp-code-eval . thunk) ; Pretty print the code as it is evatuated
+    `(begin
+       ,@(apply
+          append  ; should better use `map-union' from "sxpathlib.scm"
+          (map
+           (lambda (s-expr)
+             (cond
+               ((string? s-expr)  ; string - just display it
+                `((display ,s-expr)
+                  (newline)))
+               ((and (pair? s-expr) (eq? (car s-expr) 'define))
+                ; definition - pp and eval it
+                `((pp ',s-expr)
+                  ,s-expr))
+               ((and (pair? s-expr)
+                     (memq (car s-expr) '(newline cond-expand)))
+                ; just eval it
+                `(,s-expr))
+               (else  ; for anything else - pp it and pp result
+                `((pp ',s-expr)
+                  (display "==>")
+                  (newline)
+                  (pp ,s-expr)
+                  (newline)))))
+           thunk))))
+  (pp-code-eval sxml))
+
+;-------------------------------------------------------------------------------
+; Graph generation
+;-------------------------------------------------------------------------------
+
+;;; Generate graph from XML
+(define (generate-graph-from-xml xml-string)
+  (let* ((sxml (xml-string->sxml xml-string))
+         (architecture
+          (car
+           ((sxpath '(ensanche floorPlan architecture)) sxml))))
+    architecture))

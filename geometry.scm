@@ -5,7 +5,7 @@
 ;;; Geometrical operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declare (standard-bindings)(extended-bindings)(block)(not safe))
+;(declare (standard-bindings)(extended-bindings)(block)(not safe))
 (compile-options force-compile: #t)
 
 (import (std srfi/1))
@@ -57,9 +57,15 @@
 
 ;; Fixnum point coordinates conversion
 ;;
-(define (point->fxpoint p)
+(define (inexact-point->exact-point p)
   (make-point (inexact->exact (round (point-x p)))
               (inexact->exact (round (point-y p)))))
+
+;; Flonum point coordinates conversion
+;;
+(define (exact-point->inexact-point p)
+  (make-point (exact->inexact (point-x p))
+              (exact->inexact (point-y p))))
 
 ;; Calculate the mid point between two points
 ;;
@@ -176,7 +182,7 @@
 ;; http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
 (define (point-in-polygon? polygon point)
   (define (iter-intersection counter p1 ptail)
-    (if (null-list? ptail)
+    (if (null? ptail)
         counter
       (let* ((p2 (car ptail))
              (p1x (point-x p1))
@@ -194,7 +200,9 @@
                                (+ (- p2y p1y) p1x)))))
             (iter-intersection (+ counter 1) p2 (cdr ptail))
           (iter-intersection counter p2 (cdr ptail))))))
-  (odd? (iter-intersection 0 (car polygon) (cdr polygon))))
+  (if (null? polygon)
+      (error "point-in-polygon?: argument #1 (polygon) is null")
+    (odd? (iter-intersection 0 (car polygon) (cdr polygon)))))
 
 ;-------------------------------------------------------------------------------
 ; Distance

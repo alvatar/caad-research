@@ -104,7 +104,7 @@
                   (point-from-relative-in-wall second-wall second-split-point)) ; TODO: With constraints (orthogonality and elements)
           new-wall-uid))
         (if (is-end-point?
-              (polywall->point-list (reference-list-to-elements graph (cdr fore)))
+              (wall-list->point-list (reference-list-to-elements graph (cdr fore)))
               (archpoint->point (wall-first-point first-wall)))
             (create-splitted-wall
               (find-element-with-uid graph (element-uid (car fore)))
@@ -117,7 +117,13 @@
               first-wall-uid-2-half
               first-wall-uid-1-half))
         (if (is-end-point?
-              (polywall->point-list (reference-list-to-elements graph (cdr aft)))
+#;(define (polywall->point-list wall-lis)
+  (define (iter pt-lis lis)
+    (if (null-list? lis)
+        pt-lis
+      (iter (append pt-lis (wall->point-list (car lis))) (cdr lis))))
+  (iter '() wall-lis))
+              (wall-list->point-list (reference-list-to-elements graph (cdr aft)))
               (archpoint->point (wall-first-point second-wall)))
             (create-splitted-wall
               (find-element-with-uid graph (element-uid (car aft)))

@@ -219,8 +219,13 @@
 ;; Make light field
 ;;
 (define (make-light-field graph size-x size-y)
+(pp (graph-exterior-walls graph))
+(pp (wall-list->point-list (graph-exterior-walls graph)))
   (merge-2d-u8fields
-    (let ((light-sources (map* point->fxpoint (extract-all-wall-element-points-all-walls 'window graph))))
+    (let ((limit-polygon (wall-list->point-list (graph-exterior-walls graph)))
+          (light-sources (map*
+                           inexact-point->exact-point
+                           (all-wall-element-points-all-walls->point-list 'window graph))))
       (map ; produces a field per light-source
         (lambda (source)
             (cond
@@ -229,7 +234,7 @@
                 4
                 size-x
                 size-y
-                (lambda (p) (if #t ; (point-in-polygon? (graph-external-point-list graph) p)
+                (lambda (p) (if (point-in-polygon? limit-polygon p)
                                 (let ((d (fx* 2 (fx-distance-point-point p source))))
                                   (if (> d 255) 255 d))
                               0))))
@@ -238,8 +243,10 @@
                 4
                 size-x
                 size-y
-                (lambda (p) (let ((d (fx* 2 (fx-distance-point-segment p source))))
-                              (if (fx> d 255) 255 d)))))
+                (lambda (p) (if (point-in-polygon? limit-polygon p)
+                                (let ((d (fx* 2 (fx-distance-point-segment p source))))
+                                  (if (> d 255) 255 d))
+                              0))))
              ((>= (length source) 3)
               (make-2d-scaled-u8field
                 4
