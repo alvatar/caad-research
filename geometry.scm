@@ -12,6 +12,7 @@
 
 (import constants)
 (import math)
+(import utils/misc)
 
 ;-------------------------------------------------------------------------------
 ; Points
@@ -53,6 +54,12 @@
     (< (abs (- f1 f2)) precision))
   (and (test (point-x a) (point-x b))
        (test (point-y a) (point-y b))))
+
+;; Fixnum point coordinates conversion
+;;
+(define (point->fxpoint p)
+  (make-point (inexact->exact (round (point-x p)))
+              (inexact->exact (round (point-y p)))))
 
 ;; Calculate the mid point between two points
 ;;
@@ -144,7 +151,7 @@
         (cdr plis-tail)))))
   (cond
    ((null? plis)
-    (raise "point-list-centroid: argument #1 should be a point list"))
+    (error "point-list-centroid: argument #1 should be a point list"))
    (else
     (iter 0 (make-point 0.0 0.0) plis))))
 
@@ -161,7 +168,7 @@
             (iter next (cdr plis-tail))
           (iter current (cdr plis-tail)))))))
   (if (null-list? plis)
-      (raise "point-list-right-most: argument #1 must be a point list")
+      (error "point-list-right-most: argument #1 must be a point list")
     (iter (car plis) (cdr plis))))
 
 ;; Is point in polygon?

@@ -172,7 +172,7 @@
 (define (agent-new-state agent world)
   (if (agent? agent)
       ((agent-proc agent) world agent)
-    (raise "agent-new-state: argument #1 is not an agent")))
+    (error "agent-new-state: argument #1 is not an agent")))
 
 ;; Agent visualization
 ;;
@@ -219,17 +219,14 @@
 ;; Make light field
 ;;
 (define (make-light-field graph size-x size-y)
-  (time
   (merge-2d-u8fields
-    (let ((light-sources `(,(make-point 0 0)
-                           ,(make-point 200 200)
-                           (,(make-point 50 400) ,(make-point 380 420))))) ; TODO
+    (let ((light-sources (map* point->fxpoint (extract-all-wall-element-points-all-walls 'window graph))))
       (map ; produces a field per light-source
         (lambda (source)
             (cond
              ((point? source)
               (make-2d-scaled-u8field
-                10
+                4
                 size-x
                 size-y
                 (lambda (p) (if #t ; (point-in-polygon? (graph-external-point-list graph) p)
@@ -238,21 +235,21 @@
                               0))))
              ((= (length source) 2)
               (make-2d-scaled-u8field
-                10
+                4
                 size-x
                 size-y
                 (lambda (p) (let ((d (fx* 2 (fx-distance-point-segment p source))))
                               (if (fx> d 255) 255 d)))))
              ((>= (length source) 3)
               (make-2d-scaled-u8field
-                10
+                4
                 size-x
                 size-y
                 (lambda (p) 0.7)))))
       light-sources))
     (lambda (a b)
       (let ((sum (fx- 255 (fx+ (fx- 255 a) (fx- 255 b)))))
-                             (if (fx< sum 0) 0 sum))))))
+                             (if (fx< sum 0) 0 sum)))))
 
 ;-------------------------------------------------------------------------------
 ; World

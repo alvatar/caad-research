@@ -5,6 +5,9 @@
 ;;; General utilities and algorithms
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declare (standard-bindings)(extended-bindings)(block)(not safe))
+(compile-options force-compile: #t)
+
 (import (std srfi/1))
 
 ;(compile-options cc-options: "-w" force-compile: #t)
@@ -46,3 +49,21 @@
 ;;
 (define (call/cc1 procedure value)
   (call/cc (lambda (k) (procedure k value))))
+
+;; atom?
+;;
+(define atom?
+  (lambda (x)
+    (and (not (pair? x)) (not (null? x)))))
+
+;; Recursive map
+;;
+(define (map* f lis)
+  (cond
+   ((null? lis)
+    '())
+   ((atom? lis)
+    (f lis))
+   (else
+    (cons (map* f (car lis)) (map* f (cdr lis))))))
+

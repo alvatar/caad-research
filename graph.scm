@@ -63,7 +63,7 @@
 (define (graph-parts graph)
   ;((sxpath '(*)) graph))
   (if (null-list? graph)
-      (raise "You sent me a null graph. What should I do with this?")
+      (error "You sent me a null graph. What should I do with this?")
     (cdr graph)))
 
 ;; Get graph limits (extreme points)
@@ -104,7 +104,7 @@
 ;;
 (define (element-uid elem)
   (if (null-list? elem)
-      (raise "element-uid: Element is null")
+      (error "element-uid: Element is null")
     (cadar ((sxpath '(@ uid)) elem))))
 
 ;; Find the element with that specific uid
@@ -114,12 +114,12 @@
     (cond
      ((null-list? elem-list-tail)
       (display "UID: ")(display uid)(newline)
-      (raise "Wall with such UID not found"))
+      (error "Wall with such UID not found"))
      ((equal? (element-uid (car elem-list-tail)) uid)
       (car elem-list-tail))
      (else
       (iter (cdr elem-list-tail)))))
-  (iter (walls-in-graph graph))) ; TODO!!!!!!!!!!!!!!!!!!!! GENERALIZE)
+  (iter (graph-walls graph))) ; TODO!!!!!!!!!!!!!!!!!!!! GENERALIZE)
 
 ;; Get the element from a reference element (consisting only of its uid)
 ;;
@@ -163,7 +163,7 @@
   (define (find-coordinate point)
     (cond
      ((null-list? point)
-      (raise "You sent me a null point. Seriously, what should I do with this?? Boy, I'm having a bad day thanks to you."))
+      (error "You sent me a null point. Seriously, what should I do with this?? Boy, I'm having a bad day thanks to you."))
      ((equal? (caar point) coordinate)
       (string->number (cadar point)))
      (else
@@ -179,7 +179,7 @@
 ;;
 (define (make-archpoint p)
   (if (point? p)
-      (raise "Error making point: argument #1 is not a point")
+      (error "Error making point: argument #1 is not a point")
       (list (list 'y (number->string (cadr p)))
             (list 'x (number->string (car p))))))
 
@@ -231,7 +231,7 @@
          (display "Wall B:\n")
          (display (element-uid b-wall))(newline)
          (display b-wall-points)(newline)
-         (raise "extract-room-points: Room must be a closed polygon. TODO: Polyline walls")))))
+         (error "extract-room-points: Room must be a closed polygon. TODO: Polyline walls")))))
   (define (iter point-list walls)
     (if (< (length walls) 2)
         point-list
@@ -322,7 +322,7 @@
 
 ;; Get all walls in the graph
 ;;
-(define (walls-in-graph graph)
+(define (graph-walls graph)
   ((sxpath '(wall)) graph))
 
 ;; Calculate point given wall and percentage
@@ -347,7 +347,7 @@
             (if (is-end-point? (wall->point-list (car wall-list)) point)
                 (append connected-walls (list (car wall-list)))
               connected-walls))))
-      (iter (walls-in-graph graph) '()))
+      (iter (graph-walls graph) '()))
     (list
       (remove (lambda (elem)
                 (equal? elem wall))
@@ -394,12 +394,31 @@
                (ABy (- (archpoint-coord 'y (wall-point-n wall 2)) Ay)))
           (list (make-point (+ Ax (* ABx from)) (+ Ay (* ABy from)))
                 (make-point (+ Ax (* ABx to)) (+ Ay (* ABy to)))))
-        (raise "Error - wall element has more than 2 relative points\n"))))
+        (error "Error - wall element has more than 2 relative points\n"))))
       ; Else:
         ; 1. Precalcular lista de puntos relativos
         ; 2. Hacer lista de puntos relativos menores que puerta
         ; 3. Dibujar trayectoria de puerta completa de los segmentos menores
         ; 4. Dibujar el porcentaje restante sobre el siguiente segmento
+
+;; Calculate all wall elements point lists of the same type
+;;
+(define (extract-all-wall-element-points type wall)
+  (map
+    (lambda (e)
+      (extract-wall-element-points e wall))
+  ((sxpath `(,type)) wall)))
+
+;; Calculate all wall elements point lists of the same type of all walls
+;;
+(define (extract-all-wall-element-points-all-walls type graph)
+  (define (iter lis walls)
+    (cond
+     ((null? walls)
+      lis)
+     (else
+      (iter (append lis (extract-all-wall-element-points type (car walls))) (cdr walls)))))
+  (iter '() (graph-walls graph)))
 
 ;-------------------------------------------------------------------------------
 ; Room
@@ -454,7 +473,7 @@
     (define (iter lis1)
       (let ((first (car lis1)))
         (if (null-list? lis1)
-            (raise "find-common-wall: No common wall found")
+            (error "find-common-wall: No common wall found")
           (if (any (lambda (elem) (equal? elem first)) walls-room-b)
               (element-uid first)
             (iter (cdr lis1))))))
@@ -469,7 +488,7 @@
         (cond
          ((null-list? wall-list)
           (display first)(newline)
-          (raise "room-sort-walls: This wall cannot be connected to any other one"))
+          (error "room-sort-walls: This wall cannot be connected to any other one"))
          ((walls-are-connected? (reference-to-element graph first) (reference-to-element graph (car wall-list)))
           (car wall-list))
          (else
@@ -545,7 +564,7 @@
         (lambda
           (elem)
           (if (null-list? elem)
-              (raise "Malformed SXML")
+              (error "Malformed SXML")
             (cond
               ((equal? (car elem) 'wall)
                (paint-wall
