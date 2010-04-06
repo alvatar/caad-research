@@ -53,28 +53,28 @@
       (iter exterior-walls (cdr rest-walls)))))
   (sort-wall-list-connected graph (iter '() (graph-walls graph))))
 
-;; Get rooms in the graph
-;;
+;;; Get rooms in the graph
+
 (define (graph-rooms graph)
   ((sxpath '(room)) graph))
 
-;; Get graph limits (extreme points)
-;;
+;;; Get graph limits (extreme points)
+
 (define (graph-limit-x graph)
   500.0) ; TODO: calculate
 (define (graph-limit-y graph)
   500.0) ; TODO: calculate
 
-;; Remove element from graph
-;;
+;;; Remove element from graph
+
 (define (remove-element graph element)
   (remove
     (lambda (e)
       (equal? e element))
     graph))
 
-;; Remove element-list from graph
-;;
+;;; Remove element-list from graph
+
 (define (remove-elements graph element-list)
   (remove
     (lambda (e)
@@ -83,8 +83,8 @@
            element-list))
     graph))
 
-;; Add element to graph
-;;
+;;; Add element to graph
+
 (define (add-element graph element)
   (append graph `(,element)))
 
@@ -92,15 +92,15 @@
 ; Element references and UID
 ;-------------------------------------------------------------------------------
 
-;; Get element's uid
-;;
+;;; Get element's uid
+
 (define (element-uid elem)
   (if (null-list? elem)
       (error "element-uid: Element is null")
     (cadar ((sxpath '(@ uid)) elem))))
 
-;; Find the element with that specific uid
-;;
+;;; Find the element with that specific uid
+
 (define (find-element-with-uid graph uid)
   (define (iter elem-list-tail)
     (cond
@@ -113,13 +113,13 @@
       (iter (cdr elem-list-tail)))))
   (iter (graph-walls graph))) ; TODO!!!!!!!!!!!!!!!!!!!! GENERALIZE)
 
-;; Get the element from a reference element (consisting only of its uid)
-;;
+;;; Get the element from a reference element (consisting only of its uid)
+
 (define (reference-to-element graph ref)
   (find-element-with-uid graph (element-uid ref)))
 
-;; Get the element from a reference element (consisting only of its uid)
-;;
+;;; Get the element from a reference element (consisting only of its uid)
+
 (define (reference-list-to-elements graph ref-lis)
   (define (iter elem-lis ref-lis)
     (if (null-list? ref-lis)
@@ -127,18 +127,18 @@
       (iter (append elem-lis (list (reference-to-element graph (car ref-lis)))) (cdr ref-lis))))
   (iter '() ref-lis))
 
-;; Make a reference from an UID
-;;
+;;; Make a reference from an UID
+
 (define (make-ref-from-uid type element-uid)
   `(,type (@ (uid ,element-uid))))
 
-;; Make a reference from an element
-;;
+;;; Make a reference from an element
+
 (define (make-ref-from-element element)
   `(,(car element) (@ (uid ,(element-uid element)))))
 
-;; Make a reference list from an element list
-;;
+;;; Make a reference list from an element list
+
 (define (make-refs-from-elements element-list)
   (map
     (lambda (e)
@@ -149,8 +149,8 @@
 ; Points
 ;-------------------------------------------------------------------------------
 
-;; Get coordinate from point
-;;
+;;; Get coordinate from point
+
 (define (archpoint-coord coordinate point)
   (define (find-coordinate point)
     (cond
@@ -162,13 +162,13 @@
       (find-coordinate (cdr point)))))
   (find-coordinate point))
 
-;; Get point n from point list
-;;
+;;; Get point n from point list
+
 (define (archpoint-n n point-list)
   (cdr (list-ref point-list n)))
 
-;; Make point
-;;
+;;; Make point
+
 (define (make-archpoint p)
   (if (point? p)
       (error "Error making point: argument #1 is not a point")
@@ -260,6 +260,7 @@
       (segment-second-point wall-points))))
 
 ;;; Is the wall described in a reverse order from a given reference?
+
 (define (wall-is-reversed? wall point)
   (> (distance-point-point (wall->point-list point) (wall->point-list (wall-first-point wall)))
      (distance-point-point (wall->point-list point) (wall->point-list (wall-last-point wall)))))
@@ -283,17 +284,8 @@
                                        (point->vect2 mid-p)
                                        (vect2*scalar tangent-p 10.0)))
                                    pi/-2)))
-         #|
-         (pp "WALL")
-         (pp (wall->point-list wall))
-         (pp "POINTS")
-         (pp p1)
-         (pp p2)
-         |#
-    (let ((pollon (not (and (point-in-any-room? p1)
+    (not (and (point-in-any-room? p1)
                             (point-in-any-room? p2)))))
-             (if pollon pollon
-                 (begin pollon)))))
 
 ;;; Sort walls in a wall list so they are connected properly
 
@@ -351,8 +343,8 @@
                 new-uid)))
         wall-list)))
 
-;; Calculate point given wall and percentage
-;;
+;;; Calculate point given wall and percentage
+
 (define (point-from-relative-in-wall wall percentage) ; TODO: generalize to polywalls
   (point-from-relative-in-segment
     (list
@@ -360,8 +352,8 @@
       (archpoint->point (wall-point-n wall 2)))
     percentage))
 
-;; Find walls connected to a given one
-;;
+;;; Find walls connected to a given one
+
 (define (find-walls-connected-to graph uid)
   (let ((wall (find-element-with-uid graph uid)))
     (define (find-walls-with-point point)
@@ -405,23 +397,23 @@
 ; Wall inner elements
 ;-------------------------------------------------------------------------------
 
-;; Get windows in wall
-;;
+;;; Get windows in wall
+
 (define (wall-windows wall)
   ((sxpath '(window)) wall))
 
-;; Get doors in wall
-;;
+;;; Get doors in wall
+
 (define (wall-doors wall)
   ((sxpath '(door)) wall))
 
-;; Get wall elements' relative points
-;;
+;;; Get wall elements' relative points
+
 (define (wall-element-relative-points label element)
   (string->number (car ((sxpath `(@ ,label *text*)) element))))
 
-;; Calculate wall element (door, wall...) points a list
-;;
+;;; Calculate wall element (door, wall...) points a list
+
 (define (wall-element->point-list element wall)
   (let ((from (wall-element-relative-points 'from element))
         (to (wall-element-relative-points 'to element)))
@@ -439,16 +431,16 @@
         ; 3. Dibujar trayectoria de puerta completa de los segmentos menores
         ; 4. Dibujar el porcentaje restante sobre el siguiente segmento
 
-;; Calculate all wall elements point lists of the same type
-;;
+;;; Calculate all wall elements point lists of the same type
+
 (define (all-wall-element-points->point-list type wall)
   (map
     (lambda (e)
       (wall-element->point-list e wall))
   ((sxpath `(,type)) wall)))
 
-;; Calculate all wall elements point lists of the same type of all walls
-;;
+;;; Calculate all wall elements point lists of the same type of all walls
+
 (define (all-wall-element-points-all-walls->point-list type graph)
   (define (iter lis walls)
     (cond
@@ -462,18 +454,18 @@
 ; Room
 ;-------------------------------------------------------------------------------
 
-;; Get a wall in the room by index
-;;
+;;; Get a wall in the room by index
+
 (define (room-wall graph room n)
   (find-element-with-uid graph (cadr (list-ref ((sxpath '(wall @ uid)) room) n))))
 
-;; Get list of wall references in the room
-;;
+;;; Get list of wall references in the room
+
 (define (room-wall-refs room)
   (cddr room))
 
-;; Get list of walls that belong to a room, fully described
-;;
+;;; Get list of walls that belong to a room, fully described
+
 (define (room-walls graph room)
   (define (make-uid-list)
     ((sxpath '(wall @ uid *text*)) room))
@@ -488,9 +480,9 @@
   (let ((uids (make-uid-list)))
     (collect-walls '() uids)))
 
-;; Break in two lists from where a wall was found
-;; Warning! This assumes that rooms contain topologically connected walls
-;;
+;;; Break in two lists from where a wall was found
+;;; Warning! This assumes that rooms contain topologically connected walls
+
 (define (room-break graph room first-wall-uid second-wall-uid)
   ; TODO: check if walls are ordered
   (break (lambda (wall) (equal? second-wall-uid (element-uid wall)))
@@ -498,8 +490,8 @@
            (lambda (wall) (equal? first-wall-uid (element-uid wall)))
            (room-wall-refs room))))
 
-;; Find common wall
-;;
+;;; Find common wall
+
 (define (room-find-common-wall rooms)
   (let ((walls-room-a (room-wall-refs (car rooms)))
         (walls-room-b (room-wall-refs (cadr rooms))))
@@ -512,8 +504,8 @@
             (iter (cdr lis1))))))
     (iter walls-room-b)))
 
-;; Sort walls in a room, so they are connected
-;;
+;;; Sort walls in a room, so they are connected
+
 #|
 (define (room-sort-walls graph room) ; TODO: check if the last and the first are really connected
 ;;;;; IS THIS RIGHT? ISn't sort-walls-connected better?
@@ -536,25 +528,23 @@
                          (iter (list (car walls)) (cdr walls))))))
                          |#
 
-;; Calculate room area
-;;
+;;; Calculate room area
+
 (define (room-area room)
   ;http://www.mathsisfun.com/geometry/area-irregular-polygons.html
   99.9) ; TODO
 
 ;;; Is point in room?
+
 (define (point-in-room? graph room point)
-  (let ((answer (point-in-polygon? (room->point-list graph room) point)))
-     ;(pp (room->point-list graph room))
-     ;(pp point)
-     ;(pp answer)
-     answer))
+  (point-in-polygon? (room->point-list graph room) point))
 
 ;-------------------------------------------------------------------------------
 ; Graph output
 ;-------------------------------------------------------------------------------
 
 ;;; Draw graph
+
 (define (visualize-graph graph)
   (visualization:do-later
     'graph
@@ -629,6 +619,7 @@
   (visualization:layer-depth-set! 'graph 5))
 
 ;;; Print graph
+
 (define (print-graph sxml)
   (define-macro (pp-code-eval . thunk) ; Pretty print the code as it is evatuated
     `(begin
@@ -662,6 +653,7 @@
 ;-------------------------------------------------------------------------------
 
 ;;; Generate graph from XML
+
 (define (generate-graph-from-xml xml-string)
   (let* ((sxml (xml-string->sxml xml-string))
          (architecture

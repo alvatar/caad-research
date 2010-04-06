@@ -17,8 +17,8 @@
 (import ../utils/misc)
 (import ../visualization)
 
-;; Place and partition algorithm
-;;
+;;; Place and partition algorithm
+
 (define (place-and-partition graph)
   (make-rooms-from-agents
     graph
@@ -29,8 +29,8 @@
           graph
           (describe-world graph))))))
 
-;; Create all necessary things to begin simulation
-;;
+;;; Create all necessary things to begin simulation
+
 (define (describe-world graph)
   (let*
     ((limit-x 500) ; TODO
@@ -122,15 +122,15 @@
       (append basic-set more)
       (list light-field))))
 
-;; Do all initial things with the world prior to simulation
-;;
+;;; Do all initial things with the world prior to simulation
+
 (define (init-world graph world)
   ;; 1st: pull the agents inside if they are outside the limit
   world)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TODO
-;; Introduce them the social environment: evolve them
-;;
+;;; Introduce them the social environment: evolve them
+
 (define (evolve-socially graph world)
   ;; Stop condition
   (define (stop?) #f)
@@ -154,8 +154,8 @@
         world
         (agents-receive-new-states)))))
 
-;; Build geometry from agents' current positions
-;;
+;;; Build geometry from agents' current positions
+
 (define (make-rooms-from-agents graph agents)
   graph)
 
@@ -163,19 +163,19 @@
 ; Agents
 ;-------------------------------------------------------------------------------
 
-;; Agent type
-;;
+;;; Agent type
+
 (define-structure agent label node-positions proc)
 
-;; Agent new state evaluation
-;;
+;;; Agent new state evaluation
+
 (define (agent-new-state agent world)
   (if (agent? agent)
       ((agent-proc agent) world agent)
     (error "agent-new-state: argument #1 is not an agent")))
 
-;; Agent visualization
-;;
+;;; Agent visualization
+
 (define (visualize-agent a)
   (visualization:do-later
     'agents
@@ -253,19 +253,19 @@
                 (lambda (p) 0.7)))))
       light-sources))
     (lambda (a b)
-      (let ((sum (fx- 255 (fx+ (fx- 255 a) (fx- 255 b)))))
-                             (if (fx< sum 0) 0 sum)))))
+      (let ((sum (fx- (fx+ a b) 255)))
+        (if (fx< sum 0) 0 sum)))))
 
 ;-------------------------------------------------------------------------------
 ; World
 ;-------------------------------------------------------------------------------
 
-;; World type
-;;
+;;; World type
+
 (define-structure world agents fields)
 
-;; World visualization
-;;
+;;; World visualization
+
 (define (visualize-world world)
   (for-each
     visualize-field
