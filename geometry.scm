@@ -272,8 +272,8 @@
 ; Distance
 ;-------------------------------------------------------------------------------
 
-;; Calculate the distance between two points
-;;
+;;; Calculate the distance between two points
+
 (define (distance-point-point a b)
   (sqrt (+ (square (- (point-x a) (point-x b)))
            (square (- (point-y a) (point-y b))))))
@@ -283,8 +283,8 @@
     (flsqrt (fixnum->flonum (fx+ (fxsquare (fx- (point-x a) (point-x b)))
                                  (fxsquare (fx- (point-y a) (point-y b))))))))
 
-;; Calculate the distance between point and segment
-;;
+;;; Calculate the distance between point and segment
+
 (define (distance-point-segment p sg)
   (let* ((p1x (point-x (segment-first-point sg)))
          (p1y (point-y (segment-first-point sg)))
@@ -333,8 +333,8 @@
            (dy (fx- y py)))
       (##flonum.->fixnum (sqrt (fixnum->flonum (fx+ (fx* dx dx) (fx* dy dy))))))))
 
-;; Calculate the distance between a point and a point list
-;;
+;;; Calculate the distance between a point and a point list
+
 (define (distance-point-point-list p plis)
   0.0)
 
@@ -342,8 +342,8 @@
 ; Intersections
 ;-------------------------------------------------------------------------------
 
-;; Segment-segment intersection
-;;
+;;; Segment-segment intersection
+
 (define (segment-segment-intersection sg1 sg2)
   (let* ((a1 (car sg1))
          (a2 (cadr sg1))
@@ -377,8 +377,8 @@
                            (- (point-y a2) (point-y a1))))
           'no-intersection)))))
 
-;; Segment-polyline intersection
-;;
+;;; Segment-polyline intersection
+
 (define (segment-polyline-intersection seg pol)
   (define (append-next intersections pol-rest)
     (let ((inters (segment-segment-intersection seg (list (car pol-rest) (cadr pol-rest)))))
@@ -389,8 +389,8 @@
           (append-next intersections (cdr pol-rest))))))
   (append-next '() pol))
 
-;; Segment-polygon (closed polyline) intersection
-;;
+;;; Segment-polygon (closed polyline) intersection
+
 (define (segment-polygon-intersection seg pol)
   (segment-polyline-intersection seg (append pol (list (car pol)))))
 
@@ -398,8 +398,8 @@
 ; Vector fields
 ;-------------------------------------------------------------------------------
 
-;; Make bidimensional u8 integers field
-;;
+;;; Make bidimensional u8 integers field
+
 (define (make-2d-u8field size-x size-y proc)
   (let ((point (make-point 0 0))
         (len (fx* size-x size-y)))
@@ -409,8 +409,8 @@
         (point-y-set! point (fxquotient i size-y))
         (u8vector-set! vec i (proc point)))))
 
-;; Make bidimensional u8 integers field (scaled)
-;;
+;;; Make bidimensional u8 integers field (scaled)
+
 (define (make-2d-scaled-u8field res size-x size-y proc)
   (define (set-area! vec i j value)
     (let it-j ((area-j 0))
@@ -437,8 +437,8 @@
         (point-y-set! point j)
         (set-area! vec i j (proc point))))))
 
-;; Merge bidimesional u8 integer fields
-;;
+;;; Merge bidimesional u8 integer fields
+
 (define (merge-2d-u8fields fields proc)
   (define (merge-point value p rest-fields)
     (cond

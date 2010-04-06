@@ -40,8 +40,8 @@
 (define (representation-cleanup)
   (SDL::exit))
 
-;; Visualization loop, controlled with continuations
-;;
+;;; Visualization loop, controlled with continuations
+
 (define visualize-loop-with-continuation
   (letrec
     ((layer-selector #f)
@@ -91,26 +91,27 @@
       (set! layer-selector lsel)
       (call/cc control-state))))
 
-;; Entry point for visualization with layer selection
+;;; Entry point for visualization with layer selection
+
 (define (immediate-visualization-selector layer-selector)
   (visualize-loop-with-continuation layer-selector))
 
-;; Execute now the sequence of representation of the selected layers
-;;
+;;; Execute now the sequence of representation of the selected layers
+
 (define (visualization:do-now-layers layers)
   (immediate-visualization-selector
     (lambda (e)
       (any (lambda (l) (equal? (painter-layer e) l))
            layers))))
 
-;; Execute now the full sequence of representation of the all the layers
-;;
+;;; Execute now the full sequence of representation of the all the layers
+
 (define (visualization:do-now)
   (immediate-visualization-selector
     (lambda (e) #t)))
 
-;; Remove layer
-;;
+;;; Remove layer
+
 (define (visualization:forget-layers layers)
   (set! external-painters
     (remove
@@ -119,29 +120,29 @@
            layers))
       external-painters)))
 
-;; Cleans all the external visualization procedures pending of execution
-;;
+;;; Cleans all the external visualization procedures pending of execution
+
 (define (visualization:forget-all)
   (set! external-painters (list (make-painter 'null (lambda (a) '())))))
 
-;; Does this layer exist already?
-;;
+;;; Does this layer exist already?
+
 (define (visualization:layer-exists? layer)
   (any
     (lambda (p)
       (equal? (painter-layer p) layer))
     external-painters))
 
-;; Layer depth
-;;
+;;; Layer depth
+
 (define (visualization:layer-depth layer)
   (painter-depth (find ; Only looks at first occurence of layer
                    (lambda (p)
                      (equal? (painter-layer p) layer))
                    external-painters)))
 
-;; Layer depth set
-;;
+;;; Layer depth set
+
 (define (visualization:layer-depth-set! layer depth)
   (for-each
     (lambda (p)
@@ -150,9 +151,9 @@
         p))
     external-painters))
 
-;; Receive a procedure for visualization from another module, so it can be
-;; executed at its right time
-;;
+;;; Receive a procedure for visualization from another module, so it can be
+;;; executed at its right time
+
 (define-structure painter layer depth procedure)
 
 (define (visualization:do-later layer new-procedure)
@@ -174,12 +175,12 @@
       (set-cdr! list-procs (list proc))
     (append-painter! (cdr list-procs) proc)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; High-level procedures for painting
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;-------------------------------------------------------------------------------
+; High-level procedures for painting
+;-------------------------------------------------------------------------------
 
-;; Paint a path given a list of 2d points
-;;
+;;; Paint a path given a list of 2d points
+
 (define (visualization:paint-path cairo points)
   (if (null? points)
       (error "Trying to paint a path with a null list of points"))
@@ -195,8 +196,8 @@
     (cdr points))
   (cairo-stroke cairo))
 
-;; Paint a polygon given a list of 2d points
-;;
+;;; Paint a polygon given a list of 2d points
+
 (define (visualization:paint-polygon cairo points)
   (if (null? points)
       (error "Trying to paint a polygon with a null list of points"))
@@ -213,29 +214,29 @@
   (cairo-close-path cairo)
   (cairo-fill cairo))
 
-;; Set paint color
-;;
+;;; Set paint color
+
 (define (visualization:paint-set-color cairo r g b a)
   (cairo-set-source-rgba cairo r g b a))
 
-;; Paint a fill circle given a point and a radius
-;;
+;;; Paint a fill circle given a point and a radius
+
 (define (visualization:paint-circle-fill cairo x y r)
   (cairo-new-path cairo)
   (cairo-move-to cairo x y)
   (cairo-arc cairo x y r 0.0 pi2)
   (cairo-fill cairo))
 
-;; Paint a circle border given a point and a radius
-;;
+;;; Paint a circle border given a point and a radius
+
 (define (visualization:paint-circle-border cairo x y r)
   (cairo-new-path cairo)
   (cairo-move-to cairo x y)
   (cairo-arc cairo x y r 0.0 pi2)
   (cairo-stroke cairo))
 
-;; Set line cap
-;;
+;;; Set line cap
+
 (define (visualization:paint-set-line-cap cairo style)
   (cond
     ((equal? style 'square)
@@ -243,31 +244,31 @@
     ((equal? style 'butt)
      (cairo-set-line-cap cairo CAIRO_LINE_CAP_BUTT))))
 
-;; Set line style
-;;
+;;; Set line style
+
 (define (visualization:paint-set-line-width cairo width)
   (cairo-set-line-width cairo width))
 
-;; Paint text
-;;
+;;; Paint text
+
 (define (visualization:paint-text cairo text font size x y)
   (cairo-set-font-size cairo size)
   (cairo-select-font-face cairo font CAIRO_FONT_SLANT_NORMAL CAIRO_FONT_WEIGHT_BOLD)
   (cairo-move-to cairo x y)
   (cairo-show-text cairo text))
 
-;; Create image surface
-;;
+;;; Create image surface
+
 (define (visualization:create-image cairo)
   (make-cairo-a8-image cairo maxx maxy))
 
-;; Paint image
-;;
+;;; Paint image
+
 (define (visualization:paint-image cairo image)
   (cairo-set-source-surface cairo (data-image-surface-ptr image) 0.0 0.0)
   (cairo-paint cairo))
 
-;; Set image
-;;
+;;; Set image
+
 (define (visualization:image-set! image vect)
   (cairo-a8-image-set! image vect))

@@ -202,6 +202,8 @@
 ; Fields
 ;-------------------------------------------------------------------------------
 
+;;; Visualize light field
+
 (define (visualize-field field)
   (visualization:do-later
     'fields
