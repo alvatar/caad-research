@@ -18,12 +18,12 @@
 ; Points
 ;-------------------------------------------------------------------------------
 
-;; Point type
-;;
+;;; Point type
+
 (define-structure point x y)
 
-;; Are these points equal? (with epsilon)
-;;
+;;; Are these points equal? (with epsilon)
+
 (define (point=?e v1 v2 e)
   (and (=~e (point-x v1)
             (point-x v2)
@@ -32,75 +32,90 @@
             (point-y v2)
             e)))
 
-;; Are these points equal?
-;;
+;;; Are these points equal?
+
 (define (point=? v1 v2)
   (point=?e v1 v2 equal-accuracy))
 
-;; Point to vector
-;;
+;;; Point to vector
+
 (define (point->vect2 p)
   (make-vect2 (point-x p) (point-y p)))
 
-;; Point to vector
-;;
+;;; Make a vector from two points
+
+(define (segment-direction->vect2 a b)
+  (make-vect2 (- (point-x b) (point-x a))
+              (- (point-y b) (point-y a))))
+
+;;; Point to vector
+
 (define (vect2->point vec)
   (make-point (vect2-u vec) (vect2-v vec)))
 
-;; Is equal? (with precision) for points
-;;
+;;; Is equal? (with precision) for points
+
 (define (point=~ a b precision)
   (define (test f1 f2)
     (< (abs (- f1 f2)) precision))
   (and (test (point-x a) (point-x b))
        (test (point-y a) (point-y b))))
 
-;; Fixnum point coordinates conversion
-;;
+;;; Fixnum point coordinates conversion
+
 (define (inexact-point->exact-point p)
   (make-point (inexact->exact (round (point-x p)))
               (inexact->exact (round (point-y p)))))
 
-;; Flonum point coordinates conversion
-;;
+;;; Flonum point coordinates conversion
+
 (define (exact-point->inexact-point p)
   (make-point (exact->inexact (point-x p))
               (exact->inexact (point-y p))))
 
-;; Calculate the mid point between two points
-;;
+;;; Calculate the mid point between two points
+
 (define (mid-point a b)
   (make-point (average (point-x a) (point-x b))
               (average (point-y a) (point-y b))))
+
+;;; Point rotation
+
+(define (point-rotation ref p r-angle)
+  (vect2->point
+    (vect2+vect2 (point->vect2 ref)
+      (vect2-rotation
+        (vect2-vect2 (point->vect2 p) (point->vect2 ref))
+        r-angle))))
 
 ;-------------------------------------------------------------------------------
 ; Segments
 ;-------------------------------------------------------------------------------
 
-;; First point of segment
-;;
+;;; First point of segment
+
 (define (segment-first-point seg)
   (car seg))
 
-;; Second point of segment
-;;
+;;; Second point of segment
+
 (define (segment-second-point seg)
   (cadr seg))
 
-;; Segment vector
-;;
+;;; Segment to vector
+
 (define (segment->vect2 seg)
   (vect2-vect2
     (point->vect2 (segment-second-point seg))
     (point->vect2 (segment-first-point seg))))
 
-;; Segment length
-;;
+;;; Segment length
+
 (define (segment-length seg)
   (vect2-length (segment->vect2 seg)))
 
-;; Tell whether the point is an end point of the segment
-;;
+;;; Tell whether the point is an end point of the segment
+
 (define (is-end-point? segment point)
   (let* ((px (point-x point))
          (py (point-y point))
@@ -117,22 +132,22 @@
           (=~ bx px)
           (=~ by py)))))
 
-;; Tell whether the two segments are connected
-;;
+;;; Tell whether the two segments are connected
+
 (define (segments-are-connected? seg1 seg2)
   (or (is-end-point? seg2 (segment-first-point seg1))
       (is-end-point? seg2 (segment-second-point seg1))))
 
-;; Tell whether the segments are parallel
-;;
+;;; Tell whether the segments are parallel
+
 (define (parallel? seg1 seg2)
   (vect2=?e
     (vect2-normalize (segment->vect2 seg1))
     (vect2-normalize (segment->vect2 seg2))
     0.01))
 
-;; Calculate absolute point given segment and percentage
-;;
+;;; Calculate absolute point given segment and percentage
+
 (define (point-from-relative-in-segment seg percentage)
   (let ((vec (segment->vect2 seg))
         (O (segment-first-point seg)))
@@ -143,8 +158,8 @@
 ; Point-lists: Polygons and Paths
 ;-------------------------------------------------------------------------------
 
-;; Point-list centroid
-;;
+;;; Point-list centroid
+
 (define (point-list-centroid plis)
   (define (iter n sum plis-tail)
     (cond
@@ -161,8 +176,8 @@
    (else
     (iter 0 (make-point 0.0 0.0) plis))))
 
-;; Point-list right-most point
-;;
+;;; Point-list right-most point
+
 (define (point-list-right-most plis)
   (define (iter current plis-tail)
     (cond
@@ -177,32 +192,43 @@
       (error "point-list-right-most: argument #1 must be a point list")
     (iter (car plis) (cdr plis))))
 
-;; Is point in polygon?
-;;
+;;; Is point in polygon?
+
 ;; http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-(define (point-in-polygon? polygon point)
-  (define (iter-intersection counter p1 ptail)
-    (if (null? ptail)
-        counter
-      (let* ((p2 (car ptail))
-             (p1x (point-x p1))
-             (p1y (point-y p1))
-             (p2x (point-x p2))
-             (p2y (point-y p2))
-             (px (point-x point))
-             (py (point-y point)))
-        (if (and (>= py (min p1y p2y)) ; Should this be > ? Handles borders better
-                 (<= py (max p1y p2y))
-                 (<= px (max p1x p2x))
-                 (not (=~ (point-y p1) (point-y p2)))
-                 (or (=~ p1x p2x)
-                     (<= px (/ (* (- py p1y) (- p2x p1x))
-                               (+ (- p2y p1y) p1x)))))
-            (iter-intersection (+ counter 1) p2 (cdr ptail))
-          (iter-intersection counter p2 (cdr ptail))))))
-  (if (null? polygon)
-      (error "point-in-polygon?: argument #1 (polygon) is null")
-    (odd? (iter-intersection 0 (car polygon) (cdr polygon)))))
+(define (point-in-polygon? point-list p)
+  (define (iter c a-points b-points)
+    (cond
+     ((null? a-points)
+      c)
+     ((and (not (eq? (> (point-y (car a-points)) (point-y p))
+                     (> (point-y (car b-points)) (point-y p))))
+           (< (point-x p)
+              (+ (/ (* (- (point-x (car b-points)) (point-x (car a-points)))
+                       (- (point-y p) (point-y (car a-points))))
+                    (- (point-y (car b-points)) (point-y (car a-points))))
+                 (point-x (car a-points)))))
+      (iter (not c) (cdr a-points) (cdr b-points)))
+     (else
+      (iter c (cdr a-points) (cdr b-points)))))
+  (iter #f point-list (cons (last point-list) point-list)))
+
+;;; Find a common point of two given point lists
+
+(define (point-list-common-point? plis1 plis2)
+  (find
+    (lambda (e)
+      (any (lambda (it) (point=? it e)) plis1))
+    plis2))
+
+;;; Calculate the tangent vector in a point-list given the relative position
+
+(define (point-list-tangent-in-relative point-list rel)
+  (if (not (= (length point-list) 2))
+      (error "point-list-tangent-in-relative: only segments implemented"))
+  (vect2-normalize
+    (segment-direction->vect2
+      (point-from-relative-in-segment point-list rel)
+      (segment-second-point point-list)))) ; TODO: handle pollywalls
 
 ;-------------------------------------------------------------------------------
 ; Distance
@@ -215,8 +241,9 @@
            (square (- (point-y a) (point-y b))))))
 
 (define (fx-distance-point-point a b)
-  (##flonum.->fixnum (flsqrt (fixnum->flonum (fx+ (fxsquare (fx- (point-x a) (point-x b)))
-                                                 (fxsquare (fx- (point-y a) (point-y b))))))))
+  (##flonum.->fixnum
+    (flsqrt (fixnum->flonum (fx+ (fxsquare (fx- (point-x a) (point-x b)))
+                                 (fxsquare (fx- (point-y a) (point-y b))))))))
 
 ;; Calculate the distance between point and segment
 ;;

@@ -216,11 +216,9 @@
         (visualization:paint-image backend image))))
   (visualization:layer-depth-set! 'fields 1))
 
-;; Make light field
-;;
+;;; Make light field
+
 (define (make-light-field graph size-x size-y)
-(pp (graph-exterior-walls graph))
-(pp (wall-list->point-list (graph-exterior-walls graph)))
   (merge-2d-u8fields
     (let ((limit-polygon (wall-list->point-list (graph-exterior-walls graph)))
           (light-sources (map*

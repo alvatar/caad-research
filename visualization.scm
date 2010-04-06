@@ -179,43 +179,37 @@
 ;; Paint a path given a list of 2d points
 ;;
 (define (visualization:paint-path cairo points)
-  (cond
-   ((null? points)
-    (raise "Trying to paint a path with a null list of points"))
-   (else
-    (cairo-new-path cairo)
-    (cairo-move-to cairo
-                   (point-x (car points))
-                   (point-y (car points)))
-    (for-each
-      (lambda
-        (point)
-        (cairo-line-to cairo
-                       (point-x point)
-                       (point-y point)))
-      (cdr points))
-    (cairo-stroke cairo))))
+  (if (null? points)
+      (error "Trying to paint a path with a null list of points"))
+  (cairo-new-path cairo)
+  (cairo-move-to cairo
+                 (point-x (car points))
+                 (point-y (car points)))
+  (for-each
+    (lambda (point)
+      (cairo-line-to cairo
+                     (point-x point)
+                     (point-y point)))
+    (cdr points))
+  (cairo-stroke cairo))
 
 ;; Paint a polygon given a list of 2d points
 ;;
 (define (visualization:paint-polygon cairo points)
-  (cond
-   ((null? points)
-    (raise "Trying to paint a polygon with a null list of points"))
-   (else
-    (cairo-new-path cairo)
-    (cairo-move-to cairo
-                   (point-x (car points))
-                   (point-y (car points)))
-    (for-each
-      (lambda
-        (point)
-        (cairo-line-to cairo
-                       (point-x point)
-                       (point-y point)))
-      (cdr points))
-    (cairo-close-path cairo)
-    (cairo-fill cairo))))
+  (if (null? points)
+      (error "Trying to paint a polygon with a null list of points"))
+  (cairo-new-path cairo)
+  (cairo-move-to cairo
+                 (point-x (car points))
+                 (point-y (car points)))
+  (for-each
+    (lambda (point)
+      (cairo-line-to cairo
+                     (point-x point)
+                     (point-y point)))
+    (cdr points))
+  (cairo-close-path cairo)
+  (cairo-fill cairo))
 
 ;; Set paint color
 ;;

@@ -68,6 +68,8 @@
 ; Vector dimension 2
 ;-------------------------------------------------------------------------------
 
+;;; vect2 type
+
 (define-structure vect2 u v)
 
 ;; Vector addition
@@ -86,8 +88,14 @@
               (- (vect2-v v1)
                  (vect2-v v2))))
 
-;; Vector / scalar
-;;
+;;; Vector * scalar
+
+(define (vect2*scalar v a)
+  (make-vect2 (* (vect2-u v) a)
+              (* (vect2-v v) a)))
+
+;;; Vector / scalar
+
 (define (vect2/scalar v a)
   (make-vect2 (/ (vect2-u v) a)
               (/ (vect2-v v) a)))
@@ -119,3 +127,11 @@
   (let ((div (vect2-length vec)))
     (make-vect2 (/ (abs (vect2-u vec)) div)
                 (/ (abs (vect2-v vec)) div))))
+
+;;; Vector rotation
+
+(define (vect2-rotation vec r-angle)
+  (make-vect2 (- (* (vect2-u vec) (cos r-angle))
+                 (* (vect2-v vec) (sin r-angle)))
+              (+ (* (vect2-v vec) (cos r-angle))
+                 (* (vect2-u vec) (sin r-angle)))))

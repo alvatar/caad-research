@@ -11,7 +11,9 @@
 
 (import web/parse/ssax-sxml/sxml-tools/sxpath)
 
+(import constants)
 (import geometry)
+(import math)
 (import utils/misc)
 (import visualization)
 
@@ -25,30 +27,30 @@
 ; General
 ;-------------------------------------------------------------------------------
 
-;; Get everything inside the architecture tag as a list
-;;
+;;; Get everything inside the architecture tag as a list
+
 (define (graph-parts graph)
   ;((sxpath '(*)) graph))
   (if (null-list? graph)
       (error "You sent me a null graph. What should I do with this?")
     (cdr graph)))
 
-;; Get all walls in the graph
-;;
+;;; Get all walls in the graph
+
 (define (graph-walls graph)
   ((sxpath '(wall)) graph))
 
-;; Make the maximum room possible
-;;
+;;; Make the maximum room possible
+
 (define (graph-exterior-walls graph)
-  (define (iter external-walls rest-walls)
+  (define (iter exterior-walls rest-walls)
     (cond
      ((null? rest-walls)
-      external-walls) ; TODO: check if closed and do something about it
+      exterior-walls) ; TODO: check if closed and do something about it, TODO: multiple contours
      ((exterior-wall? (car rest-walls) graph)
-      (iter (cons (car rest-walls) external-walls) (cdr rest-walls)))
+      (iter (cons (car rest-walls) exterior-walls) (cdr rest-walls)))
      (else
-      (iter external-walls (cdr rest-walls)))))
+      (iter exterior-walls (cdr rest-walls)))))
   (sort-wall-list-connected graph (iter '() (graph-walls graph))))
 
 ;; Get rooms in the graph
@@ -177,57 +179,45 @@
 ; Point-list conversion
 ;-------------------------------------------------------------------------------
 
-;; Extract the basic list of point coordinates
-;;
+;;; Extract the basic list of point coordinates
+
 (define (archpoint->point point)
   (make-point (archpoint-coord 'x point)
               (archpoint-coord 'y point)))
 
-;; Convert a wall into a list of points
-;;
+;;; Convert a wall into a list of points
+
 (define (wall->point-list wall) ; TODO: cons not append
   (define (iter point-list to-process)
     (if (null-list? to-process)
         point-list
       (iter
-        (append point-list (list (archpoint->point (cdar to-process))))
+        (cons (archpoint->point (cdar to-process)) point-list)
         (cdr to-process))))
     (iter '() (wall-points wall)))
 
-;; Convert a list of walls into a list of points
-;;
+;;; Convert a list of walls into a list of points
+
 (define (wall-list->point-list wall-list)
-  (define (get-next-points a-wall b-wall)
-    (let ((a-wall-points (wall->point-list a-wall))
-          (b-wall-points (wall->point-list b-wall)))
-      (cond
-       ((is-end-point? b-wall-points (car a-wall-points)) ; then the a-wall is reversed
-        (reverse a-wall-points))
-       ((is-end-point? b-wall-points (cadr a-wall-points)) ; then the a-wall is reversed
-        a-wall-points)
-       (else ; If neither the first or the last point of the wall 
-         (display "Wall A:\n")
-         (display (element-uid a-wall))(newline)
-         (display a-wall-points)(newline)
-         (display "Wall B:\n")
-         (display (element-uid b-wall))(newline)
-         (display b-wall-points)(newline)
-         (error "room->point-list: Room must be a closed polygon. TODO: Polyline walls")))))
-  (define (iter point-list walls)
-    (if (< (length walls) 2)
+  (define (iter point-list rest-walls)
+    ;(if (and (not (null? point-list)) (eq? (car point-list) #f)) (begin (pp point-list) (error "wall-list->point-list: Walls are not connected!")))
+    (if (< (length rest-walls) 2)
         point-list
       (iter
-        (append point-list (get-next-points (car walls) (cadr walls)))
-        (cdr walls))))
-  (iter '() wall-list))
+        (cons (walls-common-point
+                (car rest-walls)
+                (cadr rest-walls))
+              point-list)
+        (cdr rest-walls))))
+  (iter '() (snoc wall-list (car wall-list))))
 
-;; Calculate the points that enclose a room polygon as a list
-;;
+;;; Calculate the points that enclose a room polygon as a list
+
 (define (room->point-list graph room)
   (wall-list->point-list (room-walls graph room)))
 
-;; Convert a point list into a wall
-;;
+;;; Convert a point list into a wall
+
 (define (point-list->wall p-list uuid)
   (let* ((pa (car p-list))
          (pb (cadr p-list)))
@@ -241,62 +231,94 @@
 ; Wall
 ;-------------------------------------------------------------------------------
 
-;; Get all wall points
-;;
+;;; Get all wall points
+
 (define (wall-points wall)
   ((sxpath '(pt @)) wall))
 
-;; Get wall point n
-;;
+;;; Get wall point n
+
 (define (wall-point-n wall n)
   ((sxpath `((pt ,n) @ *)) wall))
 
-;; Get first wall point
-;;
+;;; Get first wall point
+
 (define (wall-first-point wall)
   ((sxpath '((pt 1) @ *)) wall))
 
-;; Get last wall point
-;;
+;;; Get last wall point
+
 (define (wall-last-point wall)
   ((sxpath '((pt 2) @ *)) wall))
 
-;; Is the wall described in a reverse order from a given reference?
-;;
+;;; Calculate wall mid point
+
+(define (wall-mid-point wall)
+  (let ((wall-points (wall->point-list wall)))
+    (mid-point
+      (segment-first-point wall-points)
+      (segment-second-point wall-points))))
+
+;;; Is the wall described in a reverse order from a given reference?
 (define (wall-is-reversed? wall point)
   (> (distance-point-point (wall->point-list point) (wall->point-list (wall-first-point wall)))
      (distance-point-point (wall->point-list point) (wall->point-list (wall-last-point wall)))))
 
 ;;; Is this wall exterior?
+
 (define (exterior-wall? wall graph)
   (define (point-in-any-room? p)
     (any (lambda (room) (point-in-room? graph room p))
          (graph-rooms graph)))
-  (let ((p1 (make-point 0.0 0.0))
-        (p2 (make-point 0.0 0.0)))
-    (not (and (point-in-any-room? p1)
-              (point-in-any-room? p2)))))
+  (let* ((wall-points (wall->point-list wall))
+         (mid-p (point-from-relative-in-wall wall 0.5))
+         (tangent-p (point-list-tangent-in-relative wall-points 0.5))
+         (p1 (point-rotation mid-p (vect2->point
+                                     (vect2+vect2
+                                       (point->vect2 mid-p)
+                                       (vect2*scalar tangent-p 10.0)))
+                                   pi/2))
+         (p2 (point-rotation mid-p (vect2->point
+                                     (vect2+vect2
+                                       (point->vect2 mid-p)
+                                       (vect2*scalar tangent-p 10.0)))
+                                   pi/-2)))
+         #|
+         (pp "WALL")
+         (pp (wall->point-list wall))
+         (pp "POINTS")
+         (pp p1)
+         (pp p2)
+         |#
+    (let ((pollon (not (and (point-in-any-room? p1)
+                            (point-in-any-room? p2)))))
+             (if pollon pollon
+                 (begin pollon)))))
 
 ;;; Sort walls in a wall list so they are connected properly
+
 (define (sort-wall-list-connected graph wall-list) ; TODO: check if the last and the first are really connected
   (define (iter sorted remaining)
     (define (find-next first wall-list) ; (it sorts backwards)
       (cond
-       ((null-list? wall-list)
-        (display first)(newline)
+       ((null? wall-list)
+        (pp first)
         (error "room-sort-walls: This wall cannot be connected to any other one"))
        ((walls-are-connected? (reference-to-element graph first) (reference-to-element graph (car wall-list)))
         (car wall-list))
        (else
         (find-next first (cdr wall-list)))))
-    (if (null-list? remaining)
+    (if (null? remaining)
         sorted
       (let ((next (find-next (car sorted) remaining)))
         (iter (cons next sorted) (remove (lambda (e) (equal? e next)) remaining))))) ; (it sorts backwards)
-  (iter (list (car wall-list)) (cdr wall-list)))
+  
+  (if (null? wall-list)
+      (error "sort-wall-list-connected: argument #2 (wall-list) is null")
+    (iter (list (car wall-list)) (cdr wall-list))))
 
-;; Create 2 walls splitting one in a point
-;;
+;;; Create 2 walls splitting one in a point
+
 (define (create-splitted-wall wall split-point-relative uuid1 uuid2)
   (let ((split-point (point-from-relative-in-wall wall split-point-relative))
         (first-point (wall-first-point wall))
@@ -312,8 +334,8 @@
          (pt (@ (y ,(number->string (archpoint-coord 'y second-point)))
                 (x ,(number->string (archpoint-coord 'x second-point)))))))))
 
-;; Try to merge into one wall if the two given are parallel
-;;
+;;; Try to merge into one wall if the two given are parallel
+
 (define (try-to-merge-if-parallel-walls wall-list new-uid)
   (let ((wall-a-points (wall->point-list (car wall-list))) ; TODO: try to generalize
         (wall-b-points (wall->point-list (cadr wall-list))))
@@ -331,7 +353,7 @@
 
 ;; Calculate point given wall and percentage
 ;;
-(define (point-from-relative-in-wall wall percentage)
+(define (point-from-relative-in-wall wall percentage) ; TODO: generalize to polywalls
   (point-from-relative-in-segment
     (list
       (archpoint->point (wall-point-n wall 1))
@@ -360,12 +382,24 @@
                 (equal? elem wall))
               (find-walls-with-point (archpoint->point (wall-last-point wall)))))))
  
-;; Are these walls connected?
-;;
+;;; Are these walls connected?
+
 (define (walls-are-connected? wall1 wall2)
-  (segments-are-connected?
+  (segments-are-connected? ; TODO: segments to paths
     (wall->point-list wall1)
     (wall->point-list wall2)))
+
+;;; Walls common point
+
+(define (walls-common-point wall1 wall2)
+  (let ((cp (point-list-common-point?
+              (wall->point-list wall1)
+              (wall->point-list wall2))))
+    (if cp cp
+      (begin
+        (pp (wall->point-list wall1))
+        (pp (wall->point-list wall2))
+        (error "walls-common-point: given walls don't have any common point")))))
 
 ;-------------------------------------------------------------------------------
 ; Wall inner elements
@@ -480,6 +514,7 @@
 
 ;; Sort walls in a room, so they are connected
 ;;
+#|
 (define (room-sort-walls graph room) ; TODO: check if the last and the first are really connected
 ;;;;; IS THIS RIGHT? ISn't sort-walls-connected better?
   (let ((walls (room-wall-refs room)))
@@ -499,6 +534,7 @@
           (iter (cons next sorted) (remove (lambda (e) (equal? e next)) remaining))))) ; (it sorts backwards)
     `(,(append `(room (@ (uid ,(element-uid room))))
                          (iter (list (car walls)) (cdr walls))))))
+                         |#
 
 ;; Calculate room area
 ;;
@@ -508,7 +544,11 @@
 
 ;;; Is point in room?
 (define (point-in-room? graph room point)
-  (point-in-polygon? (room->point-list graph room) point))
+  (let ((answer (point-in-polygon? (room->point-list graph room) point)))
+     ;(pp (room->point-list graph room))
+     ;(pp point)
+     ;(pp answer)
+     answer))
 
 ;-------------------------------------------------------------------------------
 ; Graph output

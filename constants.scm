@@ -7,5 +7,7 @@
 
 (define pi 3.14159265)
 (define pi2 6.28318531)
+(define pi/2 1.57079633)
+(define pi/-2 -1.57079633)
 
 (define equal-accuracy 0.000001)
