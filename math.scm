@@ -6,7 +6,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;(declare (standard-bindings)(extended-bindings)(block)(not safe))
-(compile-options force-compile: #t)
+;(compile-options force-compile: #t)
 
 (import (std srfi/1))
 

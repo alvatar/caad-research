@@ -92,82 +92,83 @@ set wildmenu
 set window=29
 let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0
 let v:this_session=expand("<sfile>:p")
-let DidEnhancedCommentify =  1 
-let Tlist_Max_Submenu_Items =  20 
-let Tlist_Auto_Update =  1 
 let CTags_CScope_Dir_List = "/data/projects/ensanche-core/.."
-let Tlist_WinWidth =  30 
-let ScreenShellSession = "tmpvjTRA9U0"
-let ScreenShellTerminal = "urxvt"
-let ScreenShellInitialFocus = "vim"
-let ScreenShellTmuxInitArgs = ""
-let Tlist_Close_On_Select =  1 
-let Tlist_GainFocus_On_ToggleOpen =  1 
-let Tlist_Use_SingleClick =  0 
-let ScreenShellGnuScreenVerticalSupport = ""
-let ScreenShellQuitOnVimExit =  1 
-let Tlist_File_Fold_Auto_Close =  0 
-let Tlist_Auto_Open =  0 
-let ScreenShellServerName = "vim"
-let EnhCommentifyTraditionalMode = "Yes"
-let Tlist_Show_One_File =  1 
-let CTags_CScope_Top_Dir = "/data/projects/ensanche-core/__deploy"
-let EnhCommentifyRespectIndent = "yes"
-let Tlist_Inc_Winwidth =  1 
-let EnhCommentifyPretty = "yes"
 let Tlist_Display_Tag_Scope =  1 
-let Tlist_Compact_Format =  0 
+let ScreenShellSession = "tmpvjTRA9U0"
+let Tlist_Enable_Fold_Column =  1 
 let ScreenShellWidth =  -1 
+let ScreenShellQuitOnVimExit =  1 
+let Tlist_Show_One_File =  1 
+let Tlist_Auto_Highlight_Tag =  1 
+let Tlist_Compact_Format =  0 
+let Tlist_Sort_Type = "order"
+let Tlist_Use_Horiz_Window =  0 
+let EnhCommentifyAlignRight = "no"
+let Tlist_Ctags_Cmd = "exuberant-ctags"
+let Tlist_Process_File_Always =  0 
+let Tlist_Use_SingleClick =  0 
+let ScreenShellServerName = "vim"
+let EnhCommentifyPretty = "yes"
 let EnhCommentifyCallbackExists = "Yes"
 let TagList_title = "__Tag_List__"
-let Tlist_Use_Horiz_Window =  0 
 let ScreenShellExternal =  0 
-let ScreenShellWindow = "screenshell"
 let ScreenImpl = "GnuScreen"
-let EnhCommentifyAlignRight = "no"
 let EnhCommentifyMultiPartBlocks = "yes"
 let ScreenShellOrientation = "horizontal"
-let Tlist_Exit_OnlyWindow =  1 
-let NetrwTopLvlMenu = "Netrw."
-let Tlist_Display_Prototype =  0 
-let Tlist_Ctags_Cmd = "exuberant-ctags"
-let Tlist_Enable_Fold_Column =  1 
 let NetrwMenuPriority =  80 
-let Tlist_WinHeight =  10 
-let ScreenShellHeight =  15 
 let Tlist_Highlight_Tag_On_BufEnter =  1 
-let Tlist_Auto_Highlight_Tag =  1 
-let Tlist_Show_Menu =  0 
+let ScreenShellTerminal = "urxvt"
+let Tlist_Max_Submenu_Items =  20 
+let ScreenShellInitialFocus = "vim"
+let ScreenShellTmuxInitArgs = ""
+let Tlist_GainFocus_On_ToggleOpen =  1 
+let Tlist_WinHeight =  10 
+let EnhCommentifyTraditionalMode = "Yes"
+let EnhCommentifyRespectIndent = "yes"
+let Tlist_Inc_Winwidth =  1 
+let Tlist_Auto_Update =  1 
+let CTags_CScope_Top_Dir = "/data/projects/ensanche-core/__deploy"
+let Tlist_Exit_OnlyWindow =  1 
+let Tlist_Display_Prototype =  0 
 let Tlist_Max_Tag_Length =  10 
+let DidEnhancedCommentify =  1 
+let Tlist_WinWidth =  30 
+let ScreenShellWindow = "screenshell"
+let Tlist_Close_On_Select =  1 
+let Tlist_File_Fold_Auto_Close =  0 
+let Tlist_Auto_Open =  0 
+let NetrwTopLvlMenu = "Netrw."
+let ScreenShellHeight =  15 
+let ScreenShellGnuScreenVerticalSupport = ""
+let Tlist_Show_Menu =  0 
 let Tlist_Use_Right_Window =  0 
 let Make_Dir = "/data/projects/ensanche-core/__deploy"
-let Tlist_Process_File_Always =  0 
-let Tlist_Sort_Type = "order"
 silent only
 cd /data/projects/ensanche-core/__deploy
 if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +24 /data/projects/ensanche-core/main.scm
+badd +14 /data/projects/ensanche-core/main.scm
 badd +52 /data/projects/ensanche-core/arch.xml
-badd +300 /data/projects/ensanche-core/graph.scm
-badd +10 /data/projects/ensanche-core/input.scm
-badd +14 /data/projects/ensanche-core/visualization.scm
+badd +7 /data/projects/ensanche-core/graph.scm
+badd +9 /data/projects/ensanche-core/input.scm
+badd +161 /data/projects/ensanche-core/visualization.scm
 badd +23 /data/projects/ensanche-core/mutation.scm
 badd +24 /data/projects/ensanche-core/context.scm
 badd +328 /data/projects/ensanche-core/operations.scm
 badd +1 /data/projects/ensanche-core/constraints.scm
 badd +8 /data/projects/ensanche-core/filters.scm
 badd +23 /data/projects/ensanche-core/utilities.scm
-badd +4 /data/projects/ensanche-core/output.scm
-badd +189 /data/projects/ensanche-core/analysis.scm
+badd +60 /data/projects/ensanche-core/output.scm
+badd +152 /data/projects/ensanche-core/analysis.scm
 badd +15 /data/projects/ensanche-core/strategies.scm
 badd +9 /data/projects/ensanche-core/global.scm
-badd +107 /data/projects/ensanche-core/geometry.scm
-badd +15 /data/projects/ensanche-core/strategies/place-and-partition.scm
-badd +14 /data/projects/ensanche-core/math.scm
+badd +246 /data/projects/ensanche-core/geometry.scm
+badd +130 /data/projects/ensanche-core/strategies/place-and-partition.scm
+badd +9 /data/projects/ensanche-core/math.scm
 badd +1 /data/projects/ensanche-core/validators.scm
+badd +9 /data/projects/ensanche-core/utils/misc.scm
 silent! argdel *
 edit /data/projects/ensanche-core/strategies/place-and-partition.scm
 set splitbelow splitright
@@ -182,112 +183,6 @@ set winheight=1 winwidth=1
 exe 'vert 1resize ' . ((&columns * 139 + 139) / 279)
 exe 'vert 2resize ' . ((&columns * 139 + 139) / 279)
 argglobal
-setlocal keymap=
-setlocal noarabic
-setlocal autoindent
-setlocal balloonexpr=
-setlocal nobinary
-setlocal bufhidden=
-setlocal buflisted
-setlocal buftype=
-setlocal nocindent
-setlocal cinkeys=0{,0},0),:,0#,!^F,o,O,e
-setlocal cinoptions=
-setlocal cinwords=if,else,while,do,for,switch
-setlocal comments=:;;;,:;;,sr:#|,mb:|,ex:|#,:;
-setlocal commentstring=/*%s*/
-setlocal complete=.,w,b,u,t,i
-setlocal completefunc=
-setlocal nocopyindent
-setlocal nocursorcolumn
-set cursorline
-setlocal cursorline
-setlocal define=^\\s*(def\\k*
-setlocal dictionary=
-setlocal nodiff
-setlocal equalprg=
-setlocal errorformat=
-setlocal expandtab
-if &filetype != 'scheme'
-setlocal filetype=scheme
-endif
-setlocal foldcolumn=0
-set nofoldenable
-setlocal nofoldenable
-setlocal foldexpr=0
-setlocal foldignore=#
-setlocal foldlevel=0
-setlocal foldmarker={{{,}}}
-set foldmethod=syntax
-setlocal foldmethod=syntax
-setlocal foldminlines=1
-setlocal foldnestmax=20
-setlocal foldtext=foldtext()
-setlocal formatexpr=
-setlocal formatoptions=croql
-setlocal formatlistpat=^\\s*\\d\\+[\\]:.)}\\t\ ]\\s*
-setlocal grepprg=
-setlocal iminsert=0
-setlocal imsearch=2
-setlocal include=
-setlocal includeexpr=
-setlocal indentexpr=
-setlocal indentkeys=0{,0},:,0#,!^F,o,O,e
-setlocal noinfercase
-setlocal iskeyword=33,35-39,42-58,60-90,94,95,97-122,126,_
-setlocal keywordprg=
-setlocal nolinebreak
-setlocal lisp
-setlocal nolist
-setlocal makeprg=
-setlocal matchpairs=(:),{:},[:]
-setlocal modeline
-setlocal modifiable
-setlocal nrformats=octal,hex
-set number
-setlocal number
-setlocal numberwidth=4
-setlocal omnifunc=
-setlocal path=
-setlocal nopreserveindent
-setlocal nopreviewwindow
-setlocal quoteescape=\\
-setlocal noreadonly
-setlocal norightleft
-setlocal rightleftcmd=search
-setlocal noscrollbind
-setlocal shiftwidth=2
-setlocal noshortname
-setlocal nosmartindent
-setlocal softtabstop=0
-setlocal nospell
-setlocal spellcapcheck=[.?!]\\_[\\])'\"\	\ ]\\+
-setlocal spellfile=
-setlocal spelllang=es,en
-setlocal statusline=
-setlocal suffixesadd=
-setlocal swapfile
-setlocal synmaxcol=3000
-if &syntax != 'scheme'
-setlocal syntax=scheme
-endif
-setlocal tabstop=2
-setlocal tags=
-setlocal textwidth=0
-setlocal thesaurus=
-setlocal nowinfixheight
-setlocal nowinfixwidth
-setlocal wrap
-setlocal wrapmargin=0
-let s:l = 15 - ((14 * winheight(0) + 46) / 92)
-if s:l < 1 | let s:l = 1 | endif
-exe s:l
-normal! zt
-15
-normal! 0
-wincmd w
-argglobal
-edit /data/projects/ensanche-core/geometry.scm
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
@@ -385,12 +280,118 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 74 - ((45 * winheight(0) + 46) / 92)
+let s:l = 130 - ((45 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-74
+130
 normal! 0
+wincmd w
+argglobal
+edit /data/projects/ensanche-core/geometry.scm
+setlocal keymap=
+setlocal noarabic
+setlocal autoindent
+setlocal balloonexpr=
+setlocal nobinary
+setlocal bufhidden=
+setlocal buflisted
+setlocal buftype=
+setlocal nocindent
+setlocal cinkeys=0{,0},0),:,0#,!^F,o,O,e
+setlocal cinoptions=
+setlocal cinwords=if,else,while,do,for,switch
+setlocal comments=
+setlocal commentstring=/*%s*/
+setlocal complete=.,w,b,u,t,i
+setlocal completefunc=
+setlocal nocopyindent
+setlocal nocursorcolumn
+set cursorline
+setlocal cursorline
+setlocal define=^\\s*(def\\k*
+setlocal dictionary=
+setlocal nodiff
+setlocal equalprg=
+setlocal errorformat=
+setlocal expandtab
+if &filetype != 'scheme'
+setlocal filetype=scheme
+endif
+setlocal foldcolumn=0
+set nofoldenable
+setlocal nofoldenable
+setlocal foldexpr=0
+setlocal foldignore=#
+setlocal foldlevel=0
+setlocal foldmarker={{{,}}}
+set foldmethod=syntax
+setlocal foldmethod=syntax
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldtext=foldtext()
+setlocal formatexpr=
+setlocal formatoptions=nroql2
+setlocal formatlistpat=^\\s*\\d\\+[\\]:.)}\\t\ ]\\s*
+setlocal grepprg=
+setlocal iminsert=0
+setlocal imsearch=0
+setlocal include=
+setlocal includeexpr=
+setlocal indentexpr=
+setlocal indentkeys=0{,0},:,0#,!^F,o,O,e
+setlocal noinfercase
+setlocal iskeyword=33,35-39,42-58,60-90,94,95,97-122,126,_
+setlocal keywordprg=
+setlocal nolinebreak
+setlocal lisp
+setlocal nolist
+setlocal makeprg=
+setlocal matchpairs=(:),{:},[:]
+setlocal modeline
+setlocal modifiable
+setlocal nrformats=octal,hex
+set number
+setlocal number
+setlocal numberwidth=4
+setlocal omnifunc=
+setlocal path=
+setlocal nopreserveindent
+setlocal nopreviewwindow
+setlocal quoteescape=\\
+setlocal noreadonly
+setlocal norightleft
+setlocal rightleftcmd=search
+setlocal noscrollbind
+setlocal shiftwidth=2
+setlocal noshortname
+setlocal nosmartindent
+setlocal softtabstop=0
+setlocal nospell
+setlocal spellcapcheck=[.?!]\\_[\\])'\"\	\ ]\\+
+setlocal spellfile=
+setlocal spelllang=es,en
+setlocal statusline=
+setlocal suffixesadd=
+setlocal swapfile
+setlocal synmaxcol=3000
+if &syntax != 'scheme'
+setlocal syntax=scheme
+endif
+setlocal tabstop=2
+setlocal tags=
+setlocal textwidth=0
+setlocal thesaurus=
+setlocal nowinfixheight
+setlocal nowinfixwidth
+setlocal wrap
+setlocal wrapmargin=0
+let s:l = 222 - ((25 * winheight(0) + 46) / 92)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+222
+normal! 040l
 wincmd w
 exe 'vert 1resize ' . ((&columns * 139 + 139) / 279)
 exe 'vert 2resize ' . ((&columns * 139 + 139) / 279)

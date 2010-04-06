@@ -6,7 +6,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;(declare (standard-bindings)(extended-bindings)(block)(not safe))
-(compile-options force-compile: #t)
+;(compile-options force-compile: #t)
 
 (import (std srfi/1))
 
@@ -214,7 +214,22 @@
 ;;; Return a random point that is inside a given polygon
 
 (define (random-point-in-polygon point-list)
-  (make-point (* 500.0 (random-real)) (* 500.0 (random-real))))
+  (define (try origin delta)
+    (let ((p (make-point (+ (point-x origin)
+                            (* (point-x delta) (random-real)))
+                         (+ (point-y origin)
+                            (* (point-y delta) (random-real))))))
+      (if (point-in-polygon? point-list p)
+          p
+        (try origin delta))))
+  (let* ((bounding-box (point-list-bounding-box point-list))
+         (bb-left-corner (car bounding-box))
+         (bb-right-corner (cadr bounding-box)))
+    (try
+      bb-left-corner
+      (vect2->point
+        (vect2-vect2 (point->vect2 bb-right-corner)
+                     (point->vect2 bb-left-corner))))))
 
 ;;; Find a common point of two given point lists
 
@@ -223,6 +238,25 @@
     (lambda (e)
       (any (lambda (it) (point=? it e)) plis1))
     plis2))
+
+;;; Calculate the bounding point of a point-list
+
+(define (point-list-bounding-box point-list)
+  (let ((first (car point-list))
+        (rest (cdr point-list)))
+    (list
+      (make-point (fold (lambda (point x) (min x (point-x point)))
+                        (point-x first)
+                        rest)
+                  (fold (lambda (point y) (min y (point-y point)))
+                        (point-y first)
+                        rest))
+      (make-point (fold (lambda (point x) (max x (point-x point)))
+                        (point-x first)
+                        rest)
+                  (fold (lambda (point y) (max y (point-y point)))
+                        (point-y first)
+                        rest)))))
 
 ;;; Calculate the tangent vector in a point-list given the relative position
 
@@ -435,8 +469,8 @@
 ; List fields
 ;-------------------------------------------------------------------------------
 
-;; Produce 2d fields with a lambda
-;;
+;;; Produce 2d fields with a lambda
+
 (define (make-2d-field size-x size-y proc)
   (let ((limit-x (decr size-x))
         (limit-y (decr size-y)))
@@ -450,14 +484,15 @@
         (iter (decr x) y (cons (proc (make-point x y)) lis)))))
     (iter limit-x limit-y '())))
 
-;; Flatten a list of fields (merge them)
-;;
+;;; Flatten a list of fields (merge them)
+
 (define (flatten-2d-fields field-list)
   (list->u8vector
     (reduce
       (lambda (f1 f2)
-        (map (lambda (a b) (let ((sum (- 255 (+ (- 255 a) (- 255 b)))))
-                             (if (< sum 0) 0 sum)))
+        (map (lambda (a b)
+               (let ((sum (- 255 (+ (- 255 a) (- 255 b)))))
+                 (if (< sum 0) 0 sum)))
              f1
              f2))
       '()
