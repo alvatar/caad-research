@@ -11,6 +11,9 @@
 (import graph)
 (import utils/misc)
 
+(export op-split)
+(export op-merge)
+
 ;; Apply operation to context
 ;;
 (define (apply-operation-in-context graph context new-subgraph)
@@ -275,3 +278,51 @@
    graph
    context-selector
    '()))
+
+;-------------------------------------------------------------------------------
+; Helper operations
+;-------------------------------------------------------------------------------
+
+;;; Create 2 walls splitting one in a point
+
+(define (create-splitted-wall wall split-point-relative uuid1 uuid2)
+  (let ((split-point (point-from-relative-in-wall wall split-point-relative))
+        (first-point (wall-first-point wall))
+        (second-point (wall-last-point wall)))
+  `((wall (@ (uid ,uuid1))
+         (pt (@ (y ,(number->string (archpoint-coord 'y first-point)))
+                (x ,(number->string (archpoint-coord 'x first-point)))))
+         (pt (@ (y ,(number->string (point-y split-point)))
+                (x ,(number->string (point-x split-point))))))
+   (wall (@ (uid ,uuid2))
+         (pt (@ (y ,(number->string (point-y split-point)))
+                (x ,(number->string (point-x split-point)))))
+         (pt (@ (y ,(number->string (archpoint-coord 'y second-point)))
+                (x ,(number->string (archpoint-coord 'x second-point)))))))))
+
+;;; Try to merge into one wall if the two given are parallel
+
+(define (try-to-merge-if-parallel-walls wall-list new-uid)
+  (let ((wall-a-points (wall->point-list (car wall-list))) ; TODO: try to generalize
+        (wall-b-points (wall->point-list (cadr wall-list))))
+    (if (parallel? wall-a-points wall-b-points)
+        (let ((first-point (if (is-end-point? wall-b-points (car wall-a-points))
+                               (cadr wall-a-points)
+                             (car wall-a-points)))
+              (second-point (if (is-end-point? wall-a-points (car wall-b-points))
+                                (cadr wall-b-points)
+                              (car wall-b-points))))
+          (list (point-list->wall
+                (list first-point second-point)
+                new-uid)))
+        wall-list)))
+
+;;; Break in two lists from where a wall was found
+;;; Warning! This assumes that rooms contain topologically connected walls
+
+(define (room-break graph room first-wall-uid second-wall-uid)
+  ; TODO: check if walls are ordered
+  (break (lambda (wall) (equal? second-wall-uid (element-uid wall)))
+         (rotate-until-first
+           (lambda (wall) (equal? first-wall-uid (element-uid wall)))
+           (room-wall-refs room))))

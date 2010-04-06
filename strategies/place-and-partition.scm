@@ -11,7 +11,7 @@
 
 (import (std srfi/1))
 
-(import ../constants)
+(import ../analysis)
 (import ../geometry)
 (import ../graph)
 (import ../utils/misc)
@@ -33,28 +33,23 @@
 
 (define (describe-world graph)
   (let*
-    ((limit-x 500) ; TODO
-     (limit-y 500)
+    ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
      (basic-set
       `(,(make-agent
            'entrance
-           (let ((a (* limit-x (random-real)))
-                 (b (* limit-x (random-real))))
-             (list (make-point a b)
-                   (make-point (+ (* 50.0 (random-real)) a) (+ (* 50.0 (random-real)) b))
-                   (make-point (+ (* 50.0 (random-real)) a) (+ (* 50.0 (random-real)) b))))
+           (list (random-point-in-polygon limit-polygon)
+                 (random-point-in-polygon limit-polygon)
+                 (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (let ((a (* limit-x (random-real)))
-                     (b (* limit-x (random-real))))
-                 (list (make-point a b)
-                       (make-point (+ (* 50.0 (random-real)) a) (+ (* 50.0 (random-real)) b))
-                       (make-point (+ (* 50.0 (random-real)) a) (+ (* 50.0 (random-real)) b))))
+               (list (random-point-in-polygon limit-polygon)
+                     (random-point-in-polygon limit-polygon)
+                     (random-point-in-polygon limit-polygon))
                (agent-proc agent))))
         ,(make-agent
            'bath
-           (list (make-point (* limit-x (random-real)) (* limit-y (random-real))))
+           (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
@@ -62,7 +57,7 @@
                (agent-proc agent))))
         ,(make-agent
            'room1
-           (list (make-point (* limit-x (random-real)) (* limit-y (random-real))))
+           (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
@@ -70,7 +65,7 @@
                (agent-proc agent))))
         ,(make-agent
            'living
-           (list (make-point (* limit-x (random-real)) (* limit-y (random-real))))
+           (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
@@ -78,7 +73,7 @@
                (agent-proc agent))))
         ,(make-agent
            'kitchen
-           (list (make-point (* limit-x (random-real)) (* limit-y (random-real))))
+           (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
@@ -87,7 +82,7 @@
      (more
       `(,(make-agent
            'distrib
-           (list (make-point (* limit-x (random-real)) (* limit-y (random-real))))
+           (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
@@ -95,7 +90,7 @@
                (agent-proc agent))))
         ,(make-agent
            'storage
-           (list (make-point (* limit-x (random-real)) (* limit-y (random-real))))
+           (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
@@ -103,7 +98,7 @@
                (agent-proc agent))))
         ,(make-agent
            'room2
-           (list (make-point (* limit-x (random-real)) (* limit-y (random-real))))
+           (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
@@ -111,13 +106,13 @@
                (agent-proc agent))))
         ,(make-agent
            'room3
-           (list (make-point (* limit-x (random-real)) (* limit-y (random-real))))
+           (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
                (agent-node-positions agent)
                (agent-proc agent))))))
-     (light-field (make-light-field graph limit-x limit-y)))
+     (light-field (make-light-field graph graph-space-size-x graph-space-size-y)))
     (make-world 
       (append basic-set more)
       (list light-field))))
@@ -220,7 +215,7 @@
 
 (define (make-light-field graph size-x size-y)
   (merge-2d-u8fields
-    (let ((limit-polygon (wall-list->point-list (graph-exterior-walls graph)))
+    (let ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
           (light-sources (map*
                            inexact-point->exact-point
                            (all-wall-element-points-all-walls->point-list 'window graph))))

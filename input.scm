@@ -5,9 +5,31 @@
 ;;; Input procedures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(import (std string/xml-to-sxml))
+
+(import web/parse/ssax-sxml/sxml-tools/sxpath)
+
+;-------------------------------------------------------------------------------
+; File handling
+;-------------------------------------------------------------------------------
+
 (define (input)
   (let*
     ((xml-file (open-input-file "data/arch_1.xml"))
      (xml-string (read-line xml-file #f))
      (close-port xml-file))
      xml-string))
+
+;-------------------------------------------------------------------------------
+; Graph generation
+;-------------------------------------------------------------------------------
+
+;;; Generate graph from XML
+
+(define (generate-graph-from-xml xml-string)
+  (let* ((sxml (xml-string->sxml xml-string))
+         (architecture
+          (car
+           ((sxpath '(ensanche floorPlan architecture)) sxml))))
+    architecture))
+

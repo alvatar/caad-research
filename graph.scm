@@ -11,7 +11,6 @@
 
 (import web/parse/ssax-sxml/sxml-tools/sxpath)
 
-(import constants)
 (import geometry)
 (import math)
 (import utils/misc)
@@ -22,6 +21,8 @@
 ;-------------------------------------------------------------------------------
 
 (define wall-thickness 12.5)
+(define graph-space-size-x maxx)
+(define graph-space-size-y maxy)
 
 ;-------------------------------------------------------------------------------
 ; General
@@ -40,30 +41,10 @@
 (define (graph-walls graph)
   ((sxpath '(wall)) graph))
 
-;;; Make the maximum room possible
-
-(define (graph-exterior-walls graph)
-  (define (iter exterior-walls rest-walls)
-    (cond
-     ((null? rest-walls)
-      exterior-walls) ; TODO: check if closed and do something about it, TODO: multiple contours
-     ((exterior-wall? (car rest-walls) graph)
-      (iter (cons (car rest-walls) exterior-walls) (cdr rest-walls)))
-     (else
-      (iter exterior-walls (cdr rest-walls)))))
-  (sort-wall-list-connected graph (iter '() (graph-walls graph))))
-
 ;;; Get rooms in the graph
 
 (define (graph-rooms graph)
   ((sxpath '(room)) graph))
-
-;;; Get graph limits (extreme points)
-
-(define (graph-limit-x graph)
-  500.0) ; TODO: calculate
-(define (graph-limit-y graph)
-  500.0) ; TODO: calculate
 
 ;;; Remove element from graph
 
@@ -196,26 +177,6 @@
         (cdr to-process))))
     (iter '() (wall-points wall)))
 
-;;; Convert a list of walls into a list of points
-
-(define (wall-list->point-list wall-list)
-  (define (iter point-list rest-walls)
-    ;(if (and (not (null? point-list)) (eq? (car point-list) #f)) (begin (pp point-list) (error "wall-list->point-list: Walls are not connected!")))
-    (if (< (length rest-walls) 2)
-        point-list
-      (iter
-        (cons (walls-common-point
-                (car rest-walls)
-                (cadr rest-walls))
-              point-list)
-        (cdr rest-walls))))
-  (iter '() (snoc wall-list (car wall-list))))
-
-;;; Calculate the points that enclose a room polygon as a list
-
-(define (room->point-list graph room)
-  (wall-list->point-list (room-walls graph room)))
-
 ;;; Convert a point list into a wall
 
 (define (point-list->wall p-list uuid)
@@ -250,148 +211,6 @@
 
 (define (wall-last-point wall)
   ((sxpath '((pt 2) @ *)) wall))
-
-;;; Calculate wall mid point
-
-(define (wall-mid-point wall)
-  (let ((wall-points (wall->point-list wall)))
-    (mid-point
-      (segment-first-point wall-points)
-      (segment-second-point wall-points))))
-
-;;; Is the wall described in a reverse order from a given reference?
-
-(define (wall-is-reversed? wall point)
-  (> (distance-point-point (wall->point-list point) (wall->point-list (wall-first-point wall)))
-     (distance-point-point (wall->point-list point) (wall->point-list (wall-last-point wall)))))
-
-;;; Is this wall exterior?
-
-(define (exterior-wall? wall graph)
-  (define (point-in-any-room? p)
-    (any (lambda (room) (point-in-room? graph room p))
-         (graph-rooms graph)))
-  (let* ((wall-points (wall->point-list wall))
-         (mid-p (point-from-relative-in-wall wall 0.5))
-         (tangent-p (point-list-tangent-in-relative wall-points 0.5))
-         (p1 (point-rotation mid-p (vect2->point
-                                     (vect2+vect2
-                                       (point->vect2 mid-p)
-                                       (vect2*scalar tangent-p 10.0)))
-                                   pi/2))
-         (p2 (point-rotation mid-p (vect2->point
-                                     (vect2+vect2
-                                       (point->vect2 mid-p)
-                                       (vect2*scalar tangent-p 10.0)))
-                                   pi/-2)))
-    (not (and (point-in-any-room? p1)
-                            (point-in-any-room? p2)))))
-
-;;; Sort walls in a wall list so they are connected properly
-
-(define (sort-wall-list-connected graph wall-list) ; TODO: check if the last and the first are really connected
-  (define (iter sorted remaining)
-    (define (find-next first wall-list) ; (it sorts backwards)
-      (cond
-       ((null? wall-list)
-        (pp first)
-        (error "room-sort-walls: This wall cannot be connected to any other one"))
-       ((walls-are-connected? (reference-to-element graph first) (reference-to-element graph (car wall-list)))
-        (car wall-list))
-       (else
-        (find-next first (cdr wall-list)))))
-    (if (null? remaining)
-        sorted
-      (let ((next (find-next (car sorted) remaining)))
-        (iter (cons next sorted) (remove (lambda (e) (equal? e next)) remaining))))) ; (it sorts backwards)
-  
-  (if (null? wall-list)
-      (error "sort-wall-list-connected: argument #2 (wall-list) is null")
-    (iter (list (car wall-list)) (cdr wall-list))))
-
-;;; Create 2 walls splitting one in a point
-
-(define (create-splitted-wall wall split-point-relative uuid1 uuid2)
-  (let ((split-point (point-from-relative-in-wall wall split-point-relative))
-        (first-point (wall-first-point wall))
-        (second-point (wall-last-point wall)))
-  `((wall (@ (uid ,uuid1))
-         (pt (@ (y ,(number->string (archpoint-coord 'y first-point)))
-                (x ,(number->string (archpoint-coord 'x first-point)))))
-         (pt (@ (y ,(number->string (point-y split-point)))
-                (x ,(number->string (point-x split-point))))))
-   (wall (@ (uid ,uuid2))
-         (pt (@ (y ,(number->string (point-y split-point)))
-                (x ,(number->string (point-x split-point)))))
-         (pt (@ (y ,(number->string (archpoint-coord 'y second-point)))
-                (x ,(number->string (archpoint-coord 'x second-point)))))))))
-
-;;; Try to merge into one wall if the two given are parallel
-
-(define (try-to-merge-if-parallel-walls wall-list new-uid)
-  (let ((wall-a-points (wall->point-list (car wall-list))) ; TODO: try to generalize
-        (wall-b-points (wall->point-list (cadr wall-list))))
-    (if (parallel? wall-a-points wall-b-points)
-        (let ((first-point (if (is-end-point? wall-b-points (car wall-a-points))
-                               (cadr wall-a-points)
-                             (car wall-a-points)))
-              (second-point (if (is-end-point? wall-a-points (car wall-b-points))
-                                (cadr wall-b-points)
-                              (car wall-b-points))))
-          (list (point-list->wall
-                (list first-point second-point)
-                new-uid)))
-        wall-list)))
-
-;;; Calculate point given wall and percentage
-
-(define (point-from-relative-in-wall wall percentage) ; TODO: generalize to polywalls
-  (point-from-relative-in-segment
-    (list
-      (archpoint->point (wall-point-n wall 1))
-      (archpoint->point (wall-point-n wall 2)))
-    percentage))
-
-;;; Find walls connected to a given one
-
-(define (find-walls-connected-to graph uid)
-  (let ((wall (find-element-with-uid graph uid)))
-    (define (find-walls-with-point point)
-      (define (iter wall-list connected-walls)
-        (if (null-list? wall-list)
-            connected-walls
-          (iter
-            (cdr wall-list)
-            (if (is-end-point? (wall->point-list (car wall-list)) point)
-                (append connected-walls (list (car wall-list)))
-              connected-walls))))
-      (iter (graph-walls graph) '()))
-    (list
-      (remove (lambda (elem)
-                (equal? elem wall))
-              (find-walls-with-point (archpoint->point (wall-first-point wall))))
-      (remove (lambda (elem)
-                (equal? elem wall))
-              (find-walls-with-point (archpoint->point (wall-last-point wall)))))))
- 
-;;; Are these walls connected?
-
-(define (walls-are-connected? wall1 wall2)
-  (segments-are-connected? ; TODO: segments to paths
-    (wall->point-list wall1)
-    (wall->point-list wall2)))
-
-;;; Walls common point
-
-(define (walls-common-point wall1 wall2)
-  (let ((cp (point-list-common-point?
-              (wall->point-list wall1)
-              (wall->point-list wall2))))
-    (if cp cp
-      (begin
-        (pp (wall->point-list wall1))
-        (pp (wall->point-list wall2))
-        (error "walls-common-point: given walls don't have any common point")))))
 
 ;-------------------------------------------------------------------------------
 ; Wall inner elements
@@ -479,184 +298,3 @@
         (cdr uid-lis))))
   (let ((uids (make-uid-list)))
     (collect-walls '() uids)))
-
-;;; Break in two lists from where a wall was found
-;;; Warning! This assumes that rooms contain topologically connected walls
-
-(define (room-break graph room first-wall-uid second-wall-uid)
-  ; TODO: check if walls are ordered
-  (break (lambda (wall) (equal? second-wall-uid (element-uid wall)))
-         (rotate-until-first
-           (lambda (wall) (equal? first-wall-uid (element-uid wall)))
-           (room-wall-refs room))))
-
-;;; Find common wall
-
-(define (room-find-common-wall rooms)
-  (let ((walls-room-a (room-wall-refs (car rooms)))
-        (walls-room-b (room-wall-refs (cadr rooms))))
-    (define (iter lis1)
-      (let ((first (car lis1)))
-        (if (null-list? lis1)
-            (error "find-common-wall: No common wall found")
-          (if (any (lambda (elem) (equal? elem first)) walls-room-b)
-              (element-uid first)
-            (iter (cdr lis1))))))
-    (iter walls-room-b)))
-
-;;; Sort walls in a room, so they are connected
-
-#|
-(define (room-sort-walls graph room) ; TODO: check if the last and the first are really connected
-;;;;; IS THIS RIGHT? ISn't sort-walls-connected better?
-  (let ((walls (room-wall-refs room)))
-    (define (iter sorted remaining)
-      (define (find-next first wall-list) ; (it sorts backwards)
-        (cond
-         ((null-list? wall-list)
-          (display first)(newline)
-          (error "room-sort-walls: This wall cannot be connected to any other one"))
-         ((walls-are-connected? (reference-to-element graph first) (reference-to-element graph (car wall-list)))
-          (car wall-list))
-         (else
-          (find-next first (cdr wall-list)))))
-      (if (null-list? remaining)
-          sorted
-        (let ((next (find-next (car sorted) remaining)))
-          (iter (cons next sorted) (remove (lambda (e) (equal? e next)) remaining))))) ; (it sorts backwards)
-    `(,(append `(room (@ (uid ,(element-uid room))))
-                         (iter (list (car walls)) (cdr walls))))))
-                         |#
-
-;;; Calculate room area
-
-(define (room-area room)
-  ;http://www.mathsisfun.com/geometry/area-irregular-polygons.html
-  99.9) ; TODO
-
-;;; Is point in room?
-
-(define (point-in-room? graph room point)
-  (point-in-polygon? (room->point-list graph room) point))
-
-;-------------------------------------------------------------------------------
-; Graph output
-;-------------------------------------------------------------------------------
-
-;;; Draw graph
-
-(define (visualize-graph graph)
-  (visualization:do-later
-    'graph
-    (lambda (backend)
-      ;; Paint wall
-      (define (paint-wall wall)
-        (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
-        (visualization:paint-set-line-cap backend 'square)
-        (visualization:paint-set-line-width backend 5.0)
-        (visualization:paint-path backend (wall->point-list wall)))
-      ;; Paint doors in the wall
-      (define (paint-doors-in-wall wall)
-        (for-each
-          (lambda
-            (door)
-            (visualization:paint-set-line-cap backend 'butt)
-            (visualization:paint-set-color backend 1.0 1.0 1.0 1.0)
-            (visualization:paint-set-line-width backend 6.0)
-            (visualization:paint-path backend (wall-element->point-list door wall))
-            (visualization:paint-set-color backend 1.0 0.1 0.1 1.0)
-            (visualization:paint-set-line-width backend 3.0)
-            (visualization:paint-path backend (wall-element->point-list door wall)))
-          (wall-doors wall)))
-      ;; Paint windows in the wall
-      (define (paint-windows-in-wall wall)
-        (visualization:paint-set-color backend 1.0 1.0 0.1 1.0)
-        (visualization:paint-set-line-cap backend 'butt)
-        (visualization:paint-set-line-width backend 3.0)
-        (for-each
-          (lambda
-            (window)
-            (visualization:paint-path backend (wall-element->point-list window wall)))
-          (wall-windows wall)))
-      ;; Paint pilar
-      (define (paint-pilar pilar)
-        '())
-      ;; Paint room
-      (define (paint-room graph room)
-        (visualization:paint-set-color backend 0.0 0.0 0.3 0.3)
-        (visualization:paint-polygon backend (room->point-list graph room)))
-      ;; Paint entry
-      (define (paint-entry wall)
-        '())
-      ;; Paint pipe
-      (define (paint-pipe wall)
-        '())
-
-      (for-each
-        (lambda
-          (elem)
-          (if (null-list? elem)
-              (error "Malformed SXML")
-            (cond
-              ((equal? (car elem) 'wall)
-               (paint-wall
-                 elem)
-               (paint-windows-in-wall 
-                 elem)
-               (paint-doors-in-wall 
-                 elem))
-              ((equal? (car elem) 'pilar)
-               (paint-pilar elem))
-              ((equal? (car elem) 'room)
-               (paint-room graph elem))
-              ((equal? (car elem) 'entry)
-               ;(paint-entry (make-wall-list-from-uids (make-uid-list elem) graph)))
-               '())
-              ((equal? (car elem) 'pipe)
-               ;(paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph))))))
-               '()))))
-        (graph-parts graph))))
-  (visualization:layer-depth-set! 'graph 5))
-
-;;; Print graph
-
-(define (print-graph sxml)
-  (define-macro (pp-code-eval . thunk) ; Pretty print the code as it is evatuated
-    `(begin
-       ,@(apply
-          append  ; should better use `map-union' from "sxpathlib.scm"
-          (map
-           (lambda (s-expr)
-             (cond
-               ((string? s-expr)  ; string - just display it
-                `((display ,s-expr)
-                  (newline)))
-               ((and (pair? s-expr) (eq? (car s-expr) 'define))
-                ; definition - pp and eval it
-                `((pp ',s-expr)
-                  ,s-expr))
-               ((and (pair? s-expr)
-                     (memq (car s-expr) '(newline cond-expand)))
-                ; just eval it
-                `(,s-expr))
-               (else  ; for anything else - pp it and pp result
-                `((pp ',s-expr)
-                  (display "==>")
-                  (newline)
-                  (pp ,s-expr)
-                  (newline)))))
-           thunk))))
-  (pp-code-eval sxml))
-
-;-------------------------------------------------------------------------------
-; Graph generation
-;-------------------------------------------------------------------------------
-
-;;; Generate graph from XML
-
-(define (generate-graph-from-xml xml-string)
-  (let* ((sxml (xml-string->sxml xml-string))
-         (architecture
-          (car
-           ((sxpath '(ensanche floorPlan architecture)) sxml))))
-    architecture))

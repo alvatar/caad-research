@@ -11,9 +11,11 @@
 (import sdl/sdl)
 (import cairo/cairo)
 
-(import constants)
 (import geometry)
+(import math)
 
+(export maxx)
+(export maxy)
 (export visualization:do-later)
 (export visualization:do-now)
 (export visualization:do-now-layers)

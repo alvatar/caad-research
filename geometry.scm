@@ -10,7 +10,6 @@
 
 (import (std srfi/1))
 
-(import constants)
 (import math)
 (import utils/misc)
 
@@ -211,6 +210,11 @@
      (else
       (iter c (cdr a-points) (cdr b-points)))))
   (iter #f point-list (cons (last point-list) point-list)))
+
+;;; Return a random point that is inside a given polygon
+
+(define (random-point-in-polygon point-list)
+  (make-point (* 500.0 (random-real)) (* 500.0 (random-real))))
 
 ;;; Find a common point of two given point lists
 
