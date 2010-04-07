@@ -2,7 +2,7 @@
 ;;; Licensed under the GPLv3 license, see LICENSE file for full description.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Visual representation of the graph
+;;; Visualization
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1))
@@ -29,10 +29,12 @@
 (export visualization:paint-circle-border)
 (export visualization:paint-set-line-cap)
 (export visualization:paint-set-line-width)
+(export visualization:paint-set-line-style)
 (export visualization:paint-text)
 (export visualization:create-image)
 (export visualization:paint-image)
 (export visualization:image-set!)
+(export visualization:translate)
 
 (define maxx 500)
 (define maxy 500)
@@ -123,7 +125,7 @@
 ;;; Cleans all the external visualization procedures pending of execution
 
 (define (visualization:forget-all)
-  (set! external-painters (list (make-painter 'null (lambda (a) '())))))
+  (set! external-painters (list (make-painter '%0 (lambda (a) '())))))
 
 ;;; Does this layer exist already?
 
@@ -168,7 +170,7 @@
     (lambda (p1 p2)
       (< (painter-depth p1) (painter-depth p2)))))
 
-(define external-painters (list (make-painter 'null 0 (lambda (a) '())))) ; Why should I add something so it is a list?
+(define external-painters (list (make-painter '%0 0 (lambda (a) '())))) ; Why should I add something so it is a list?
 
 (define (append-painter! list-procs proc)
   (if (null? (cdr list-procs))
@@ -244,10 +246,17 @@
     ((equal? style 'butt)
      (cairo-set-line-cap cairo CAIRO_LINE_CAP_BUTT))))
 
-;;; Set line style
+;;; Set line width
 
 (define (visualization:paint-set-line-width cairo width)
   (cairo-set-line-width cairo width))
+
+;;; Set line style
+
+(define (visualization:paint-set-line-style cairo style-as-list)
+  (if (null? style-as-list)
+      (cairo-restore-line-style cairo)
+    (cairo-set-line-style cairo style-as-list)))
 
 ;;; Paint text
 
@@ -272,3 +281,8 @@
 
 (define (visualization:image-set! image vect)
   (cairo-a8-image-set! image vect))
+
+;;; Translate world
+
+(define (visualization:translate cairo x y)
+  (cairo-translate cairo x y))

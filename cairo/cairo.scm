@@ -603,3 +603,20 @@ for (i = 0; i < ___arg2 && i < ___arg4; i++) {
     ___arg1[i] = u8vectorptr[i];
 }
             "))
+
+(define (cairo-set-line-style cairo style-as-list)
+  (define cairo-interface
+    (c-lambda (cairo-t* scheme-object int)
+              void
+              "
+double *vectorptr = ___CAST(double*,___BODY(___arg2));
+cairo_set_dash(___arg1, vectorptr, ___arg3, 0.0);
+              "))
+  (cairo-interface cairo (list->f64vector style-as-list) (length style-as-list)))
+
+(define cairo-restore-line-style
+  (c-lambda (cairo-t*)
+            void
+            "
+            cairo_set_dash(___arg1, (void*)0, 0, 0.0);
+            "))

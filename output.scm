@@ -8,7 +8,9 @@
 (import (std srfi/1))
 
 (import analysis)
+(import geometry)
 (import graph)
+(import math)
 (import visualization)
 
 
@@ -93,7 +95,42 @@
                ;(paint-pipe (make-wall-list-from-uids (make-uid-list elem) graph))))))
                '()))))
         (graph-parts graph))))
-  (visualization:layer-depth-set! 'graph 5))
+  (visualization:layer-depth-set! 'graph 5)
+
+  (visualization:do-later
+    'visual-aids
+    (let ((x-dir-mark `(,(make-point (- (exact->inexact maxx)) 0.0)
+                        ,(make-point (exact->inexact maxx) 0.0)))
+          (y-dir-mark `(,(make-point 0.0 (- (exact->inexact maxy)))
+                        ,(make-point 0.0 (exact->inexact maxy)))))
+      (lambda (backend)
+        (visualization:paint-set-line-style backend '(2.0 2.0))
+        (visualization:paint-set-line-width backend 1.0)
+        (visualization:paint-set-color backend 0.0 0.0 0.0 0.4)
+        (visualization:paint-path backend x-dir-mark)
+        (visualization:paint-path backend y-dir-mark)
+        (visualization:paint-set-line-style backend '()))))
+  (visualization:layer-depth-set! 'visual-aids 2)
+
+  (visualization:do-later
+    '%move
+    (let* ((limits (graph-bounding-box graph))
+           (diff-vec (vect2-vect2 (point->vect2 (cadr limits))
+                                  (point->vect2 (car limits)))))
+      (lambda (backend)
+        (visualization:translate backend (/ (- (vect2-u diff-vec) maxx) -2)
+                                         (/ (- (vect2-v diff-vec) maxy) -2)))))
+  (visualization:layer-depth-set! '%move 0)
+
+  (visualization:do-later
+    '%unmove
+    (let* ((limits (graph-bounding-box graph))
+           (diff-vec (vect2-vect2 (point->vect2 (cadr limits))
+                                  (point->vect2 (car limits)))))
+        (lambda (backend)
+          (visualization:translate backend (/ (- (vect2-u diff-vec) maxx) 2)
+                                           (/ (- (vect2-v diff-vec) maxy) 2)))))
+  (visualization:layer-depth-set! '%unmove 99))
 
 ;-------------------------------------------------------------------------------
 ; Pretty-printing output
