@@ -21,10 +21,10 @@
      xml-string))
 
 ;-------------------------------------------------------------------------------
-; Graph generation
+; Graph importation
 ;-------------------------------------------------------------------------------
 
-;;; Generate graph from XML
+;;; Create graph from XML
 
 (define (generate-graph-from-xml xml-string)
   (let* ((sxml (xml-string->sxml xml-string))

@@ -12,7 +12,7 @@
 (import input)
 (import mutation)
 (import output)
-(import strategies)
+(import generation)
 (import utils/misc)
 (import visualization)
 
@@ -31,7 +31,7 @@
   (let ((graph (generate-graph-from-xml (input))))
     (visualize-graph graph)
     (visualization:do-now)
-    (refine-result (process-through-strategies graph)))
+    (refine-result (generate-from-model graph)))
 
   (exit 0))
 (main)
