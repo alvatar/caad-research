@@ -125,7 +125,7 @@
 ;;; Cleans all the external visualization procedures pending of execution
 
 (define (visualization:forget-all)
-  (set! external-painters (list (make-painter '%0 (lambda (a) '())))))
+  (set! external-painters (list (make-painter '%0 0 (lambda (a) '())))))
 
 ;;; Does this layer exist already?
 
