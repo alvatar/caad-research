@@ -273,9 +273,9 @@
 
 ;;; Paint image
 
-(define (visualization:paint-image cairo image)
+(define (visualization:paint-image cairo image alpha)
   (cairo-set-source-surface cairo (data-image-surface-ptr image) 0.0 0.0)
-  (cairo-paint cairo))
+  (cairo-paint-with-alpha cairo alpha))
 
 ;;; Set image
 

@@ -9,6 +9,7 @@
 
 (import generation-elements)
 (import strategies/predesigned-band)
+(import visualization)
 
 ;-------------------------------------------------------------------------------
 ; General procedures
@@ -86,3 +87,26 @@
 
 (define (make-rooms-from-agents graph agents)
   graph)
+
+;;; Visualize fields
+
+(define (visualize-field field)
+  (visualization:do-later
+    'fields
+    (lambda (backend)
+      (let ((image (visualization:create-image backend))) ; TODO: created in other place
+        (visualization:image-set! image field)
+        (visualization:paint-image backend image 1.0))))
+  (visualization:layer-depth-set! 'fields 1))
+
+;;; World visualization
+
+(define (visualize-world world)
+  (for-each
+    visualize-field
+    (world-fields world))
+  (for-each
+    visualize-agent
+    (world-agents world))
+  (visualization:do-now)
+  (visualization:forget-layers '(agents fields)))

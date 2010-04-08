@@ -6,6 +6,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import ../analysis)
+(import ../fields/entry-points)
+(import ../fields/light)
+(import ../fields/pipes)
+(import ../fields/structure)
 (import ../geometry)
 (import ../generation-elements)
 (import ../graph)
@@ -92,8 +96,10 @@
              (make-agent
                (agent-label agent)
                (agent-node-positions agent)
-               (agent-proc agent))))))
-     (light-field (make-light-field graph graph-space-size-x graph-space-size-y)))
+               (agent-proc agent)))))))
     (make-world 
       (append basic-set more)
-      (list light-field))))
+      (list (make-light-field graph graph-space-size-x graph-space-size-y)
+            (make-entry-point-field graph graph-space-size-x graph-space-size-y)
+            (make-structure-field graph graph-space-size-x graph-space-size-y)
+            (make-pipes-field graph graph-space-size-x graph-space-size-y)))))

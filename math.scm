@@ -6,7 +6,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;(declare (standard-bindings)(extended-bindings)(block)(not safe))
-;(compile-options force-compile: #t)
+(compile-options force-compile: #t)
 
 (import (std srfi/1))
 
@@ -145,3 +145,107 @@
                  (* (vect2-v vec) (sin r-angle)))
               (+ (* (vect2-v vec) (cos r-angle))
                  (* (vect2-u vec) (sin r-angle)))))
+
+;-------------------------------------------------------------------------------
+; Vector fields
+;-------------------------------------------------------------------------------
+
+;;; Make bidimensional u8 integers field
+
+(define (make-2d-u8field size-x size-y proc)
+  (let ((point (make-vect2 0 0))
+        (len (fx* size-x size-y)))
+      (do ((vec (make-u8vector len))
+           (i 0 (fx+ i 1))) ((fx>= i len) vec)
+        (vect2-u-set! point (fxmodulo i size-y))
+        (vect2-v-set! point (fxquotient i size-y))
+        (u8vector-set! vec i (proc point)))))
+
+;;; Make bidimensional u8 integers field (scaled)
+
+(define (make-2d-scaled-u8field res size-x size-y proc)
+  (define (set-area! vec i j value)
+    (let it-j ((area-j 0))
+      (cond
+       ((fx< area-j res)
+        (let it-i ((area-i 0))
+          (cond
+           ((fx< area-i res)
+            (u8vector-set! vec
+                           (fx+ (fx+ i (fx* size-x (fx+ j area-j))) area-i)
+                           value)
+            (it-i (incr area-i)))
+           (else #t)))
+        (it-j (incr area-j)))
+       (else #t))))
+  (let ((point (make-vect2 0 0))
+        (len (fx* size-x size-y)))
+    (do ((vec (make-u8vector len))
+         (j 0 (fx+ j res)))
+      ((fx>= j size-y) vec)
+      (do ((i 0 (fx+ i res)))
+        ((fx>= i size-x))
+        (vect2-u-set! point i)
+        (vect2-v-set! point j)
+        (set-area! vec i j (proc point))))))
+
+;;; Merge bidimesional u8 integer fields
+
+(define (merge-2d-u8fields fields proc)
+  (define (merge-point value p rest-fields)
+    (cond
+     ((null? rest-fields)
+      value)
+     (else
+      (merge-point
+        (proc value (u8vector-ref (car rest-fields) p))
+        p
+        (cdr rest-fields)))))
+  (cond
+   ((< (length fields) 1) ; Improve
+    '())
+   ((< (length fields) 2)
+    (car fields))
+   (else
+    (let ((len (u8vector-length (car fields))))
+      (do ((vec (make-u8vector len))
+           (i 0 (fx+ i 1)))
+          ((fx>= i len) vec)
+        (u8vector-set! vec
+                       i
+                       (merge-point (u8vector-ref (car fields) i)
+                                    i
+                                    (cdr fields))))))))
+
+;-------------------------------------------------------------------------------
+; List fields
+;-------------------------------------------------------------------------------
+
+;;; Produce 2d fields with a lambda
+
+(define (make-2d-field size-x size-y proc)
+  (let ((limit-x (decr size-x))
+        (limit-y (decr size-y)))
+    (define (iter x y lis)
+      (cond
+       ((and (fx= x 0) (fx= y 0))
+        lis)
+       ((fx= x 0)
+        (iter limit-x (decr y) (cons (proc (make-vect2 0 y)) lis)))
+       (else
+        (iter (decr x) y (cons (proc (make-vect2 x y)) lis)))))
+    (iter limit-x limit-y '())))
+
+;;; Flatten a list of fields (merge them)
+
+(define (flatten-2d-fields field-list)
+  (list->u8vector
+    (reduce
+      (lambda (f1 f2)
+        (map (lambda (a b)
+               (let ((sum (- 255 (+ (- 255 a) (- 255 b)))))
+                 (if (< sum 0) 0 sum)))
+             f1
+             f2))
+      '()
+      field-list)))

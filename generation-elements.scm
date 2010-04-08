@@ -56,76 +56,9 @@
   (visualization:layer-depth-set! 'agents 10))
 
 ;-------------------------------------------------------------------------------
-; Fields
-;-------------------------------------------------------------------------------
-
-;;; Visualize light field
-
-(define (visualize-field field)
-  (visualization:do-later
-    'fields
-    (lambda (backend)
-      (let ((image (visualization:create-image backend))) ; TODO: created in other place
-        (visualization:image-set! image field)
-        (visualization:paint-image backend image))))
-  (visualization:layer-depth-set! 'fields 1))
-
-;;; Make light field
-
-(define (make-light-field graph size-x size-y)
-  (merge-2d-u8fields
-    (let ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
-          (light-sources (map*
-                           inexact-point->exact-point
-                           (all-wall-element-points-all-walls->point-list 'window graph))))
-      (map ; produces a field per light-source
-        (lambda (source)
-            (cond
-             ((point? source)
-              (make-2d-scaled-u8field
-                4
-                size-x
-                size-y
-                (lambda (p) (if (point-in-polygon? limit-polygon p)
-                                (let ((d (fx* 2 (fx-distance-point-point p source))))
-                                  (if (> d 255) 255 d))
-                              0))))
-             ((= (length source) 2)
-              (make-2d-scaled-u8field
-                4
-                size-x
-                size-y
-                (lambda (p) (if (point-in-polygon? limit-polygon p)
-                                (let ((d (fx* 2 (fx-distance-point-segment p source))))
-                                  (if (> d 255) 255 d))
-                              0))))
-             ((>= (length source) 3)
-              (make-2d-scaled-u8field
-                4
-                size-x
-                size-y
-                (lambda (p) 0.7)))))
-      light-sources))
-    (lambda (a b)
-      (let ((sum (fx- (fx+ a b) 255)))
-        (if (fx< sum 0) 0 sum)))))
-
-;-------------------------------------------------------------------------------
 ; World
 ;-------------------------------------------------------------------------------
 
 ;;; World type
 
 (define-structure world agents fields)
-
-;;; World visualization
-
-(define (visualize-world world)
-  (for-each
-    visualize-field
-    (world-fields world))
-  (for-each
-    visualize-agent
-    (world-agents world))
-  (visualization:do-now)
-  (visualization:forget-layers '(agents fields)))
