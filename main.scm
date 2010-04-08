@@ -9,6 +9,7 @@
 (import constraints)
 (import filters)
 (import graph)
+(import graph-visualization)
 (import input)
 (import mutation)
 (import output)

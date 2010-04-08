@@ -153,6 +153,11 @@
     (make-point (+ (point-x O) (* (vect2-u vec) percentage))
                 (+ (point-y O) (* (vect2-v vec) percentage)))))
 
+;;; Calculate the segment's mid point
+
+(define (segment-mid-point seg)
+  (mid-point (segment-first-point seg) (segment-second-point seg)))
+
 ;-------------------------------------------------------------------------------
 ; Point-lists: Polygons and Paths
 ;-------------------------------------------------------------------------------

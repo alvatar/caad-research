@@ -35,6 +35,8 @@
 (export visualization:paint-image)
 (export visualization:image-set!)
 (export visualization:translate)
+(export visualization:scale)
+(export visualization:reset-transformations)
 
 (define maxx 500)
 (define maxy 500)
@@ -284,5 +286,15 @@
 
 ;;; Translate world
 
-(define (visualization:translate cairo x y)
-  (cairo-translate cairo x y))
+(define (visualization:translate cairo vec)
+  (cairo-translate cairo (vect2-u vec) (vect2-v vec)))
+
+;;; Scale world
+
+(define (visualization:scale cairo vec)
+  (cairo-scale cairo (vect2-u vec) (vect2-v vec)))
+
+;;; Reset transformations
+
+(define (visualization:reset-transformations cairo)
+  (cairo-identity-matrix cairo))

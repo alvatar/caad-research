@@ -100,6 +100,7 @@
     (make-world 
       (append basic-set more)
       (list (make-light-field graph graph-space-size-x graph-space-size-y)
-            (make-entry-point-field graph graph-space-size-x graph-space-size-y)
-            (make-structure-field graph graph-space-size-x graph-space-size-y)
-            (make-pipes-field graph graph-space-size-x graph-space-size-y)))))
+            ;(make-entry-point-field graph graph-space-size-x graph-space-size-y)
+            ;(make-structure-field graph graph-space-size-x graph-space-size-y)
+            ;(make-pipes-field graph graph-space-size-x graph-space-size-y)))))
+            ))))

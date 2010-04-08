@@ -103,7 +103,7 @@
 
 (define (reference-list-to-elements graph ref-lis)
   (define (iter elem-lis ref-lis)
-    (if (null-list? ref-lis)
+    (if (null? ref-lis)
         elem-lis
       (iter (append elem-lis (list (reference-to-element graph (car ref-lis)))) (cdr ref-lis))))
   (iter '() ref-lis))
@@ -298,3 +298,47 @@
         (cdr uid-lis))))
   (let ((uids (make-uid-list)))
     (collect-walls '() uids)))
+
+;-------------------------------------------------------------------------------
+; Pipes
+;-------------------------------------------------------------------------------
+
+;;; Get the pipe's position
+
+(define (pipe-position pipe)
+  (archpoint->point ((sxpath '(@ *)) pipe)))
+
+;-------------------------------------------------------------------------------
+; Entry
+;-------------------------------------------------------------------------------
+
+;;; Get the entry point as a list of points corresponding to the door
+
+(define (entry->point-list entry graph)
+  (let* ((doorNumber (string->number (car ((sxpath '(@ doorNumber *text*)) entry))))
+         (wall (reference-to-element graph ((sxpath '(*)) entry)))
+         (doors (wall-doors wall)))
+    (if (> doorNumber (length doors))
+        (error "entry->point-list: entry is assigned door number that doesn't exist in the referenced wall"))
+    (wall-element->point-list
+      (list-ref doors doorNumber)
+      wall)))
+
+;-------------------------------------------------------------------------------
+; Pilar
+;-------------------------------------------------------------------------------
+
+;;; Get the pilar as a list of points
+
+(define (pilar->point-list pilar graph)
+  (let* ((center (archpoint->point ((sxpath '(center @ *)) pilar)))
+         (dimensions ((sxpath '(dim @ *)) pilar))
+         (a (string->number (cadadr dimensions)))
+         (b (string->number (cadar dimensions)))
+         (a/2 (/ a 2))
+         (b/2 (/ b 2)))
+    (list
+      (make-point (- (point-x center) a/2) (- (point-y center) b/2))
+      (make-point (+ (point-x center) a/2) (- (point-y center) b/2))
+      (make-point (+ (point-x center) a/2) (+ (point-y center) b/2))
+      (make-point (- (point-x center) a/2) (+ (point-y center) b/2)))))

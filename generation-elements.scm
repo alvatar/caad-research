@@ -34,15 +34,15 @@
     (lambda (backend)
       ;; Paint nodes string
       (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
-      (visualization:paint-set-line-width backend 0.5)
+      (visualization:paint-set-line-width backend 0.05)
       (visualization:paint-path backend (agent-node-positions a))
       ;; Paint nodes
       (for-each
         (lambda (pos)
           (visualization:paint-set-color backend 1.0 1.0 1.0 0.9)
-          (visualization:paint-circle-fill backend (point-x pos) (point-y pos) 5.0)
+          (visualization:paint-circle-fill backend (point-x pos) (point-y pos) 0.4)
           (visualization:paint-set-color backend 1.0 0.0 0.0 0.9)
-          (visualization:paint-circle-fill backend (point-x pos) (point-y pos) 3.0))
+          (visualization:paint-circle-fill backend (point-x pos) (point-y pos) 0.25))
       (agent-node-positions a))
       ;; Paint label
       (let ((pos (point-list-right-most (agent-node-positions a))))
@@ -50,9 +50,9 @@
         (visualization:paint-text backend
                                   (symbol->string (agent-label a))
                                   "Arial"
-                                  10.0
-                                  (+ (point-x pos) 9.0)
-                                  (+ (point-y pos) 3.0)))))
+                                  0.75
+                                  (+ (point-x pos) 0.6)
+                                  (+ (point-y pos) 0.2)))))
   (visualization:layer-depth-set! 'agents 10))
 
 ;-------------------------------------------------------------------------------

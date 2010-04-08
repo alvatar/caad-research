@@ -25,8 +25,8 @@
 ; Arithmetic
 ;-------------------------------------------------------------------------------
 
-;; Is equal? (with precision) for lists
-;;
+;;; Is equal? (with precision) for lists
+
 (define (=~e* a b precision)
   (if (and (list? a) (list? b))
       (every (lambda (e1 e2) (=~e* e1 e2 precision))
@@ -34,43 +34,48 @@
              b)
     (=~e a b precision)))
 
-;; Is equal? for lists
-;;
+;;; Is equal? for lists
+
 (define (=~* a b precision)
   (=~e* a b equal-accuracy))
 
-;; Is equal? (with precision) for inexacts
-;;
+;;; Is equal? (with precision) for inexacts
+
 (define (=~e a b e)
   (< (abs (- a b)) e))
 
-;; Is equal? for inexacts
-;;
+;;; Is equal? for inexacts
+
 (define (=~ a b)
   (=~e a b equal-accuracy))
 
-;; Average between two values
-;;
+;;; Inverse function
+
+(define (inverse x)
+  (/ 1.0 x))
+
+;;; Average between two values
+
 (define (average a b)
   (/ (+ a b) 2.0))
 
-;; Fixnum square
-;;
+;;; Fixnum square
+
 (define (fxsquare x)
   (fx* x x))
 
-;; Square
-;;
+;;; Square
+
 (define (square x)
   (* x x))
 
-;; Fixnum increment
-;;
+;;; Fixnum increment
+
 (define (incr x)
   (fx+ x 1))
 
-;; Fixnum decrement
-;;
+;;; Fixnum decrement
+
 (define (decr x)
   (fx- x 1))
 
@@ -82,16 +87,16 @@
 
 (define-structure vect2 u v)
 
-;; Vector addition
-;;
+;;; Vector addition
+
 (define (vect2+vect2 v1 v2)
   (make-vect2 (+ (vect2-u v1)
                  (vect2-u v2))
               (+ (vect2-v v1)
                  (vect2-v v2))))
 
-;; Vector substraction
-;;
+;;; Vector substraction
+
 (define (vect2-vect2 v1 v2)
   (make-vect2 (- (vect2-u v1)
                  (vect2-u v2))
@@ -110,13 +115,13 @@
   (make-vect2 (/ (vect2-u v) a)
               (/ (vect2-v v) a)))
 
-;; Are these vectors equal?
-;;
+;;; Are these vectors equal?
+
 (define (vect2=? v1 v2)
   (vect2=?e v1 v2 equal-accuracy))
 
-;; Are these vectors equal? (with epsilon)
-;;
+;;; Are these vectors equal? (with epsilon)
+
 (define (vect2=?e v1 v2 e)
   (and (=~e (vect2-u v1)
             (vect2-u v2)
@@ -125,14 +130,26 @@
             (vect2-v v2)
             e)))
 
-;; Calculate vector length
-;;
+;;; Calculate vector length
+
 (define (vect2-length vec)
   (sqrt (+ (expt (vect2-u vec) 2)
            (expt (vect2-v vec) 2))))
 
-;; Normalize vector
-;;
+;;; Calculate squared vector length
+
+(define (vect2-squaredlength vec)
+  (+ (expt (vect2-u vec) 2)
+     (expt (vect2-v vec) 2)))
+
+;;; Calculate the inverse vector
+
+(define (vect2-inverse vec)
+  (make-vect2 (- (vect2-u vec))
+              (- (vect2-v vec))))
+
+;;; Normalize vector
+
 (define (vect2-normalize vec)
   (let ((div (vect2-length vec)))
     (make-vect2 (/ (abs (vect2-u vec)) div)
