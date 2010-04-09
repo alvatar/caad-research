@@ -20,15 +20,12 @@
 
 (define (visualize-graph graph)
   (let* ((limits (graph-bounding-box graph))
-         (diff-vec (vect2-vect2 (point->vect2 (cadr limits))
+         (size-vec (vect2-vect2 (point->vect2 (cadr limits))
                                 (point->vect2 (car limits))))
-         (max-dim (max (vect2-u diff-vec) (vect2-v diff-vec)))
          (frame-factor 0.7)
-         (scale-x (/ (min maxx maxy) (* (vect2-u diff-vec) (inverse frame-factor))))
-         (scale-y (/ (min maxx maxy) (* (vect2-v diff-vec) (inverse frame-factor))))
-         (vis-scale (min scale-x scale-y))
-         (relation-x (/ scale-x vis-scale))
-         (relation-y (/ scale-y vis-scale)))
+         (max-scale-x (/ maxx (* (vect2-u size-vec))))
+         (max-scale-y (/ maxy (* (vect2-v size-vec))))
+         (vis-scale (* frame-factor (min max-scale-x max-scale-y))))
 
   (visualization:do-later
     'graph
@@ -138,8 +135,8 @@
       (visualization:translate backend (vect2-inverse (point->vect2 (car limits))))
       (visualization:scale backend (make-vect2 vis-scale vis-scale))
       (visualization:translate backend (make-vect2
-                                         (/ (* maxx (- 1 frame-factor) 0.5 relation-x) vis-scale)
-                                         (/ (* maxy (- 1 frame-factor) 0.5 relation-y) vis-scale))))) ; 0.5 stands for half the displacement
+                                         (/ (* (- maxx (* vis-scale (vect2-u size-vec))) 0.5) vis-scale)
+                                         (/ (* (- maxy (* vis-scale (vect2-v size-vec))) 0.5) vis-scale))))) ; 0.5 stands for half the displacement
   (visualization:layer-depth-set! '%scale 0)
 
   (visualization:do-later
