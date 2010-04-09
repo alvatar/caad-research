@@ -169,6 +169,7 @@
 
 ;;; Make bidimensional u8 integers field
 
+#|
 (define (make-2d-u8field size-x size-y proc)
   (let ((point (make-vect2 0 0))
         (len (fx* size-x size-y)))
@@ -177,6 +178,27 @@
         (vect2-u-set! point (fxmodulo i size-y))
         (vect2-v-set! point (fxquotient i size-y))
         (u8vector-set! vec i (proc point)))))
+        |#
+
+;;; Make bidimensional u8 integers field
+
+(define (make-2d-u8field
+          samples-num-x
+          samples-num-y
+          mapped-dim-x
+          mapped-dim-y
+          proc)
+  (let* ((point (make-vect2 0 0))
+         (buffer-len (fx* samples-num-x samples-num-y))
+         (pixel-size-x (fl/ mapped-dim-x (fixnum->flonum samples-num-x)))
+         (pixel-size-y (fl/ mapped-dim-y (fixnum->flonum samples-num-y)))
+         (pixel-size (max pixel-size-x pixel-size-y)))
+    (do ((vec (make-u8vector buffer-len))
+         (i 0 (fx+ i 1)))
+        ((fx>= i buffer-len) vec)
+      (vect2-u-set! point (fl* pixel-size (fixnum->flonum (fxmodulo i samples-num-y))))
+      (vect2-v-set! point (fl* pixel-size (fixnum->flonum (fxquotient i samples-num-y))))
+      (u8vector-set! vec i (proc point)))))
 
 ;;; Make bidimensional u8 integers field (scaled)
 

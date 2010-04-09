@@ -134,9 +134,11 @@
     (lambda (backend)
       (visualization:translate backend (vect2-inverse (point->vect2 (car limits))))
       (visualization:scale backend (make-vect2 vis-scale vis-scale))
-      (visualization:translate backend (make-vect2
-                                         (/ (* (- maxx (* vis-scale (vect2-u size-vec))) 0.5) vis-scale)
-                                         (/ (* (- maxy (* vis-scale (vect2-v size-vec))) 0.5) vis-scale))))) ; 0.5 stands for half the displacement
+      (visualization:translate
+        backend
+        (make-vect2
+          (/ (* (- maxx (* vis-scale (vect2-u size-vec))) 0.5) vis-scale)
+          (/ (* (- maxy (* vis-scale (vect2-v size-vec))) 0.5) vis-scale))))) ; 0.5 stands for half the displacement
   (visualization:layer-depth-set! '%scale 0)
 
   (visualization:do-later
