@@ -12,20 +12,6 @@
 (import ../utils/misc)
 
 (define (make-light-field graph size-x size-y)
-  #|
-  (merge-2d-u8fields
-    (list
-    (make-2d-u8field
-      size-x
-      size-y
-      18.0
-      26.0
-      (lambda (v) 30))
-      )
-    (lambda (a b)
-      (let ((sum (fx- (fx+ a b) 255)))
-        (if (fx< sum 0) 0 sum)))))
-        |#
   (merge-2d-u8fields
     (let ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
           (light-sources (all-wall-element-points-all-walls->point-list 'window graph)))

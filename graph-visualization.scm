@@ -112,7 +112,7 @@
               ((equal? (car elem) 'pipe)
                (paint-pipe elem)))))
         (graph-parts graph))))
-  (visualization:layer-depth-set! 'graph 5)
+  (visualization:layer-depth-set! 'graph 50)
 
   (visualization:do-later
     'visual-aids
@@ -127,7 +127,7 @@
         (visualization:paint-path backend x-dir-mark)
         (visualization:paint-path backend y-dir-mark)
         (visualization:paint-set-line-style backend '()))))
-  (visualization:layer-depth-set! 'visual-aids 2)
+  (visualization:layer-depth-set! 'visual-aids 40)
   
   (visualization:do-later
     '%framing
@@ -139,10 +139,10 @@
         (make-vect2
           (/ (* (- maxx (* vis-scale (vect2-u size-vec))) 0.5) vis-scale)
           (/ (* (- maxy (* vis-scale (vect2-v size-vec))) 0.5) vis-scale))))) ; 0.5 stands for half the displacement
-  (visualization:layer-depth-set! '%scale 0)
+  (visualization:layer-depth-set! '%framing 10)
 
   (visualization:do-later
     '%cleanup
     (lambda (backend)
       (visualization:reset-transformations backend)))
-  (visualization:layer-depth-set! '%cleanup 99)))
+  (visualization:layer-depth-set! '%cleanup 90)))
