@@ -11,15 +11,18 @@
 (import ../math)
 (import ../utils/misc)
 
-(define (make-structure-field graph size-x size-y)
+(define (make-structure-field graph size-x size-y mapped-x mapped-y)
   (merge-2d-u8fields
-    (list
-    (make-2d-scaled-u8field
-      4
-      size-x
-      size-y
-      (lambda (v) 30))
-      )
+    (map
+      (lambda (structural)
+        (make-2d-u8field-with-resolution
+          4
+          size-x
+          size-y
+          mapped-x
+          mapped-y
+          (lambda (v) 30)))
+      (graph-structurals graph))
     (lambda (a b)
       (let ((sum (fx- (fx+ a b) 255)))
         (if (fx< sum 0) 0 sum)))))

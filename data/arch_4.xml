@@ -23,45 +23,45 @@
                 <wall uid="CA106583-D604-4012-BA9D-DD7BFE704ACB"/>
             </room>
 
-            <pilar uid="">
+            <structural uid="">
                 <center x="6.0" y="4.0"/>
                 <dim a="0.3" b="0.4"/>
-            </pilar>
+            </structural>
 
-            <pilar uid="">
+            <structural uid="">
                 <center x="12.0" y="4.0"/>
                 <dim a="0.3" b="0.4"/>
-            </pilar>
+            </structural>
 
-            <pilar uid="">
+            <structural uid="">
                 <center x="6.0" y="10.0"/>
                 <dim a="0.3" b="0.4"/>
-            </pilar>
+            </structural>
 
-            <pilar uid="">
+            <structural uid="">
                 <center x="12.0" y="10.0"/>
                 <dim a="0.3" b="0.4"/>
-            </pilar>
+            </structural>
 
-            <pilar uid="">
+            <structural uid="">
                 <center x="6.0" y="16.0"/>
                 <dim a="0.3" b="0.4"/>
-            </pilar>
+            </structural>
 
-            <pilar uid="">
+            <structural uid="">
                 <center x="12.0" y="16.0"/>
                 <dim a="0.3" b="0.4"/>
-            </pilar>
+            </structural>
 
-            <pilar uid="">
+            <structural uid="">
                 <center x="6.0" y="22.0"/>
                 <dim a="0.3" b="0.4"/>
-            </pilar>
+            </structural>
 
-            <pilar uid="">
+            <structural uid="">
                 <center x="12.0" y="22.0"/>
                 <dim a="0.3" b="0.4"/>
-            </pilar>
+            </structural>
 
             <wall uid="DB7F49A3-BBF6-40F3-95A1-038CCACE1D88">
                 <pt x="0.0" y="0.0"/>

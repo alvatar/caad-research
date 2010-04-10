@@ -59,14 +59,14 @@
             (window)
             (visualization:paint-path backend (wall-element->point-list window wall)))
           (wall-windows wall)))
-      ;; Paint pilar
-      (define (paint-pilar pilar)
-        (let ((pilar-points (pilar->point-list pilar graph)))
+      ;; Paint structural
+      (define (paint-structural structural)
+        (let ((structural-points (structural->point-list structural graph)))
         (visualization:paint-set-line-width backend 0.02)
         (visualization:paint-set-color backend 0.2 0.2 0.2 1.0)
-        (visualization:paint-polygon backend pilar-points)
+        (visualization:paint-polygon backend structural-points)
         (visualization:paint-set-color backend 0.0 0.0 0.0 1.0)
-        (visualization:paint-path backend (snoc pilar-points (car pilar-points)))))
+        (visualization:paint-path backend (snoc structural-points (car structural-points)))))
       ;; Paint room
       (define (paint-room room)
         (visualization:paint-set-color backend 0.0 0.0 0.3 0.3)
@@ -103,8 +103,8 @@
                  elem)
                (paint-doors-in-wall 
                  elem))
-              ((equal? (car elem) 'pilar)
-               (paint-pilar elem))
+              ((equal? (car elem) 'structural)
+               (paint-structural elem))
               ((equal? (car elem) 'room)
                (paint-room elem))
               ((equal? (car elem) 'entry)

@@ -227,7 +227,7 @@
       (if (point-in-polygon? point-list p)
           p
         (try origin delta))))
-  (let* ((bounding-box (point-list-bounding-box point-list))
+  (let* ((bounding-box (point-list->bounding-box point-list))
          (bb-left-corner (car bounding-box))
          (bb-right-corner (cadr bounding-box)))
     (try
@@ -243,25 +243,6 @@
     (lambda (e)
       (any (lambda (it) (point=? it e)) plis1))
     plis2))
-
-;;; Calculate the bounding point of a point-list
-
-(define (point-list-bounding-box point-list)
-  (let ((first (car point-list))
-        (rest (cdr point-list)))
-    (list
-      (make-point (fold (lambda (point x) (min x (point-x point)))
-                        (point-x first)
-                        rest)
-                  (fold (lambda (point y) (min y (point-y point)))
-                        (point-y first)
-                        rest))
-      (make-point (fold (lambda (point x) (max x (point-x point)))
-                        (point-x first)
-                        rest)
-                  (fold (lambda (point y) (max y (point-y point)))
-                        (point-y first)
-                        rest)))))
 
 ;;; Calculate the tangent vector in a point-list given the relative position
 
@@ -426,3 +407,26 @@
 
 (define (segment-polygon-intersection seg pol)
   (segment-polyline-intersection seg (append pol (list (car pol)))))
+
+;-------------------------------------------------------------------------------
+; Bounding box
+;-------------------------------------------------------------------------------
+
+;;; Calculate the bounding point of a point-list
+
+(define (point-list->bounding-box point-list)
+  (let ((first (car point-list))
+        (rest (cdr point-list)))
+    (list
+      (make-point (fold (lambda (point x) (min x (point-x point)))
+                        (point-x first)
+                        rest)
+                  (fold (lambda (point y) (min y (point-y point)))
+                        (point-y first)
+                        rest))
+      (make-point (fold (lambda (point x) (max x (point-x point)))
+                        (point-x first)
+                        rest)
+                  (fold (lambda (point y) (max y (point-y point)))
+                        (point-y first)
+                        rest)))))

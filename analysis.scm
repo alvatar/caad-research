@@ -133,7 +133,7 @@
 ;;; Calculate bounding box
 
 (define (graph-bounding-box graph)
-  (point-list-bounding-box (wall-list->point-list (graph-find-exterior-walls graph))))
+  (point-list->bounding-box (wall-list->point-list (graph-find-exterior-walls graph))))
 
 ;;; Calculate wall mid point
 

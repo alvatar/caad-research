@@ -46,6 +46,11 @@
 (define (graph-rooms graph)
   ((sxpath '(room)) graph))
 
+;;; Get all the structural elements in the graph
+
+(define (graph-structurals graph)
+  ((sxpath '(structural)) graph))
+
 ;;; Remove element from graph
 
 (define (remove-element graph element)
@@ -325,14 +330,14 @@
       wall)))
 
 ;-------------------------------------------------------------------------------
-; Pilar
+; Structure
 ;-------------------------------------------------------------------------------
 
-;;; Get the pilar as a list of points
+;;; Get the structural as a list of points
 
-(define (pilar->point-list pilar graph)
-  (let* ((center (archpoint->point ((sxpath '(center @ *)) pilar)))
-         (dimensions ((sxpath '(dim @ *)) pilar))
+(define (structural->point-list structural graph)
+  (let* ((center (archpoint->point ((sxpath '(center @ *)) structural)))
+         (dimensions ((sxpath '(dim @ *)) structural))
          (a (string->number (cadadr dimensions)))
          (b (string->number (cadar dimensions)))
          (a/2 (/ a 2))
