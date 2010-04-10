@@ -83,7 +83,7 @@
              (for-each
                (lambda (e)
                  (if (layer-selector e)
-                     ((painter-procedure e) cairo)))
+                     ((painter-procedure e) cairo visualization-environment)))
                external-painters)
 
              (SDL::flip cairo-surface)
@@ -99,6 +99,20 @@
 
 (define (immediate-visualization-selector layer-selector)
   (visualize-loop-with-continuation layer-selector))
+
+;-------------------------------------------------------------------------------
+; Visualization environment
+;-------------------------------------------------------------------------------
+
+(define-structure visualization:environment scale translation)
+
+(define visualization-environment (make-visualization:environment
+                                    (make-vect2 0.0 0.0)
+                                    (make-vect2 0.0 0.0)))
+
+;-------------------------------------------------------------------------------
+; Painters
+;-------------------------------------------------------------------------------
 
 ;;; Execute now the sequence of representation of the selected layers
 
@@ -172,7 +186,7 @@
     (lambda (p1 p2)
       (< (painter-depth p1) (painter-depth p2)))))
 
-(define external-painters (list (make-painter '%0 0 (lambda (a) '())))) ; Why should I add something so it is a list?
+(define external-painters (list (make-painter '%0 0 (lambda (backend env-vis) '())))) ; Why should I add something so it is a list?
 
 (define (append-painter! list-procs proc)
   (if (null? (cdr list-procs))
@@ -287,14 +301,19 @@
 ;;; Translate world
 
 (define (visualization:translate cairo vec)
-  (cairo-translate cairo (vect2-u vec) (vect2-v vec)))
+  (cairo-translate cairo (vect2-u vec) (vect2-v vec))
+  (visualization:environment-translation-set! visualization-environment vec))
 
 ;;; Scale world
 
 (define (visualization:scale cairo vec)
-  (cairo-scale cairo (vect2-u vec) (vect2-v vec)))
+  (cairo-scale cairo (vect2-u vec) (vect2-v vec))
+  (visualization:environment-scale-set! visualization-environment vec))
 
 ;;; Reset transformations
 
 (define (visualization:reset-transformations cairo)
-  (cairo-identity-matrix cairo))
+  (cairo-identity-matrix cairo)
+  (set! visualization-environment (make-visualization:environment
+                                    (make-vect2 0.0 0.0)
+                                    (make-vect2 0.0 0.0))))

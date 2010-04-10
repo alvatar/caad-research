@@ -29,7 +29,7 @@
 
   (visualization:do-later
     'graph
-    (lambda (backend)
+    (lambda (backend vis-env)
       ;; Paint wall
       (define (paint-wall wall)
         (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
@@ -112,7 +112,7 @@
               ((equal? (car elem) 'pipe)
                (paint-pipe elem)))))
         (graph-parts graph))))
-  (visualization:layer-depth-set! 'graph 50)
+  (visualization:layer-depth-set! 'graph 80)
 
   (visualization:do-later
     'visual-aids
@@ -120,18 +120,18 @@
                         ,(make-point (exact->inexact maxx) 0.0)))
           (y-dir-mark `(,(make-point 0.0 (- (exact->inexact maxy)))
                         ,(make-point 0.0 (exact->inexact maxy)))))
-      (lambda (backend)
+      (lambda (backend vis-env)
         (visualization:paint-set-line-style backend '(0.1 0.1))
         (visualization:paint-set-line-width backend 0.1)
         (visualization:paint-set-color backend 0.0 0.0 0.0 0.4)
         (visualization:paint-path backend x-dir-mark)
         (visualization:paint-path backend y-dir-mark)
         (visualization:paint-set-line-style backend '()))))
-  (visualization:layer-depth-set! 'visual-aids 40)
+  (visualization:layer-depth-set! 'visual-aids 70)
   
   (visualization:do-later
     '%framing
-    (lambda (backend)
+    (lambda (backend vis-env)
       (visualization:translate backend (vect2-inverse (point->vect2 (car limits))))
       (visualization:scale backend (make-vect2 vis-scale vis-scale))
       (visualization:translate
@@ -139,10 +139,10 @@
         (make-vect2
           (/ (* (- maxx (* vis-scale (vect2-u size-vec))) 0.5) vis-scale)
           (/ (* (- maxy (* vis-scale (vect2-v size-vec))) 0.5) vis-scale))))) ; 0.5 stands for half the displacement
-  (visualization:layer-depth-set! '%framing 10)
+  (visualization:layer-depth-set! '%framing 0)
 
   (visualization:do-later
     '%cleanup
-    (lambda (backend)
+    (lambda (backend vis-env)
       (visualization:reset-transformations backend)))
-  (visualization:layer-depth-set! '%cleanup 90)))
+  (visualization:layer-depth-set! '%cleanup 99)))

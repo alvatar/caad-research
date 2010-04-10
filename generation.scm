@@ -11,6 +11,7 @@
 (import generation-elements)
 (import geometry)
 (import graph)
+(import math)
 (import utils/misc)
 (import visualization)
 (import strategies/predesigned-band)
@@ -78,7 +79,7 @@
   (define (world-merge-agents world agents)
     (make-world agents (world-fields world)))
 
-  (visualize-world world)
+  (visualize-world world graph)
   (if (stop?)
       world
     (evolve-socially 
@@ -94,21 +95,27 @@
 
 ;;; Field visualization
 
-(define (visualize-field field)
+(define (visualize-field field size-vec)
   (visualization:do-later
     'fields
-    (lambda (backend)
-      (let ((image (visualization:create-image backend))) ; TODO: created in other place
+    (lambda (backend vis-env)
+      (let* ((image (visualization:create-image backend)) ; TODO: created in other place
+             (max-dim (max (vect2-u size-vec) (vect2-v size-vec)))
+             (image-scale (vect2*vect2
+                          (make-vect2 max-dim max-dim)
+                          (make-vect2 (inverse maxx) (inverse maxy)))))
+        (visualization:scale backend image-scale)
         (visualization:image-set! image field)
-        (visualization:paint-image backend image 1.0))))
-  (visualization:layer-depth-set! 'fields 2))
+        (visualization:paint-image backend image 0.5)
+        (visualization:scale backend (vect2-one/vect2 image-scale)))))
+  (visualization:layer-depth-set! 'fields 10))
 
 ;;; Agent visualization
 
 (define (visualize-agent a)
   (visualization:do-later
     'agents
-    (lambda (backend)
+    (lambda (backend vis-env)
       ;; Paint nodes string
       (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
       (visualization:paint-set-line-width backend 0.05)
@@ -123,23 +130,26 @@
       (agent-node-positions a))
       ;; Paint label
       (let ((pos (point-list-right-most (agent-node-positions a))))
-        (visualization:paint-set-color backend 0.4 0.4 0.4 1.0)
+        (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
         (visualization:paint-text backend
                                   (symbol->string (agent-label a))
                                   "Arial"
                                   0.75
                                   (+ (point-x pos) 0.6)
                                   (+ (point-y pos) 0.2)))))
-  (visualization:layer-depth-set! 'agents 20))
+  (visualization:layer-depth-set! 'agents 90))
 
 ;;; World visualization
 
-(define (visualize-world world)
-  (for-each
-    visualize-field
-    (world-fields world))
-  (for-each
-    visualize-agent
-    (world-agents world))
-  (visualization:do-now)
-  (visualization:forget-layers '(agents fields)))
+(define (visualize-world world graph)
+  (let* ((bb (graph-bounding-box graph))
+         (size-vec (vect2-vect2 (point->vect2 (cadr bb))
+                                (point->vect2 (car bb)))))
+    (for-each
+      (lambda (f) (visualize-field f size-vec))
+      (world-fields world))
+    (for-each
+      visualize-agent
+      (world-agents world))
+    (visualization:do-now)
+    (visualization:forget-layers '(agents fields))))

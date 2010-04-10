@@ -104,6 +104,14 @@
               (- (vect2-v v1)
                  (vect2-v v2))))
 
+;;; Vector dot product
+
+(define (vect2*vect2 v1 v2)
+  (make-vect2 (* (vect2-u v1)
+                 (vect2-u v2))
+              (* (vect2-v v1)
+                 (vect2-v v2))))
+
 ;;; Vector * scalar
 
 (define (vect2*scalar v a)
@@ -163,6 +171,13 @@
                  (* (vect2-v vec) (sin r-angle)))
               (+ (* (vect2-v vec) (cos r-angle))
                  (* (vect2-u vec) (sin r-angle)))))
+
+;;; Utility procedure to make a vector with each component 1.0 divided by the
+;;; component of the given one
+
+(define (vect2-one/vect2 vec)
+  (make-vect2 (/ 1.0 (vect2-u vec))
+              (/ 1.0 (vect2-v vec))))
 
 ;-------------------------------------------------------------------------------
 ; Vector fields
@@ -236,17 +251,19 @@
           mapped-dim-x
           mapped-dim-y
           proc)
-  (define (set-area! vec i j value)
+  (define (set-area! vec vec-len i j value)
     (let it-j ((area-j 0))
       (cond
        ((fx< area-j res)
         (let it-i ((area-i 0))
           (cond
            ((fx< area-i res)
-            (u8vector-set! vec
-                           (fx+ (fx+ i (fx* samples-num-x (fx+ j area-j))) area-i)
-                           value)
-            (it-i (incr area-i)))
+            (let ((buffer-pos (fx+ (fx+ i (fx* samples-num-x (fx+ j area-j))) area-i)))
+              (if (fx< buffer-pos vec-len) ; OPTIMIZE: is there a way to avoid this passing the number of iterations to the procedure?
+                  (u8vector-set! vec
+                                 buffer-pos
+                                 value))
+                (it-i (incr area-i))))
            (else #t)))
         (it-j (incr area-j)))
        (else #t))))
@@ -255,8 +272,8 @@
          (pixel-size-x (fl/ mapped-dim-x (fixnum->flonum samples-num-x)))
          (pixel-size-y (fl/ mapped-dim-y (fixnum->flonum samples-num-y)))
          (pixel-size (flmax pixel-size-x pixel-size-y))
-         (limit-x (- samples-num-x res))
-         (limit-y (- samples-num-y res)))
+         (limit-x samples-num-x)
+         (limit-y samples-num-y))
     (do ((vec (make-u8vector buffer-len))
          (j 0 (fx+ j res)))
       ((fx>= j limit-y) vec)
@@ -264,7 +281,7 @@
         ((fx>= i limit-x))
         (vect2-u-set! point (fl* pixel-size (fixnum->flonum i)))
         (vect2-v-set! point (fl* pixel-size (fixnum->flonum j)))
-        (set-area! vec i j (proc point))))))
+        (set-area! vec buffer-len i j (proc point))))))
 
 ;;; Merge bidimesional u8 integer fields
 
