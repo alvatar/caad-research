@@ -5,7 +5,7 @@
 ;;; Geometrical operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;(declare (standard-bindings)(extended-bindings)(block)(not safe))
+(declare (standard-bindings)(extended-bindings)(block)(not safe))
 (compile-options force-compile: #t)
 
 (import (std srfi/1))
@@ -288,6 +288,10 @@
     (flsqrt (fixnum->flonum (fx+ (fxsquare (fx- (point-x a) (point-x b)))
                                  (fxsquare (fx- (point-y a) (point-y b))))))))
 
+(define (fl-distance-point-point a b)
+  (flsqrt (fl+ (flsquare (fl- (point-x a) (point-x b)))
+               (flsquare (fl- (point-y a) (point-y b))))))
+
 ;;; Calculate the distance between point and segment
 
 (define (distance-point-segment p sg)
@@ -336,7 +340,31 @@
            (y (fx+ p1y (round (* u sv))))
            (dx (fx- x px))
            (dy (fx- y py)))
-      (##flonum.->fixnum (sqrt (fixnum->flonum (fx+ (fx* dx dx) (fx* dy dy))))))))
+      (##flonum.->fixnum (flsqrt (fixnum->flonum (fx+ (fx* dx dx) (fx* dy dy))))))))
+
+(define (fl-distance-point-segment p sg)
+  (let* ((p1x (point-x (segment-first-point sg)))
+         (p1y (point-y (segment-first-point sg)))
+         (p2x (point-x (segment-second-point sg)))
+         (p2y (point-y (segment-second-point sg)))
+         (px (point-x p))
+         (py (point-y p))
+         (su (fl- p2x p1x))
+         (sv (fl- p2y p1y))
+         (div (fl+ (fl* su su) (fl* sv sv)))
+         (u (fl/ (fl+ (fl* (fl- px p1x) su)
+                      (fl* (fl- py p1y) sv))
+                 div)))
+    (cond
+     ((fl> u 1.0)
+      (set! u 1.0))
+     ((fl< u 0.0)
+      (set! u 0.0)))
+    (let* ((x (fl+ p1x (fl* u su)))
+           (y (fl+ p1y (fl* u sv)))
+           (dx (fl- x px))
+           (dy (fl- y py)))
+      (flsqrt (fl+ (fl* dx dx) (fl* dy dy))))))
 
 ;;; Calculate the distance between a point and a point list
 

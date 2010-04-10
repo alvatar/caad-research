@@ -19,32 +19,20 @@
         (lambda (source)
             (cond
              ((vect2? source) ; For point-lights
-              (make-2d-u8field
-                size-x
-                size-y
-                18.0
-                26.0
-                (lambda (v) (if (point-in-polygon? limit-polygon (vect2->point v))
-                                (let ((d (fx* 2 (fx-distance-point-point (vect2->point v) source))))
-                                  (if (> d 255) 255 d))
-                              0))))
+              (error "unimplemented"))
              ((= (length source) 2) ; For segments
-              (make-2d-u8field
+              (make-2d-u8field-with-resolution
+                4
                 size-x
                 size-y
                 18.0
                 26.0
                 (lambda (v) (if (point-in-polygon? limit-polygon (vect2->point v))
-                                (let ((d (* 20.0 (distance-point-segment (vect2->point v) source))))
-                                  (if (> d 255) 255 (inexact->exact (round d))))
+                                (let ((d (fl* 20.0 (fl-distance-point-segment (vect2->point v) source))))
+                                  (if (fl> d 255.0) 255 (##flonum.->fixnum d)))
                               0))))
-             ((>= (length source) 3) ; For polylines (unimplemented)
-              (make-2d-u8field
-                size-x
-                size-y
-                18.0
-                26.0
-                (lambda (v) 0.7)))))
+             ((>= (length source) 3) ; For polylines
+              (error "unimplemented"))))
       light-sources))
     (lambda (a b)
       (let ((sum (fx- (fx+ a b) 255)))

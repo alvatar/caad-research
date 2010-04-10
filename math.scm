@@ -59,15 +59,16 @@
 (define (average a b)
   (/ (+ a b) 2.0))
 
-;;; Fixnum square
-
-(define (fxsquare x)
-  (fx* x x))
-
 ;;; Square
 
 (define (square x)
   (* x x))
+
+(define (fxsquare x)
+  (fx* x x))
+
+(define (flsquare x)
+  (fl* x x))
 
 ;;; Fixnum increment
 
@@ -169,19 +170,6 @@
 
 ;;; Make bidimensional u8 integers field
 
-#|
-(define (make-2d-u8field size-x size-y proc)
-  (let ((point (make-vect2 0 0))
-        (len (fx* size-x size-y)))
-      (do ((vec (make-u8vector len))
-           (i 0 (fx+ i 1))) ((fx>= i len) vec)
-        (vect2-u-set! point (fxmodulo i size-y))
-        (vect2-v-set! point (fxquotient i size-y))
-        (u8vector-set! vec i (proc point)))))
-        |#
-
-;;; Make bidimensional u8 integers field
-
 (define (make-2d-u8field
           samples-num-x
           samples-num-y
@@ -192,7 +180,7 @@
          (buffer-len (fx* samples-num-x samples-num-y))
          (pixel-size-x (fl/ mapped-dim-x (fixnum->flonum samples-num-x)))
          (pixel-size-y (fl/ mapped-dim-y (fixnum->flonum samples-num-y)))
-         (pixel-size (max pixel-size-x pixel-size-y)))
+         (pixel-size (flmax pixel-size-x pixel-size-y)))
     (do ((vec (make-u8vector buffer-len))
          (i 0 (fx+ i 1)))
         ((fx>= i buffer-len) vec)
@@ -200,9 +188,20 @@
       (vect2-v-set! point (fl* pixel-size (fixnum->flonum (fxquotient i samples-num-y))))
       (u8vector-set! vec i (proc point)))))
 
-;;; Make bidimensional u8 integers field (scaled)
+;;; Make bidimensional u8 integers field (1 to 1 scale)
 
-(define (make-2d-scaled-u8field res size-x size-y proc)
+(define (make-2d-u8field-1:1 size-x size-y proc)
+  (let ((point (make-vect2 0 0))
+        (len (fx* size-x size-y)))
+      (do ((vec (make-u8vector len))
+           (i 0 (fx+ i 1))) ((fx>= i len) vec)
+        (vect2-u-set! point (fxmodulo i size-y))
+        (vect2-v-set! point (fxquotient i size-y))
+        (u8vector-set! vec i (proc point)))))
+
+;;; Make bidimensional u8 integers field (with resolution, 1 to 1 scale)
+
+(define (make-2d-u8field-with-resolution-1:1 res size-x size-y proc)
   (define (set-area! vec i j value)
     (let it-j ((area-j 0))
       (cond
@@ -226,6 +225,45 @@
         ((fx>= i size-x))
         (vect2-u-set! point i)
         (vect2-v-set! point j)
+        (set-area! vec i j (proc point))))))
+
+;;; Make bidimensional u8 integers field (with resolution)
+
+(define (make-2d-u8field-with-resolution
+          res
+          samples-num-x
+          samples-num-y
+          mapped-dim-x
+          mapped-dim-y
+          proc)
+  (define (set-area! vec i j value)
+    (let it-j ((area-j 0))
+      (cond
+       ((fx< area-j res)
+        (let it-i ((area-i 0))
+          (cond
+           ((fx< area-i res)
+            (u8vector-set! vec
+                           (fx+ (fx+ i (fx* samples-num-x (fx+ j area-j))) area-i)
+                           value)
+            (it-i (incr area-i)))
+           (else #t)))
+        (it-j (incr area-j)))
+       (else #t))))
+  (let* ((point (make-vect2 0 0))
+         (buffer-len (fx* samples-num-x samples-num-y))
+         (pixel-size-x (fl/ mapped-dim-x (fixnum->flonum samples-num-x)))
+         (pixel-size-y (fl/ mapped-dim-y (fixnum->flonum samples-num-y)))
+         (pixel-size (flmax pixel-size-x pixel-size-y))
+         (limit-x (- samples-num-x res))
+         (limit-y (- samples-num-y res)))
+    (do ((vec (make-u8vector buffer-len))
+         (j 0 (fx+ j res)))
+      ((fx>= j limit-y) vec)
+      (do ((i 0 (fx+ i res)))
+        ((fx>= i limit-x))
+        (vect2-u-set! point (fl* pixel-size (fixnum->flonum i)))
+        (vect2-v-set! point (fl* pixel-size (fixnum->flonum j)))
         (set-area! vec i j (proc point))))))
 
 ;;; Merge bidimesional u8 integer fields
