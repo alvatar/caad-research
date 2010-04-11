@@ -11,7 +11,7 @@
 (import ../math)
 (import ../utils/misc)
 
-(define (make-light-field graph size-x size-y)
+(define (make-light-field graph size-x size-y mapped-x mapped-y)
   (let ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
         (light-sources (all-wall-element-points-all-walls->point-list 'window graph)))
     (merge-2d-u8fields
@@ -25,8 +25,8 @@
                4
                size-x
                size-y
-               18.0
-               26.0
+               mapped-x
+               mapped-y
                (lambda (v) (if (point-in-polygon? limit-polygon (vect2->point v))
                              (let ((d (fl* 20.0 (fl-distance-point-segment (vect2->point v) source))))
                                (if (fl> d 255.0) 255 (##flonum.->fixnum d)))

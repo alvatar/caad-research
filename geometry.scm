@@ -162,6 +162,11 @@
 ; Point-lists: Polygons and Paths
 ;-------------------------------------------------------------------------------
 
+;;; Close a point-list (repeats first point in the last position)
+
+(define (point-list-close plis)
+  (snoc plis (car plis)))
+
 ;;; Point-list centroid
 
 (define (point-list-centroid plis)
@@ -350,7 +355,28 @@
 ;;; Calculate the distance between a point and a point list
 
 (define (distance-point-point-list p plis)
-  0.0)
+  (cond
+   ((or (null? plis) (null? (cdr plis)))
+    +inf.0)
+   (else
+    (min (distance-point-segment
+           p
+           (list (car plis) (cadr plis)))
+         (distance-point-point-list
+           p
+           (cdr plis))))))
+
+(define (fl-distance-point-point-list p plis)
+  (cond
+   ((or (null? plis) (null? (cdr plis)))
+    +inf.0)
+   (else
+    (min (fl-distance-point-segment
+           p
+           (list (car plis) (cadr plis)))
+         (fl-distance-point-point-list
+           p
+           (cdr plis))))))
 
 ;-------------------------------------------------------------------------------
 ; Intersections

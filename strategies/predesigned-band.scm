@@ -21,8 +21,8 @@
   (let*
     ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
      (bb-vect (segment->vect2 (point-list->bounding-box limit-polygon)))
-     (bb-x (vect-u bb-vect))
-     (bb-y (vect-v bb-vect))
+     (bb-x (vect2-u bb-vect))
+     (bb-y (vect2-v bb-vect))
      (basic-set
       `(,(make-agent
            'entrance
@@ -103,7 +103,7 @@
                (agent-proc agent)))))))
     (make-world 
       (append basic-set more)
-      (list (make-light-field graph graph-space-size-x graph-space-size-y bb-x bb-y)
+      (list ;(make-light-field graph graph-space-size-x graph-space-size-y bb-x bb-y)
             ;(make-entry-point-field graph graph-space-size-x graph-space-size-y)
             (make-structure-field graph graph-space-size-x graph-space-size-y bb-x bb-y)
             ;(make-pipes-field graph graph-space-size-x graph-space-size-y)))))
