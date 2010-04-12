@@ -23,86 +23,93 @@
      (bb-vect (segment->vect2 (point-list->bounding-box limit-polygon)))
      (bb-x (vect2-u bb-vect))
      (bb-y (vect2-v bb-vect))
-     (basic-set
-      `(,(make-agent
+     (light-field (make-light-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon))
+     (entries-field (make-entries-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon))
+     (structure-field (make-structure-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon))
+     (pipes-field (make-pipes-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)))
+     (letrec
+       ((agents (list
+         (make-agent
            'entrance
            (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (list (random-point-in-polygon limit-polygon))
+               (let ((pos (car (agent-node-positions agent))))
+                 (list (make-point 0.0 0.0 ) #;(point-translate
+                         (vect2-compose
+                           (field->force-vect2 light-field pos)
+                           (inverse-gravity-force-agents agents)))))
                (agent-proc agent))))
-        ,(make-agent
+         (make-agent
            'bath
            (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (list (random-point-in-polygon limit-polygon))
+               (list (make-point 0.0 0.0))
                (agent-proc agent))))
-        ,(make-agent
+         (make-agent
            'room1
            (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (list (random-point-in-polygon limit-polygon))
+               (list (make-point 0.0 0.0))
                (agent-proc agent))))
-        ,(make-agent
+         (make-agent
            'living
            (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (list (random-point-in-polygon limit-polygon))
+               (list (make-point 0.0 0.0))
                (agent-proc agent))))
-        ,(make-agent
+         (make-agent
            'kitchen
            (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (list (random-point-in-polygon limit-polygon))
-               (agent-proc agent))))))
-     (more
-      `(,(make-agent
+               (list (make-point 0.0 0.0))
+               (agent-proc agent))))
+         (make-agent
            'distrib
            (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (list (random-point-in-polygon limit-polygon))
+               (list (make-point 0.0 0.0))
                (agent-proc agent))))
-        ,(make-agent
+         (make-agent
            'storage
            (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (list (random-point-in-polygon limit-polygon))
+               (list (make-point 0.0 0.0))
                (agent-proc agent))))
-        ,(make-agent
+         (make-agent
            'room2
            (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (list (random-point-in-polygon limit-polygon))
+               (list (make-point 0.0 0.0))
                (agent-proc agent))))
-        ,(make-agent
+         (make-agent
            'room3
            (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (list (random-point-in-polygon limit-polygon))
+               (list (make-point 0.0 0.0))
                (agent-proc agent)))))))
-    (values
-      graph
-      (make-world 
-        (append basic-set more)
-        (list
-          (make-light-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
-          (make-entries-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
-          (make-structure-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
-          (make-pipes-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon))))))
+       (values
+         graph
+         (make-world 
+           agents
+           (list light-field
+                 entries-field
+                 structure-field
+                 pipes-field))))))
