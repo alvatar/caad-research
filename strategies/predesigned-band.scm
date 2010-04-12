@@ -6,7 +6,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import ../analysis)
-(import ../fields/entry-points)
+(import ../fields/entries)
 (import ../fields/light)
 (import ../fields/pipes)
 (import ../fields/structure)
@@ -103,8 +103,9 @@
                (agent-proc agent)))))))
     (make-world 
       (append basic-set more)
-      (list ;(make-light-field graph graph-space-size-x graph-space-size-y bb-x bb-y)
-            ;(make-entry-point-field graph graph-space-size-x graph-space-size-y)
-            (make-structure-field graph graph-space-size-x graph-space-size-y bb-x bb-y)
-            ;(make-pipes-field graph graph-space-size-x graph-space-size-y)))))
-            ))))
+      (list
+        ;(make-light-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
+        (make-entries-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
+        ;(make-structure-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
+        ;(make-pipes-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)))))
+        ))))

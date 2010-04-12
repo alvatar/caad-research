@@ -46,6 +46,16 @@
 (define (graph-rooms graph)
   ((sxpath '(room)) graph))
 
+;;; Get the pipes in the graph
+
+(define (graph-pipes graph)
+  ((sxpath '(pipe)) graph))
+
+;;; Get the entrances
+
+(define (graph-entries graph)
+  ((sxpath '(entry)) graph))
+
 ;;; Get all the structural elements in the graph
 
 (define (graph-structurals graph)
