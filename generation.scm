@@ -20,52 +20,48 @@
 ; General procedures
 ;-------------------------------------------------------------------------------
 
+;;; Generate graph from a base model graph (any graph taken for modification...)
+
 (define (generate-from-model graph)
-  (define (select-strategy)
-    place-and-partition)
-  ((select-strategy) graph))
+  (define (execute-step it-steps term-preds graph world)
+    (cond
+     ((or (null? it-steps) (null? term-preds))
+      graph)
+     (((car term-preds) graph world)
+      (execute-step (cdr it-steps) (cdr term-preds) graph world))
+     (else
+      (receive (g w)
+        ((car it-steps) graph world)
+        (execute-step it-steps term-preds g w)))))
+  (let ((components (select-components)))
+    (execute-step
+      (generation-components-iteration-steps components)
+      (generation-components-termination-predicates components)
+      graph
+      '())))
+
+;;; Generation algorithm components type
+;;; iteration-steps: must return a values construct with "graph" and "world"
+;;; termination-predicates: must return whether this step should be terminated
+
+(define-structure generation-components iteration-steps termination-predicates)
+
+;;; Select components for the algorithm
+
+(define (select-components)
+  place-and-partition)
 
 ;-------------------------------------------------------------------------------
-; Place and partition generation algorithm
+; Place and partition generation algorithms
 ;
 ; 1. Placing each agent in the an area according to a design algorithm
 ; 2. Agents fight for a better place for themselves
 ; 3. Partition algorithm makes a first approach of the space partitioning
 ;-------------------------------------------------------------------------------
 
-;;; Generation algorithm components type
-
-(define-structure generation-components world-descriptor room-partitioning)
-
-;;; Select components for the algorithm
-
-(define (select-components)
-  (make-generation-components
-    describe-world-predesigned-band
-    make-rooms-from-agents)) ; TODO
-
-;;; Place and partition algorithm
-
-(define (place-and-partition graph)
-  (let ((a (select-components)))
-    ((generation-components-room-partitioning a)
-      graph
-      (world-agents
-        (evolve-socially
-          graph
-          (init-world
-            graph
-            ((generation-components-world-descriptor a) graph)))))))
-
-;;; Do all initial things with the world prior to simulation
-
-(define (init-world graph world)
-  ;; 1st: pull the agents inside if they are outside the limit
-  world)
-
 ;;; Put them in a social environment: evolve them
 
-(define (evolve-socially graph world)
+(define (evolve-mono-nodal-agents graph world)
   ;; Stop condition
   (define (stop?) #f)
   ;; Distribution method
@@ -81,17 +77,37 @@
 
   (visualize-world world graph)
   (if (stop?)
-      world
-    (evolve-socially 
+      (values graph world)
+    (evolve-mono-nodal-agents
       graph
       (world-merge-agents
         world
         (agents-receive-new-states)))))
 
+;;; Pseudo-geometrization of agents: make them multimodal
+
+(define (make-multi-nodal-agents graph world)
+  (values graph world))
+
 ;;; Build geometry from agents' current positions
 
 (define (make-rooms-from-agents graph agents)
-  graph)
+  (values graph world))
+
+;;; Algorithm parts put together
+
+(define place-and-partition
+  (make-generation-components
+    (list describe-world-predesigned-band ; TODO: which world description?
+          evolve-mono-nodal-agents
+          make-multi-nodal-agents
+          make-rooms-from-agents)
+    (list (lambda (graph world) (not (null? world)))
+          (lambda (graph world) #f))))
+
+;-------------------------------------------------------------------------------
+; Visualization of elements
+;-------------------------------------------------------------------------------
 
 ;;; Field visualization
 
@@ -145,9 +161,11 @@
   (let* ((bb (graph-bounding-box graph))
          (size-vec (vect2-vect2 (point->vect2 (cadr bb))
                                 (point->vect2 (car bb)))))
+    #|
     (for-each
       (lambda (f) (visualize-field f size-vec))
       (world-fields world))
+      |#
     (for-each
       visualize-agent
       (world-agents world))

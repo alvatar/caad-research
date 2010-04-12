@@ -17,7 +17,7 @@
 
 ;;; Create all necessary things to begin simulation
 
-(define (describe-world-predesigned-band graph)
+(define (describe-world-predesigned-band graph world)
   (let*
     ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
      (bb-vect (segment->vect2 (point-list->bounding-box limit-polygon)))
@@ -26,15 +26,11 @@
      (basic-set
       `(,(make-agent
            'entrance
-           (list (random-point-in-polygon limit-polygon)
-                 (random-point-in-polygon limit-polygon)
-                 (random-point-in-polygon limit-polygon))
+           (list (random-point-in-polygon limit-polygon))
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (list (random-point-in-polygon limit-polygon)
-                     (random-point-in-polygon limit-polygon)
-                     (random-point-in-polygon limit-polygon))
+               (list (random-point-in-polygon limit-polygon))
                (agent-proc agent))))
         ,(make-agent
            'bath
@@ -42,7 +38,7 @@
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (agent-node-positions agent)
+               (list (random-point-in-polygon limit-polygon))
                (agent-proc agent))))
         ,(make-agent
            'room1
@@ -50,7 +46,7 @@
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (agent-node-positions agent)
+               (list (random-point-in-polygon limit-polygon))
                (agent-proc agent))))
         ,(make-agent
            'living
@@ -58,7 +54,7 @@
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (agent-node-positions agent)
+               (list (random-point-in-polygon limit-polygon))
                (agent-proc agent))))
         ,(make-agent
            'kitchen
@@ -66,7 +62,7 @@
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (agent-node-positions agent)
+               (list (random-point-in-polygon limit-polygon))
                (agent-proc agent))))))
      (more
       `(,(make-agent
@@ -75,7 +71,7 @@
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (agent-node-positions agent)
+               (list (random-point-in-polygon limit-polygon))
                (agent-proc agent))))
         ,(make-agent
            'storage
@@ -83,7 +79,7 @@
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (agent-node-positions agent)
+               (list (random-point-in-polygon limit-polygon))
                (agent-proc agent))))
         ,(make-agent
            'room2
@@ -91,7 +87,7 @@
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (agent-node-positions agent)
+               (list (random-point-in-polygon limit-polygon))
                (agent-proc agent))))
         ,(make-agent
            'room3
@@ -99,12 +95,14 @@
            (lambda (world agent)
              (make-agent
                (agent-label agent)
-               (agent-node-positions agent)
+               (list (random-point-in-polygon limit-polygon))
                (agent-proc agent)))))))
-    (make-world 
-      (append basic-set more)
-      (list
-        (make-light-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
-        (make-entries-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
-        (make-structure-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
-        (make-pipes-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)))))
+    (values
+      graph
+      (make-world 
+        (append basic-set more)
+        (list
+          (make-light-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
+          (make-entries-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
+          (make-structure-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
+          (make-pipes-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon))))))
