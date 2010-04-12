@@ -104,8 +104,7 @@
     (make-world 
       (append basic-set more)
       (list
-        ;(make-light-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
+        (make-light-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
         (make-entries-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
-        ;(make-structure-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
-        ;(make-pipes-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)))))
-        ))))
+        (make-structure-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)
+        (make-pipes-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)))))

@@ -21,11 +21,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F3> :vimgrep // **
-noremap <F9> :call RunProgram()
-noremap <F10> :call CleanProgram()
-noremap <F11> :call Compile(1)
 nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
+noremap <F11> :call Compile(1)
+noremap <F10> :call CleanProgram()
+noremap <F9> :call RunProgram()
+nnoremap <F3> :vimgrep // **
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -150,7 +150,7 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
 endif
 set shortmess=aoO
 badd +28 /data/projects/ensanche-core/main.scm
-badd +344 /data/projects/ensanche-core/graph.scm
+badd +322 /data/projects/ensanche-core/graph.scm
 badd +27 /data/projects/ensanche-core/input.scm
 badd +288 /data/projects/ensanche-core/visualization.scm
 badd +24 /data/projects/ensanche-core/mutation.scm
@@ -169,11 +169,11 @@ badd +106 /data/projects/ensanche-core/generation.scm
 badd +64 /data/projects/ensanche-core/generation-elements.scm
 badd +22 /data/projects/ensanche-core/fields/light.scm
 badd +20 /data/projects/ensanche-core/fields/structure.scm
-badd +20 /data/projects/ensanche-core/fields/pipes.scm
-badd +20 /data/projects/ensanche-core/fields/entry-points.scm
-badd +153 /data/projects/ensanche-core/graph-visualization.scm
+badd +32 /data/projects/ensanche-core/fields/pipes.scm
+badd +140 /data/projects/ensanche-core/graph-visualization.scm
+badd +0 /data/projects/ensanche-core/fields/entries.scm
 silent! argdel *
-edit /data/projects/ensanche-core/fields/light.scm
+edit /data/projects/ensanche-core/fields/entries.scm
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
@@ -289,9 +289,10 @@ exe s:l
 normal! zt
 1
 normal! 0
+lcd /data/projects/ensanche-core/__deploy
 wincmd w
 argglobal
-edit /data/projects/ensanche-core/graph-visualization.scm
+edit /data/projects/ensanche-core/strategies/predesigned-band.scm
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
@@ -389,14 +390,13 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 140 - ((61 * winheight(0) + 46) / 92)
+let s:l = 110 - ((90 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-140
-normal! 013l
+110
+normal! 08l
 wincmd w
-2wincmd w
 exe 'vert 1resize ' . ((&columns * 139 + 139) / 279)
 exe 'vert 2resize ' . ((&columns * 139 + 139) / 279)
 tabnext 1

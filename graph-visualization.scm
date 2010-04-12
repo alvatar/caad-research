@@ -73,7 +73,7 @@
         (visualization:paint-polygon backend (room->point-list graph room)))
       ;; Paint entry
       (define (paint-entry entry)
-        (let ((door-mid-point (segment-mid-point (entry->point-list entry graph))))
+        (let ((door-mid-point (segment-mid-point (entry->point-list graph entry))))
           (visualization:paint-set-color backend 1.0 0.45 0.45 0.4)
           (visualization:paint-circle-fill backend
                                            (point-x door-mid-point)

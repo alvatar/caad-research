@@ -329,7 +329,7 @@
 
 ;;; Get the entry point as a list of points corresponding to the door
 
-(define (entry->point-list entry graph)
+(define (entry->point-list graph entry)
   (let* ((doorNumber (string->number (car ((sxpath '(@ doorNumber *text*)) entry))))
          (wall (reference-to-element graph ((sxpath '(*)) entry)))
          (doors (wall-doors wall)))

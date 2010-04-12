@@ -11,15 +11,22 @@
 (import ../math)
 (import ../utils/misc)
 
-(define (make-pipes-field graph size-x size-y)
+(define (make-pipes-field graph size-x size-y mapped-x mapped-y limit-polygon)
   (merge-2d-u8fields
-    (list
-    (make-2d-scaled-u8field
-      4
-      size-x
-      size-y
-      (lambda (v) 30))
-      )
+    (map ; produces a field per light-source
+      (lambda (pipe)
+        (let ((pipe-pos (pipe-position pipe)))
+          (make-2d-u8field-with-resolution
+            4
+            size-x
+            size-y
+            mapped-x
+            mapped-y
+            (lambda (v) (if (point-in-polygon? limit-polygon (vect2->point v))
+                          (let ((d (fl* 20.0 (fl-distance-point-point (vect2->point v) pipe-pos))))
+                            (if (fl> d 255.0) 255 (##flonum.->fixnum d)))
+                          0)))))
+      (graph-pipes graph))
     (lambda (a b)
       (let ((sum (fx- (fx+ a b) 255)))
         (if (fx< sum 0) 0 sum)))))
