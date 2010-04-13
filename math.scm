@@ -98,9 +98,9 @@
 
 (define-syntax vect2+
   (syntax-rules ()
-    ((vect2+ vec1 vec2)
+    ((_ vec1 vec2)
      (vect2+vect2 vec1 vec2))
-    ((vect2+ vec1 vec2 rest ...)
+    ((_ vec1 vec2 rest ...)
      (vect2+ (vect2+vect2 vec1 vec2) rest ...))))
 
 ;;; Vector substraction

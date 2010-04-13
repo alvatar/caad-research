@@ -78,6 +78,14 @@
   (make-point (average (point-x a) (point-x b))
               (average (point-y a) (point-y b))))
 
+;;; Point translation
+
+(define (point-translation p vec)
+  (vect2->point
+    (vect2+vect2
+      (point->vect2 p)
+      vec)))
+
 ;;; Point rotation
 
 (define (point-rotation ref p r-angle)
