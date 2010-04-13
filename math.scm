@@ -96,6 +96,13 @@
               (+ (vect2-v v1)
                  (vect2-v v2))))
 
+(define-syntax vect2+
+  (syntax-rules ()
+    ((vect2+ vec1 vec2)
+     (vect2+vect2 vec1 vec2))
+    ((vect2+ vec1 vec2 rest ...)
+     (vect2+ (vect2+vect2 vec1 vec2) rest ...))))
+
 ;;; Vector substraction
 
 (define (vect2-vect2 v1 v2)
@@ -104,6 +111,13 @@
               (- (vect2-v v1)
                  (vect2-v v2))))
 
+(define-syntax vect2-
+  (syntax-rules ()
+    ((vect2- vec1 vec2)
+     (vect2-vect2 vec1 vec2))
+    ((vect2- vec1 vec2 rest ...)
+     (vect2- (vect2-vect2 vec1 vec2) rest ...))))
+
 ;;; Vector dot product
 
 (define (vect2*vect2 v1 v2)
@@ -111,6 +125,13 @@
                  (vect2-u v2))
               (* (vect2-v v1)
                  (vect2-v v2))))
+
+(define-syntax vect2*
+  (syntax-rules ()
+    ((vect2* vec1 vec2)
+     (vect2*vect2 vec1 vec2))
+    ((vect2* vec1 vec2 rest ...)
+     (vect2* (vect2*vect2 vec1 vec2) rest ...))))
 
 ;;; Vector * scalar
 
