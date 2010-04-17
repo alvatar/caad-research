@@ -178,10 +178,12 @@
 ;;; Get value from field position
 
 (define (u8-2dfield->value field pos-vec)
-  (let ((maxx (u8-2dfield-size-x field))
-        (x (vect2-u pos-vec))
-        (y (vect2-v pos-vec)))
-    (u8vector-ref field (fx+ (fx* maxx y) x))))
+  (let* ((maxx (u8-2dfield-size-x field))
+         (x (vect2-u pos-vec))
+         (y (vect2-v pos-vec))
+         (i (##flonum.->fixnum (floor (/ (* x (u8-2dfield-size-x field)) (u8-2dfield-mapped-x field)))))
+         (j (##flonum.->fixnum (floor (/ (* y (u8-2dfield-size-y field)) (u8-2dfield-mapped-y field))))))
+    (u8vector-ref (u8-2dfield-data field) (fx+ (fx* maxx j) i))))
 
 ;-------------------------------------------------------------------------------
 ; List fields

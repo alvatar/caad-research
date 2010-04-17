@@ -6,6 +6,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import ../analysis)
+(import ../fields-2d)
 (import ../fields/entries)
 (import ../fields/light)
 (import ../fields/pipes)
@@ -36,11 +37,12 @@
              (make-agent
                (agent-label agent)
                (let ((pos (car (agent-node-positions agent))))
-                 (list (make-point 0.0 0.0))
-                 #;(list (point-translation
+                 (list (point-translation
+                         pos
                          (vect2+
-                           (field-value light-field pos)
-                           (inverse-gravity-force-agents agents)))))
+                           (make-vect2 0.1 0.1)
+                           (make-vect2 1.0 0.0)))))
+                           ;#(vect2*scalar (field-least-potential-vector light-field (point->vect2 pos)) 1.0)))))
                (agent-proc agent))))
          (make-agent
            'bath

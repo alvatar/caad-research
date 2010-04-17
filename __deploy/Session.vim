@@ -21,11 +21,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F3> :vimgrep // **
-noremap <F9> :call RunProgram()
-noremap <F10> :call CleanProgram()
-noremap <F11> :call Compile(1)
 nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
+noremap <F11> :call Compile(1)
+noremap <F10> :call CleanProgram()
+noremap <F9> :call RunProgram()
+nnoremap <F3> :vimgrep // **
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -164,7 +164,7 @@ badd +270 /data/projects/ensanche-core/geometry.scm
 badd +55 /data/projects/ensanche-core/math.scm
 badd +1 /data/projects/ensanche-core/validators.scm
 badd +37 /data/projects/ensanche-core/utils/misc.scm
-badd +103 /data/projects/ensanche-core/strategies/predesigned-band.scm
+badd +8 /data/projects/ensanche-core/strategies/predesigned-band.scm
 badd +156 /data/projects/ensanche-core/generation.scm
 badd +64 /data/projects/ensanche-core/generation-elements.scm
 badd +22 /data/projects/ensanche-core/fields/light.scm
@@ -172,8 +172,9 @@ badd +20 /data/projects/ensanche-core/fields/structure.scm
 badd +32 /data/projects/ensanche-core/fields/pipes.scm
 badd +140 /data/projects/ensanche-core/graph-visualization.scm
 badd +1 /data/projects/ensanche-core/fields/entries.scm
+badd +187 /data/projects/ensanche-core/fields-2d.scm
 silent! argdel *
-edit /data/projects/ensanche-core/generation.scm
+edit /data/projects/ensanche-core/geometry.scm
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
@@ -283,12 +284,13 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 156 - ((74 * winheight(0) + 46) / 92)
+let s:l = 465 - ((90 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-156
-normal! 02l
+465
+normal! 024l
+lcd /data/projects/ensanche-core/__deploy
 wincmd w
 argglobal
 edit /data/projects/ensanche-core/strategies/predesigned-band.scm
@@ -389,14 +391,13 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 1 - ((0 * winheight(0) + 46) / 92)
+let s:l = 40 - ((39 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-1
-normal! 0
+40
+normal! 030l
 wincmd w
-2wincmd w
 exe 'vert 1resize ' . ((&columns * 139 + 139) / 279)
 exe 'vert 2resize ' . ((&columns * 139 + 139) / 279)
 tabnext 1

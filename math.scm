@@ -98,6 +98,8 @@
 
 (define-syntax vect2+
   (syntax-rules ()
+    ((_ vec1)
+     vec1)
     ((_ vec1 vec2)
      (vect2+vect2 vec1 vec2))
     ((_ vec1 vec2 rest ...)
