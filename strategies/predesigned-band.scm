@@ -36,9 +36,10 @@
              (make-agent
                (agent-label agent)
                (let ((pos (car (agent-node-positions agent))))
-                 (list (point-translation
+                 (list (make-point 0.0 0.0))
+                 #;(list (point-translation
                          (vect2+
-                           (field->force-vect2 light-field pos)
+                           (field-value light-field pos)
                            (inverse-gravity-force-agents agents)))))
                (agent-proc agent))))
          (make-agent

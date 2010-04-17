@@ -9,17 +9,18 @@
 (import ../geometry)
 (import ../graph)
 (import ../math)
+(import ../fields-2d)
 (import ../utils/misc)
 
 (define (make-light-field graph size-x size-y mapped-x mapped-y limit-polygon)
-  (merge-2d-u8fields
+  (merge-u8-2dfields
     (map ; produces a field per light-source
       (lambda (source)
         (cond
           ((vect2? source) ; For point-lights
            (error "unimplemented"))
           ((= (length source) 2) ; For segments
-           (make-2d-u8field-with-resolution
+           (produce-u8-2dfield-with-resolution
              4
              size-x
              size-y
