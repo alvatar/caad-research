@@ -20,11 +20,11 @@
 
 (define (visualize-graph graph)
   (let* ((limits (graph-bounding-box graph))
-         (size-vec (vect2-vect2 (point->vect2 (cadr limits))
-                                (point->vect2 (car limits))))
+         (size-vec (vect2- (cadr limits)
+                           (car limits)))
          (frame-factor 0.7)
-         (max-scale-x (/ maxx (* (vect2-u size-vec))))
-         (max-scale-y (/ maxy (* (vect2-v size-vec))))
+         (max-scale-x (/ maxx (* (vect2-x size-vec))))
+         (max-scale-y (/ maxy (* (vect2-y size-vec))))
          (vis-scale (* frame-factor (min max-scale-x max-scale-y))))
 
   (visualization:do-later
@@ -76,19 +76,19 @@
         (let ((door-mid-point (segment-mid-point (entry->point-list graph entry))))
           (visualization:paint-set-color backend 1.0 0.45 0.45 0.4)
           (visualization:paint-circle-fill backend
-                                           (point-x door-mid-point)
-                                           (point-y door-mid-point)
+                                           (vect2-x door-mid-point)
+                                           (vect2-y door-mid-point)
                                            0.4)))
       ;; Paint pipe
       (define (paint-pipe pipe)
         (let ((pos (pipe-position pipe)))
           (visualization:paint-set-line-width backend 0.02)
           (visualization:paint-set-color backend 1.0 1.0 1.0 1.0)
-          (visualization:paint-circle-fill backend (point-x pos) (point-y pos) 0.2)
+          (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.2)
           (visualization:paint-set-color backend 0.0 0.0 0.0 1.0)
-          (visualization:paint-circle-fill backend (point-x pos) (point-y pos) 0.15)
+          (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.15)
           (visualization:paint-set-color backend 1.0 1.0 1.0 1.0)
-          (visualization:paint-circle-fill backend (point-x pos) (point-y pos) 0.1)))
+          (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.1)))
 
       (for-each
         (lambda
@@ -116,10 +116,10 @@
 
   (visualization:do-later
     'visual-aids
-    (let ((x-dir-mark `(,(make-point (- (exact->inexact maxx)) 0.0)
-                        ,(make-point (exact->inexact maxx) 0.0)))
-          (y-dir-mark `(,(make-point 0.0 (- (exact->inexact maxy)))
-                        ,(make-point 0.0 (exact->inexact maxy)))))
+    (let ((x-dir-mark `(,(make-vect2 (- (exact->inexact maxx)) 0.0)
+                        ,(make-vect2 (exact->inexact maxx) 0.0)))
+          (y-dir-mark `(,(make-vect2 0.0 (- (exact->inexact maxy)))
+                        ,(make-vect2 0.0 (exact->inexact maxy)))))
       (lambda (backend vis-env)
         (visualization:paint-set-line-style backend '(0.1 0.1))
         (visualization:paint-set-line-width backend 0.1)
@@ -132,13 +132,13 @@
   (visualization:do-later
     '%framing
     (lambda (backend vis-env)
-      (visualization:translate backend (vect2-inverse (point->vect2 (car limits))))
+      (visualization:translate backend (vect2:symmetric (car limits)))
       (visualization:scale backend (make-vect2 vis-scale vis-scale))
       (visualization:translate
         backend
         (make-vect2
-          (/ (* (- maxx (* vis-scale (vect2-u size-vec))) 0.5) vis-scale)
-          (/ (* (- maxy (* vis-scale (vect2-v size-vec))) 0.5) vis-scale))))) ; 0.5 stands for half the displacement
+          (/ (* (- maxx (* vis-scale (vect2-x size-vec))) 0.5) vis-scale)
+          (/ (* (- maxy (* vis-scale (vect2-y size-vec))) 0.5) vis-scale))))) ; 0.5 stands for half the displacement
   (visualization:layer-depth-set! '%framing 0)
 
   (visualization:do-later

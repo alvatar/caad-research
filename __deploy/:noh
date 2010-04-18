@@ -17,32 +17,89 @@
 ; Points
 ;-------------------------------------------------------------------------------
 
-;;; Mid point of two given
+;;; Point type
+
+#|
+(define-structure point x y)
+
+;;; Are these points equal? (with epsilon)
+
+(define (point=?e v1 v2 e)
+  (and (=~e (point-x v1)
+            (point-x v2)
+            e)
+       (=~e (point-y v1)
+            (point-y v2)
+            e)))
+
+;;; Are these points equal?
+
+(define (point=? v1 v2)
+  (point=?e v1 v2 equal-accuracy))
+
+;;; Point to vector
+
+(define (point->vect2 p)
+  (make-vect2 (point-x p) (point-y p)))
+
+;;; Make a vector from two points
+
+(define (segment-direction->vect2 a b)
+  (make-vect2 (- (point-x b) (point-x a))
+              (- (point-y b) (point-y a))))
+
+;;; Point to vector
+
+(define (vect2->point vec)
+  (make-point (vect2-x vec) (vect2-y vec)))
+
+;;; Is equal? (with precision) for points
+
+(define (point=~ a b precision)
+  (define (test f1 f2)
+    (< (abs (- f1 f2)) precision))
+  (and (test (point-x a) (point-x b))
+       (test (point-y a) (point-y b))))
+
+;;; Fixnum point coordinates conversion
+
+(define (inexact-point->exact-point p)
+  (make-point (inexact->exact (round (point-x p)))
+              (inexact->exact (round (point-y p)))))
+
+;;; Flonum point coordinates conversion
+
+(define (exact-point->inexact-point p)
+  (make-point (exact->inexact (point-x p))
+              (exact->inexact (point-y p))))
+
+;;; Calculate the mid point between two points
 
 (define (mid-point a b)
-  (make-vect2 (average (vect2-x a) (vect2-x b))
-              (average (vect2-y a) (vect2-y b))))
-
-;;; Vector rotation
-
-(define (point-rotation-origin vec r-angle)
-  (make-vect2 (- (* (vect2-x vec) (cos r-angle))
-                 (* (vect2-y vec) (sin r-angle)))
-              (+ (* (vect2-y vec) (cos r-angle))
-                 (* (vect2-x vec) (sin r-angle)))))
+  (make-point (average (point-x a) (point-x b))
+              (average (point-y a) (point-y b))))
 
 ;;; Point translation
 
 (define (point-translation p vec)
-  (vect2:+vect2 p vec))
+  (vect2->point
+    (vect2+vect2
+      (point->vect2 p)
+      vec)))
 
 ;;; Point rotation
 
 (define (point-rotation ref p r-angle)
-  (vect2:+vect2 ref
-    (point-rotation-origin
-      (vect2:-vect2 p ref)
-      r-angle)))
+  (vect2->point
+    (vect2+vect2 (point->vect2 ref)
+      (vect2-rotation
+        (vect2-yect2 (point->vect2 p) (point->vect2 ref))
+        r-angle))))
+        |#
+
+(define (mid-point a b)
+  (make-point (average (vect2-x a) (vect2-x b))
+              (average (vect2-y a) (vect2-y b))))
 
 ;-------------------------------------------------------------------------------
 ; Segments
@@ -60,7 +117,7 @@
 
 ;;; Segment to vector
 
-(define (segment-vector seg)
+(define (segment->vect2 seg)
   (vect2:-vect2
     (segment-second-point seg)
     (segment-first-point seg)))
@@ -68,7 +125,7 @@
 ;;; Segment length
 
 (define (segment-length seg)
-  (vect2:magnitude (segment-vector seg)))
+  (vect2:-length (segment->vect2 seg)))
 
 ;;; Tell whether the point is an end point of the segment
 
@@ -97,25 +154,23 @@
 ;;; Tell whether the segments are parallel
 
 (define (segments-parallel? seg1 seg2)
-  (vect2:=?e
-    (vect2:normalize (segment-vector seg1))
-    (vect2:normalize (segment-vector seg2))
+  (vect2=?e
+    (vect2:-normalize (segment->vect2 seg1))
+    (vect2:-normalize (segment->vect2 seg2))
     0.01))
 
 ;;; Calculate absolute point given segment and percentage
 
 (define (point-from-relative-in-segment seg percentage)
-  (let ((vec (segment-vector seg))
+  (let ((vec (segment->vect2 seg))
         (O (segment-first-point seg)))
-    (make-vect2 (+ (vect2-x O) (* (vect2-x vec) percentage))
-                (+ (vect2-y O) (* (vect2-y vec) percentage)))))
+    (make-point (+ (point-x O) (* (vect2-x vec) percentage))
+                (+ (point-y O) (* (vect2-y vec) percentage)))))
 
 ;;; Calculate the segment's mid point
 
 (define (segment-mid-point seg)
-  (mid-point
-    (segment-first-point seg)
-    (segment-second-point seg)))
+  (mid-point (segment-first-point seg) (segment-second-point seg)))
 
 ;-------------------------------------------------------------------------------
 ; Point-lists: Polygons and Paths
@@ -132,17 +187,17 @@
   (define (iter n sum plis-tail)
     (cond
      ((null? plis-tail)
-      (vect2:/scalar sum (exact->inexact n)))
+      (vect2/scalar sum (exact->inexact n)))
      (else
       (iter
         (+ 1 n)
-        (vect2:+vect2 sum (car plis-tail))
+        (vect2+vect2 (point->vect2 sum) (point->vect2 (car plis-tail)))
         (cdr plis-tail)))))
   (cond
    ((null? plis)
     (error "point-list-centroid: argument #1 should be a point list"))
    (else
-    (iter 0 (make-vect2 0.0 0.0) plis))))
+    (iter 0 (make-point 0.0 0.0) plis))))
 
 ;;; Point-list right-most point
 
@@ -153,7 +208,7 @@
       current)
      (else
       (let ((next (car plis-tail)))
-        (if (> (vect2-x next) (vect2-x current))
+        (if (> (point-x next) (point-x current))
             (iter next (cdr plis-tail))
           (iter current (cdr plis-tail)))))))
   (if (null-list? plis)
@@ -168,13 +223,13 @@
     (cond
      ((null? a-points)
       c)
-     ((and (not (eq? (> (vect2-y (car a-points)) (vect2-y p))
-                     (> (vect2-y (car b-points)) (vect2-y p))))
-           (< (vect2-x p)
-              (+ (/ (* (- (vect2-x (car b-points)) (vect2-x (car a-points)))
-                       (- (vect2-y p) (vect2-y (car a-points))))
-                    (- (vect2-y (car b-points)) (vect2-y (car a-points))))
-                 (vect2-x (car a-points)))))
+     ((and (not (eq? (> (point-y (car a-points)) (point-y p))
+                     (> (point-y (car b-points)) (point-y p))))
+           (< (point-x p)
+              (+ (/ (* (- (point-x (car b-points)) (point-x (car a-points)))
+                       (- (point-y p) (point-y (car a-points))))
+                    (- (point-y (car b-points)) (point-y (car a-points))))
+                 (point-x (car a-points)))))
       (iter (not c) (cdr a-points) (cdr b-points)))
      (else
       (iter c (cdr a-points) (cdr b-points)))))
@@ -184,10 +239,10 @@
 
 (define (random-point-in-polygon point-list)
   (define (try origin delta)
-    (let ((p (make-vect2 (+ (vect2-x origin)
-                            (* (vect2-x delta) (random-real)))
-                         (+ (vect2-y origin)
-                            (* (vect2-y delta) (random-real))))))
+    (let ((p (make-point (+ (point-x origin)
+                            (* (point-x delta) (random-real)))
+                         (+ (point-y origin)
+                            (* (point-y delta) (random-real))))))
       (if (point-in-polygon? point-list p)
           p
         (try origin delta))))
@@ -196,15 +251,16 @@
          (bb-right-corner (cadr bounding-box)))
     (try
       bb-left-corner
-      (vect2:-vect2 bb-right-corner
-                    bb-left-corner))))
+      (vect2->point
+        (vect2-yect2 (point->vect2 bb-right-corner)
+                     (point->vect2 bb-left-corner))))))
 
 ;;; Find a common point of two given point lists
 
 (define (point-list-common-point? plis1 plis2)
   (find
     (lambda (e)
-      (any (lambda (it) (vect2:=? it e)) plis1))
+      (any (lambda (it) (point=? it e)) plis1))
     plis2))
 
 ;;; Calculate the tangent vector in a point-list given the relative position
@@ -212,11 +268,10 @@
 (define (point-list-tangent-in-relative point-list rel)
   (if (not (= (length point-list) 2))
       (error "point-list-tangent-in-relative: only segments implemented"))
-  (vect2:normalize
-    (segment-vector
-      (list
-        (point-from-relative-in-segment point-list rel)
-        (segment-second-point point-list))))) ; TODO: handle pollywalls
+  (vect2-normalize
+    (segment-direction->vect2
+      (point-from-relative-in-segment point-list rel)
+      (segment-second-point point-list)))) ; TODO: handle pollywalls
 
 ;-------------------------------------------------------------------------------
 ; Distance
@@ -225,27 +280,27 @@
 ;;; Calculate the distance between two points
 
 (define (distance-point-point a b)
-  (sqrt (+ (square (- (vect2-x a) (vect2-x b)))
-           (square (- (vect2-y a) (vect2-y b))))))
+  (sqrt (+ (square (- (point-x a) (point-x b)))
+           (square (- (point-y a) (point-y b))))))
 
 (define (fx-distance-point-point a b)
   (##flonum.->fixnum
-    (flsqrt (fixnum->flonum (fx+ (fxsquare (fx- (vect2-x a) (vect2-x b)))
-                                 (fxsquare (fx- (vect2-y a) (vect2-y b))))))))
+    (flsqrt (fixnum->flonum (fx+ (fxsquare (fx- (point-x a) (point-x b)))
+                                 (fxsquare (fx- (point-y a) (point-y b))))))))
 
 (define (fl-distance-point-point a b)
-  (flsqrt (fl+ (flsquare (fl- (vect2-x a) (vect2-x b)))
-               (flsquare (fl- (vect2-y a) (vect2-y b))))))
+  (flsqrt (fl+ (flsquare (fl- (point-x a) (point-x b)))
+               (flsquare (fl- (point-y a) (point-y b))))))
 
 ;;; Calculate the distance between point and segment
 
 (define (distance-point-segment p sg)
-  (let* ((p1x (vect2-x (segment-first-point sg)))
-         (p1y (vect2-y (segment-first-point sg)))
-         (p2x (vect2-x (segment-second-point sg)))
-         (p2y (vect2-y (segment-second-point sg)))
-         (px (vect2-x p))
-         (py (vect2-y p))
+  (let* ((p1x (point-x (segment-first-point sg)))
+         (p1y (point-y (segment-first-point sg)))
+         (p2x (point-x (segment-second-point sg)))
+         (p2y (point-y (segment-second-point sg)))
+         (px (point-x p))
+         (py (point-y p))
          (su (- p2x p1x))
          (sv (- p2y p1y))
          (div (+ (* su su) (* sv sv)))
@@ -264,12 +319,12 @@
       (sqrt (+ (* dx dx) (* dy dy))))))
 
 (define (fx-distance-point-segment p sg)
-  (let* ((p1x (vect2-x (segment-first-point sg)))
-         (p1y (vect2-y (segment-first-point sg)))
-         (p2x (vect2-x (segment-second-point sg)))
-         (p2y (vect2-y (segment-second-point sg)))
-         (px (vect2-x p))
-         (py (vect2-y p))
+  (let* ((p1x (point-x (segment-first-point sg)))
+         (p1y (point-y (segment-first-point sg)))
+         (p2x (point-x (segment-second-point sg)))
+         (p2y (point-y (segment-second-point sg)))
+         (px (point-x p))
+         (py (point-y p))
          (su (fx- p2x p1x))
          (sv (fx- p2y p1y))
          (div (fx+ (fx* su su) (fx* sv sv)))
@@ -288,12 +343,12 @@
       (##flonum.->fixnum (flsqrt (fixnum->flonum (fx+ (fx* dx dx) (fx* dy dy))))))))
 
 (define (fl-distance-point-segment p sg)
-  (let* ((p1x (vect2-x (segment-first-point sg)))
-         (p1y (vect2-y (segment-first-point sg)))
-         (p2x (vect2-x (segment-second-point sg)))
-         (p2y (vect2-y (segment-second-point sg)))
-         (px (vect2-x p))
-         (py (vect2-y p))
+  (let* ((p1x (point-x (segment-first-point sg)))
+         (p1y (point-y (segment-first-point sg)))
+         (p2x (point-x (segment-second-point sg)))
+         (p2y (point-y (segment-second-point sg)))
+         (px (point-x p))
+         (py (point-y p))
          (su (fl- p2x p1x))
          (sv (fl- p2y p1y))
          (div (fl+ (fl* su su) (fl* sv sv)))
@@ -348,18 +403,18 @@
          (a2 (cadr sg1))
          (b1 (car sg2))
          (b2 (cadr sg2))
-         (ua-t (- (* (- (vect2-x b2) (vect2-x b1))
-                     (- (vect2-y a1) (vect2-y b1)))
-                  (* (- (vect2-y b2) (vect2-y b1))
-                     (- (vect2-x a1) (vect2-x b1)))))
-         (ub-t (- (* (- (vect2-x a2) (vect2-x a1))
-                     (- (vect2-y a1) (vect2-y b1)))
-                  (* (- (vect2-y a2) (vect2-y a1))
-                     (- (vect2-x a1) (vect2-x b1)))))
-         (u-b (- (* (- (vect2-y b2) (vect2-y b1))
-                    (- (vect2-x a2) (vect2-x a1)))
-                 (* (- (vect2-x b2) (vect2-x b1))
-                    (- (vect2-y a2) (vect2-y a1))))))
+         (ua-t (- (* (- (point-x b2) (point-x b1))
+                     (- (point-y a1) (point-y b1)))
+                  (* (- (point-y b2) (point-y b1))
+                     (- (point-x a1) (point-x b1)))))
+         (ub-t (- (* (- (point-x a2) (point-x a1))
+                     (- (point-y a1) (point-y b1)))
+                  (* (- (point-y a2) (point-y a1))
+                     (- (point-x a1) (point-x b1)))))
+         (u-b (- (* (- (point-y b2) (point-y b1))
+                    (- (point-x a2) (point-x a1)))
+                 (* (- (point-x b2) (point-x b1))
+                    (- (point-y a2) (point-y a1))))))
     (if (=~ u-b 0.0)
         (if (or (=~ ua-t 0.0) (=~ ub-t 0.0))
             'coincident
@@ -370,10 +425,10 @@
                  (<= ua 1)
                  (<= 0 ub)
                  (<= ub 1))
-            (make-vect2 (* (+ (vect2-x a1) ua)
-                           (- (vect2-x a2) (vect2-x a1)))
-                        (* (+ (vect2-y a1) ua)
-                           (- (vect2-y a2) (vect2-y a1))))
+            (make-point (* (+ (point-x a1) ua)
+                           (- (point-x a2) (point-x a1)))
+                        (* (+ (point-y a1) ua)
+                           (- (point-y a2) (point-y a1))))
           'no-intersection)))))
 
 ;;; Segment-polyline intersection
@@ -383,7 +438,7 @@
     (let ((inters (segment-segment-intersection seg (list (car pol-rest) (cadr pol-rest)))))
       (if (or (null-list? pol-rest) (< (length pol-rest) 3))
           (append intersections (list inters))
-        (if (vect2? inters)
+        (if (point? inters)
             (append-next (append intersections (list inters)) (cdr pol-rest))
           (append-next intersections (cdr pol-rest))))))
   (append-next '() pol))
@@ -403,15 +458,15 @@
   (let ((first (car point-list))
         (rest (cdr point-list)))
     (list
-      (make-vect2 (fold (lambda (point x) (min x (vect2-x point)))
-                        (vect2-x first)
+      (make-point (fold (lambda (point x) (min x (point-x point)))
+                        (point-x first)
                         rest)
-                  (fold (lambda (point y) (min y (vect2-y point)))
-                        (vect2-y first)
+                  (fold (lambda (point y) (min y (point-y point)))
+                        (point-y first)
                         rest))
-      (make-vect2 (fold (lambda (point x) (max x (vect2-x point)))
-                        (vect2-x first)
+      (make-point (fold (lambda (point x) (max x (point-x point)))
+                        (point-x first)
                         rest)
-                  (fold (lambda (point y) (max y (vect2-y point)))
-                        (vect2-y first)
+                  (fold (lambda (point y) (max y (point-y point)))
+                        (point-y first)
                         rest)))))

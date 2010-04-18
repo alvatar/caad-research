@@ -23,8 +23,8 @@
             size-y
             mapped-x
             mapped-y
-            (lambda (v) (if (point-in-polygon? limit-polygon (vect2->point v))
-                          (let ((d (fl* 20.0 (fl-distance-point-point (vect2->point v) pipe-pos))))
+            (lambda (v) (if (point-in-polygon? limit-polygon v)
+                          (let ((d (fl* 20.0 (fl-distance-point-point v pipe-pos))))
                             (if (fl> d 255.0) 255 (##flonum.->fixnum d)))
                           0)))))
       (graph-pipes graph))

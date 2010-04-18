@@ -116,7 +116,7 @@
     'fields
     (lambda (backend vis-env)
       (let* ((image (visualization:create-image backend)) ; TODO: created in other place
-             (max-dim (max (vect2-u size-vec) (vect2-v size-vec)))
+             (max-dim (max (vect2-x size-vec) (vect2-y size-vec)))
              (image-scale (vect2*vect2
                           (make-vect2 max-dim max-dim)
                           (make-vect2 (inverse maxx) (inverse maxy)))))
@@ -140,9 +140,9 @@
       (for-each
         (lambda (pos)
           (visualization:paint-set-color backend 1.0 1.0 1.0 0.9)
-          (visualization:paint-circle-fill backend (point-x pos) (point-y pos) 0.4)
+          (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.4)
           (visualization:paint-set-color backend 1.0 0.0 0.0 0.9)
-          (visualization:paint-circle-fill backend (point-x pos) (point-y pos) 0.25))
+          (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.25))
       (agent-node-positions a))
       ;; Paint label
       (let ((pos (point-list-right-most (agent-node-positions a))))
@@ -151,16 +151,16 @@
                                   (symbol->string (agent-label a))
                                   "Arial"
                                   0.75
-                                  (+ (point-x pos) 0.6)
-                                  (+ (point-y pos) 0.2)))))
+                                  (+ (vect2-x pos) 0.6)
+                                  (+ (vect2-y pos) 0.2)))))
   (visualization:layer-depth-set! 'agents 90))
 
 ;;; World visualization
 
 (define (visualize-world world graph)
   (let* ((bb (graph-bounding-box graph))
-         (size-vec (vect2-vect2 (point->vect2 (cadr bb))
-                                (point->vect2 (car bb)))))
+         (size-vec (vect2- (cadr bb)
+                           (car bb))))
     #|
     (for-each
       (lambda (f) (visualize-field f size-vec))

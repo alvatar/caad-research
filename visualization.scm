@@ -204,13 +204,13 @@
       (error "Trying to paint a path with a null list of points"))
   (cairo-new-path cairo)
   (cairo-move-to cairo
-                 (point-x (car points))
-                 (point-y (car points)))
+                 (vect2-x (car points))
+                 (vect2-y (car points)))
   (for-each
     (lambda (point)
       (cairo-line-to cairo
-                     (point-x point)
-                     (point-y point)))
+                     (vect2-x point)
+                     (vect2-y point)))
     (cdr points))
   (cairo-stroke cairo))
 
@@ -221,13 +221,13 @@
       (error "Trying to paint a polygon with a null list of points"))
   (cairo-new-path cairo)
   (cairo-move-to cairo
-                 (point-x (car points))
-                 (point-y (car points)))
+                 (vect2-x (car points))
+                 (vect2-y (car points)))
   (for-each
     (lambda (point)
       (cairo-line-to cairo
-                     (point-x point)
-                     (point-y point)))
+                     (vect2-x point)
+                     (vect2-y point)))
     (cdr points))
   (cairo-close-path cairo)
   (cairo-fill cairo))
@@ -301,13 +301,13 @@
 ;;; Translate world
 
 (define (visualization:translate cairo vec)
-  (cairo-translate cairo (vect2-u vec) (vect2-v vec))
+  (cairo-translate cairo (vect2-x vec) (vect2-y vec))
   (visualization:environment-translation-set! visualization-environment vec))
 
 ;;; Scale world
 
 (define (visualization:scale cairo vec)
-  (cairo-scale cairo (vect2-u vec) (vect2-v vec))
+  (cairo-scale cairo (vect2-x vec) (vect2-y vec))
   (visualization:environment-scale-set! visualization-environment vec))
 
 ;;; Reset transformations

@@ -37,8 +37,8 @@
       (do ((vec (make-u8vector buffer-len))
            (i 0 (fx+ i 1)))
           ((fx>= i buffer-len) vec)
-        (vect2-u-set! point (fl* pixel-size (fixnum->flonum (fxmodulo i samples-num-y))))
-        (vect2-v-set! point (fl* pixel-size (fixnum->flonum (fxquotient i samples-num-y))))
+        (vect2-x-set! point (fl* pixel-size (fixnum->flonum (fxmodulo i samples-num-y))))
+        (vect2-y-set! point (fl* pixel-size (fixnum->flonum (fxquotient i samples-num-y))))
         (u8vector-set! vec i (proc point))))
     samples-num-x
     samples-num-y
@@ -53,8 +53,8 @@
           (len (fx* size-x size-y)))
         (do ((vec (make-u8vector len))
              (i 0 (fx+ i 1))) ((fx>= i len) vec)
-          (vect2-u-set! point (fxmodulo i size-y))
-          (vect2-v-set! point (fxquotient i size-y))
+          (vect2-x-set! point (fxmodulo i size-y))
+          (vect2-y-set! point (fxquotient i size-y))
           (u8vector-set! vec i (proc point))))
     size-x
     size-y
@@ -86,8 +86,8 @@
         ((fx>= j size-y) vec)
         (do ((i 0 (fx+ i res)))
           ((fx>= i size-x))
-          (vect2-u-set! point i)
-          (vect2-v-set! point j)
+          (vect2-x-set! point i)
+          (vect2-y-set! point j)
           (set-area! vec i j (proc point)))))
     size-x
     size-y
@@ -132,8 +132,8 @@
         ((fx>= j limit-y) vec)
         (do ((i 0 (fx+ i res)))
           ((fx>= i limit-x))
-          (vect2-u-set! point (fl* pixel-size (fixnum->flonum i)))
-          (vect2-v-set! point (fl* pixel-size (fixnum->flonum j)))
+          (vect2-x-set! point (fl* pixel-size (fixnum->flonum i)))
+          (vect2-y-set! point (fl* pixel-size (fixnum->flonum j)))
           (set-area! vec buffer-len i j (proc point)))))
     samples-num-x
     samples-num-y
@@ -179,8 +179,8 @@
 
 (define (u8-2dfield->value field pos-vec)
   (let* ((maxx (u8-2dfield-size-x field))
-         (x (vect2-u pos-vec))
-         (y (vect2-v pos-vec))
+         (x (vect2-x pos-vec))
+         (y (vect2-y pos-vec))
          (i (##flonum.->fixnum (floor (/ (* x (u8-2dfield-size-x field)) (u8-2dfield-mapped-x field)))))
          (j (##flonum.->fixnum (floor (/ (* y (u8-2dfield-size-y field)) (u8-2dfield-mapped-y field))))))
     (u8vector-ref (u8-2dfield-data field) (fx+ (fx* maxx j) i))))

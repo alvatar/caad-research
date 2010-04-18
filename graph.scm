@@ -178,7 +178,7 @@
 ;;; Extract the basic list of point coordinates
 
 (define (archpoint->point point)
-  (make-point (archpoint-coord 'x point)
+  (make-vect2 (archpoint-coord 'x point)
               (archpoint-coord 'y point)))
 
 ;;; Convert a wall into a list of points
@@ -198,10 +198,10 @@
   (let* ((pa (car p-list))
          (pb (cadr p-list)))
     `(wall (@ (uid ,uuid))
-           (pt (@ (y ,(number->string (point-y pa)))
-                  (x ,(number->string (point-x pa)))))
-           (pt (@ (y ,(number->string (point-y pb)))
-                  (x ,(number->string (point-x pb))))))))
+           (pt (@ (y ,(number->string (vect2-y pa)))
+                  (x ,(number->string (vect2-x pa)))))
+           (pt (@ (y ,(number->string (vect2-y pb)))
+                  (x ,(number->string (vect2-x pb))))))))
 
 ;-------------------------------------------------------------------------------
 ; Wall
@@ -256,8 +256,8 @@
                (Ay (archpoint-coord 'y (wall-point-n wall 1)))
                (ABx (- (archpoint-coord 'x (wall-point-n wall 2)) Ax))
                (ABy (- (archpoint-coord 'y (wall-point-n wall 2)) Ay)))
-          (list (make-point (+ Ax (* ABx from)) (+ Ay (* ABy from)))
-                (make-point (+ Ax (* ABx to)) (+ Ay (* ABy to)))))
+          (list (make-vect2 (+ Ax (* ABx from)) (+ Ay (* ABy from)))
+                (make-vect2 (+ Ax (* ABx to)) (+ Ay (* ABy to)))))
         (error "Error - wall element has more than 2 relative points\n"))))
       ; Else:
         ; 1. Precalcular lista de puntos relativos
@@ -353,7 +353,7 @@
          (a/2 (/ a 2))
          (b/2 (/ b 2)))
     (list
-      (make-point (- (point-x center) a/2) (- (point-y center) b/2))
-      (make-point (+ (point-x center) a/2) (- (point-y center) b/2))
-      (make-point (+ (point-x center) a/2) (+ (point-y center) b/2))
-      (make-point (- (point-x center) a/2) (+ (point-y center) b/2)))))
+      (make-vect2 (- (vect2-x center) a/2) (- (vect2-y center) b/2))
+      (make-vect2 (+ (vect2-x center) a/2) (- (vect2-y center) b/2))
+      (make-vect2 (+ (vect2-x center) a/2) (+ (vect2-y center) b/2))
+      (make-vect2 (- (vect2-x center) a/2) (+ (vect2-y center) b/2)))))

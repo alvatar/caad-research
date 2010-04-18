@@ -5,7 +5,7 @@
 ;;; Mathematical operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;(declare (standard-bindings)(extended-bindings)(block)(not safe))
+(declare (standard-bindings)(extended-bindings)(block)(not safe))
 (compile-options force-compile: #t)
 
 (import (std srfi/1))
@@ -86,128 +86,120 @@
 
 ;;; vect2 type
 
-(define-structure vect2 u v)
+(define-structure vect2 x y)
 
 ;;; Vector addition
 
-(define (vect2+vect2 v1 v2)
-  (make-vect2 (+ (vect2-u v1)
-                 (vect2-u v2))
-              (+ (vect2-v v1)
-                 (vect2-v v2))))
+(define (vect2:+vect2 v1 v2)
+  (make-vect2 (+ (vect2-x v1)
+                 (vect2-x v2))
+              (+ (vect2-y v1)
+                 (vect2-y v2))))
 
 (define-syntax vect2+
   (syntax-rules ()
     ((_ vec1)
      vec1)
     ((_ vec1 vec2)
-     (vect2+vect2 vec1 vec2))
+     (vect2:+vect2 vec1 vec2))
     ((_ vec1 vec2 rest ...)
-     (vect2+ (vect2+vect2 vec1 vec2) rest ...))))
+     (vect2+ (vect2:+vect2 vec1 vec2) rest ...))))
 
 ;;; Vector substraction
 
-(define (vect2-vect2 v1 v2)
-  (make-vect2 (- (vect2-u v1)
-                 (vect2-u v2))
-              (- (vect2-v v1)
-                 (vect2-v v2))))
+(define (vect2:-vect2 v1 v2)
+  (make-vect2 (- (vect2-x v1)
+                 (vect2-x v2))
+              (- (vect2-y v1)
+                 (vect2-y v2))))
 
 (define-syntax vect2-
   (syntax-rules ()
     ((_ vec1)
-     (vect2-inverse vec1))
+     (vect2:symmetric vec1))
     ((_ vec1 vec2)
-     (vect2-vect2 vec1 vec2))
+     (vect2:-vect2 vec1 vec2))
     ((_ vec1 vec2 rest ...)
-     (vect2- (vect2-vect2 vec1 vec2) rest ...))))
+     (vect2- (vect2:-vect2 vec1 vec2) rest ...))))
 
 ;;; Vector dot product
 
-(define (vect2*vect2 v1 v2)
-  (make-vect2 (* (vect2-u v1)
-                 (vect2-u v2))
-              (* (vect2-v v1)
-                 (vect2-v v2))))
+(define (vect2:*vect2 v1 v2)
+  (make-vect2 (* (vect2-x v1)
+                 (vect2-x v2))
+              (* (vect2-y v1)
+                 (vect2-y v2))))
 
 (define-syntax vect2*
   (syntax-rules ()
     ((_ vec1)
      vec1)
     ((_ vec1 vec2)
-     (vect2*vect2 vec1 vec2))
+     (vect2:*vect2 vec1 vec2))
     ((_ vec1 vec2 rest ...)
-     (vect2* (vect2*vect2 vec1 vec2) rest ...))))
+     (vect2* (vect2:*vect2 vec1 vec2) rest ...))))
 
 ;;; Vector * scalar
 
-(define (vect2*scalar v a)
-  (make-vect2 (* (vect2-u v) a)
-              (* (vect2-v v) a)))
+(define (vect2:*scalar v a)
+  (make-vect2 (* (vect2-x v) a)
+              (* (vect2-y v) a)))
 
 ;;; Vector / scalar
 
-(define (vect2/scalar v a)
-  (make-vect2 (/ (vect2-u v) a)
-              (/ (vect2-v v) a)))
+(define (vect2:/scalar v a)
+  (make-vect2 (/ (vect2-x v) a)
+              (/ (vect2-y v) a)))
 
 ;;; Are these vectors equal?
 
-(define (vect2=? v1 v2)
-  (vect2=?e v1 v2 equal-accuracy))
+(define (vect2:=? v1 v2)
+  (vect2:=?e v1 v2 equal-accuracy))
 
 ;;; Are these vectors equal? (with epsilon)
 
-(define (vect2=?e v1 v2 e)
-  (and (=~e (vect2-u v1)
-            (vect2-u v2)
+(define (vect2:=?e v1 v2 e)
+  (and (=~e (vect2-x v1)
+            (vect2-x v2)
             e)
-       (=~e (vect2-v v1)
-            (vect2-v v2)
+       (=~e (vect2-y v1)
+            (vect2-y v2)
             e)))
 
 ;;; Square root function of a vector
 
 (define (vect2:sqrt vec)
-  (make-vect2 (sqrt (vect2-u vec))
-              (sqrt (vect2-v vec))))
+  (make-vect2 (sqrt (vect2-x vec))
+              (sqrt (vect2-y vec))))
 
 ;;; Calculate vector length
 
-(define (vect2-length vec)
-  (sqrt (+ (expt (vect2-u vec) 2)
-           (expt (vect2-v vec) 2))))
+(define (vect2:magnitude vec)
+  (sqrt (+ (expt (vect2-x vec) 2)
+           (expt (vect2-y vec) 2))))
 
 ;;; Calculate squared vector length
 
-(define (vect2-squaredlength vec)
-  (+ (expt (vect2-u vec) 2)
-     (expt (vect2-v vec) 2)))
+(define (vect2:squaredmagnitude vec)
+  (+ (expt (vect2-x vec) 2)
+     (expt (vect2-y vec) 2)))
 
-;;; Calculate the inverse vector
+;;; Calculate the symmetric vector
 
-(define (vect2-inverse vec)
-  (make-vect2 (- (vect2-u vec))
-              (- (vect2-v vec))))
+(define (vect2:symmetric vec)
+  (make-vect2 (- (vect2-x vec))
+              (- (vect2-y vec))))
 
 ;;; Normalize vector
 
-(define (vect2-normalize vec)
-  (let ((div (vect2-length vec)))
-    (make-vect2 (/ (abs (vect2-u vec)) div)
-                (/ (abs (vect2-v vec)) div))))
-
-;;; Vector rotation
-
-(define (vect2-rotation vec r-angle)
-  (make-vect2 (- (* (vect2-u vec) (cos r-angle))
-                 (* (vect2-v vec) (sin r-angle)))
-              (+ (* (vect2-v vec) (cos r-angle))
-                 (* (vect2-u vec) (sin r-angle)))))
+(define (vect2:normalize vec)
+  (let ((div (vect2:magnitude vec)))
+    (make-vect2 (/ (abs (vect2-x vec)) div)
+                (/ (abs (vect2-y vec)) div))))
 
 ;;; Utility procedure to make a vector with each component 1.0 divided by the
 ;;; component of the given one
 
-(define (vect2-one/vect2 vec)
-  (make-vect2 (/ 1.0 (vect2-u vec))
-              (/ 1.0 (vect2-v vec))))
+(define (vect2:1/vect2 vec)
+  (make-vect2 (/ 1.0 (vect2-x vec))
+              (/ 1.0 (vect2-y vec))))

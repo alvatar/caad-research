@@ -23,8 +23,8 @@
             size-y
             mapped-x
             mapped-y
-            (lambda (v) (if (point-in-polygon? limit-polygon (vect2->point v))
-                          (let ((d (fl* 20.0 (fl-distance-point-segment (vect2->point v) entry-seg))))
+            (lambda (v) (if (point-in-polygon? limit-polygon v)
+                          (let ((d (fl* 20.0 (fl-distance-point-segment v entry-seg))))
                             (if (fl> d 255.0) 255 (##flonum.->fixnum d)))
                           0)))))
       (graph-entries graph))

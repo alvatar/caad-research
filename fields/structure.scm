@@ -25,9 +25,9 @@
             mapped-x
             mapped-y
             (lambda (v)
-              (if (point-in-polygon? limit-polygon (vect2->point v))
+              (if (point-in-polygon? limit-polygon v)
                   (let ((d (fl* fadeout-factor
-                                (fl-distance-point-point-list (vect2->point v) str-points))))
+                                (fl-distance-point-point-list v str-points))))
                     (if (fl> d 255.0) 255 (##flonum.->fixnum d)))
                 0)))))
       (graph-structurals graph))

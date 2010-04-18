@@ -88,15 +88,13 @@
   (let* ((wall-points (wall->point-list wall))
          (mid-p (point-from-relative-in-wall wall 0.5))
          (tangent-p (point-list-tangent-in-relative wall-points 0.5))
-         (p1 (point-rotation mid-p (vect2->point
-                                     (vect2+vect2
-                                       (point->vect2 mid-p)
-                                       (vect2*scalar tangent-p 10.0)))
+         (p1 (point-rotation mid-p (vect2+
+                                     mid-p
+                                     (vect2:*scalar tangent-p 10.0))
                                    pi/2))
-         (p2 (point-rotation mid-p (vect2->point
-                                     (vect2+vect2
-                                       (point->vect2 mid-p)
-                                       (vect2*scalar tangent-p 10.0)))
+         (p2 (point-rotation mid-p (vect2+
+                                     mid-p
+                                     (vect2:*scalar tangent-p 10.0))
                                    pi/-2)))
     (not (and (point-in-any-room? p1)
                             (point-in-any-room? p2)))))
