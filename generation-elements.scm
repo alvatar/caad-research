@@ -5,6 +5,8 @@
 ;;; Elements used by generations algorithms and strategies
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(import (std srfi/1))
+
 ;-------------------------------------------------------------------------------
 ; Agents
 ;-------------------------------------------------------------------------------
@@ -19,6 +21,13 @@
   (if (agent? agent)
       ((agent-proc agent) world agent)
     (error "agent-new-state: argument #1 is not an agent")))
+
+;;; Find an agent given a list
+
+(define (find-agent agents label)
+  (find
+    (lambda (a) (equal? label (agent-label a)))
+    agents))
 
 ;-------------------------------------------------------------------------------
 ; World

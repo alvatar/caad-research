@@ -115,9 +115,11 @@
 
 (define-syntax vect2-
   (syntax-rules ()
-    ((vect2- vec1 vec2)
+    ((_ vec1)
+     (vect2-inverse vec1))
+    ((_ vec1 vec2)
      (vect2-vect2 vec1 vec2))
-    ((vect2- vec1 vec2 rest ...)
+    ((_ vec1 vec2 rest ...)
      (vect2- (vect2-vect2 vec1 vec2) rest ...))))
 
 ;;; Vector dot product
@@ -130,9 +132,11 @@
 
 (define-syntax vect2*
   (syntax-rules ()
-    ((vect2* vec1 vec2)
+    ((_ vec1)
+     vec1)
+    ((_ vec1 vec2)
      (vect2*vect2 vec1 vec2))
-    ((vect2* vec1 vec2 rest ...)
+    ((_ vec1 vec2 rest ...)
      (vect2* (vect2*vect2 vec1 vec2) rest ...))))
 
 ;;; Vector * scalar
@@ -161,6 +165,12 @@
        (=~e (vect2-v v1)
             (vect2-v v2)
             e)))
+
+;;; Square root function of a vector
+
+(define (vect2:sqrt vec)
+  (make-vect2 (sqrt (vect2-u vec))
+              (sqrt (vect2-v vec))))
 
 ;;; Calculate vector length
 

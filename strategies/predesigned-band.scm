@@ -27,87 +27,79 @@
      (light-field (make-light-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon))
      (entries-field (make-entries-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon))
      (structure-field (make-structure-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon))
-     (pipes-field (make-pipes-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon)))
-     (letrec
-       ((agents (list
-         (make-agent
-           'entrance
-           (list (random-point-in-polygon limit-polygon))
-           (lambda (world agent)
-             (make-agent
-               (agent-label agent)
-               (let ((pos (car (agent-node-positions agent))))
-                 (list (point-translation
-                         pos
-                         (vect2+
-                           (make-vect2 0.1 0.1)
-                           (make-vect2 1.0 0.0)))))
-                           ;#(vect2*scalar (field-least-potential-vector light-field (point->vect2 pos)) 1.0)))))
-               (agent-proc agent))))
-         (make-agent
-           'bath
-           (list (random-point-in-polygon limit-polygon))
-           (lambda (world agent)
-             (make-agent
-               (agent-label agent)
-               (list (make-point 0.0 0.0))
-               (agent-proc agent))))
-         (make-agent
-           'room1
-           (list (random-point-in-polygon limit-polygon))
-           (lambda (world agent)
-             (make-agent
-               (agent-label agent)
-               (list (make-point 0.0 0.0))
-               (agent-proc agent))))
-         (make-agent
-           'living
-           (list (random-point-in-polygon limit-polygon))
-           (lambda (world agent)
-             (make-agent
-               (agent-label agent)
-               (list (make-point 0.0 0.0))
-               (agent-proc agent))))
-         (make-agent
-           'kitchen
-           (list (random-point-in-polygon limit-polygon))
-           (lambda (world agent)
-             (make-agent
-               (agent-label agent)
-               (list (make-point 0.0 0.0))
-               (agent-proc agent))))
-         (make-agent
-           'distrib
-           (list (random-point-in-polygon limit-polygon))
-           (lambda (world agent)
-             (make-agent
-               (agent-label agent)
-               (list (make-point 0.0 0.0))
-               (agent-proc agent))))
-         (make-agent
-           'storage
-           (list (random-point-in-polygon limit-polygon))
-           (lambda (world agent)
-             (make-agent
-               (agent-label agent)
-               (list (make-point 0.0 0.0))
-               (agent-proc agent))))
-         (make-agent
-           'room2
-           (list (random-point-in-polygon limit-polygon))
-           (lambda (world agent)
-             (make-agent
-               (agent-label agent)
-               (list (make-point 0.0 0.0))
-               (agent-proc agent))))
-         (make-agent
-           'room3
-           (list (random-point-in-polygon limit-polygon))
-           (lambda (world agent)
-             (make-agent
-               (agent-label agent)
-               (list (make-point 0.0 0.0))
-               (agent-proc agent)))))))
+     (pipes-field (make-pipes-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon))
+     (agents (list
+       (make-agent
+         'distribution
+         (list (random-point-in-polygon limit-polygon))
+         (lambda (world a)
+           (make-agent
+             (agent-label a)
+             (let ((pos (car (agent-node-positions a)))
+                   (agents (world-agents world)))
+               (list
+                 (point-translation
+                   pos
+                   (vect2+
+                     (vect2*scalar
+                       (agent-agent-gravity a (find-agent agents 'kitchen)) -0.2)
+                     (vect2*scalar
+                       (agent-agent-gravity a (find-agent agents 'living)) -0.2)
+                     (vect2*scalar
+                       (agent-agent-gravity a (find-agent agents 'room1)) -0.2)
+                     (vect2*scalar
+                       (agent-agent-gravity a (find-agent agents 'room2)) -0.2)
+                     (vect2*scalar
+                       (agent-agent-gravity a (find-agent agents 'room3)) -0.2)
+                     #;(vect2*scalar
+                       (field-least-potential-vector structure-field (point->vect2 pos)) 1.0)
+                     #;(vect2*scalar
+                       (field-least-potential-vector pipes-field (point->vect2 pos)) 1.0)
+                     #;(vect2*scalar
+                       (field-least-potential-vector entries-field (point->vect2 pos)) 1.0)
+                     #;(vect2*scalar
+                       (field-least-potential-vector light-field (point->vect2 pos)) 1.0)))))
+             (agent-proc agent))))
+       (make-agent
+         'kitchen
+         (list (random-point-in-polygon limit-polygon))
+         (lambda (world agent)
+           (make-agent
+             (agent-label agent)
+             (list (make-point 0.0 0.0))
+             (agent-proc agent))))
+       (make-agent
+         'living
+         (list (random-point-in-polygon limit-polygon))
+         (lambda (world agent)
+           (make-agent
+             (agent-label agent)
+             (list (make-point 0.0 0.0))
+             (agent-proc agent))))
+       (make-agent
+         'room1
+         (list (random-point-in-polygon limit-polygon))
+         (lambda (world agent)
+           (make-agent
+             (agent-label agent)
+             (list (make-point 0.0 0.0))
+             (agent-proc agent))))
+       (make-agent
+         'room2
+         (list (random-point-in-polygon limit-polygon))
+         (lambda (world agent)
+           (make-agent
+             (agent-label agent)
+             (list (make-point 0.0 0.0))
+             (agent-proc agent))))
+       (make-agent
+         'room3
+         (list (random-point-in-polygon limit-polygon))
+         (lambda (world agent)
+           (make-agent
+             (agent-label agent)
+             (list (make-point 0.0 0.0))
+             (agent-proc agent)))))))
        (values
          graph
          (make-world 
@@ -115,4 +107,15 @@
            (list light-field
                  entries-field
                  structure-field
-                 pipes-field))))))
+                 pipes-field)))))
+
+;;; Agent-agent attraction vector
+
+(define (agent-agent-gravity agent1 agent2)
+  (let ((pos1 (car (agent-node-positions agent1)))
+        (pos2 (car (agent-node-positions agent2))))
+    (vect2:sqrt (vect2-one/vect2 (vect2-vect2 pos1 pos2)))))
+
+;;; Calculate least potential vector given a field and a point in it
+(define (field-least-potential-vector field pos)
+  '())
