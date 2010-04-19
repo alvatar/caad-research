@@ -192,6 +192,14 @@
         (cdr to-process))))
     (iter '() (wall-points wall)))
 
+;;; Convert a list of walls into a list of segments
+
+(define (wall-list->path-list walls)
+  (map
+    (lambda (w)
+      (wall->point-list w))
+    walls))
+
 ;;; Convert a point list into a wall
 
 (define (point-list->wall p-list uuid)

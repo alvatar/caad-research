@@ -166,6 +166,12 @@
             (vect2-y v2)
             e)))
 
+;;; Random vect2
+
+(define (vect2:random)
+  (make-vect2 (random-real)
+              (random-real)))
+
 ;;; Square root function of a vector
 
 (define (vect2:sqrt vec)
