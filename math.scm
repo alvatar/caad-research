@@ -5,7 +5,7 @@
 ;;; Mathematical operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declare (standard-bindings)(extended-bindings)(block)(not safe))
+;(declare (standard-bindings)(extended-bindings)(block)(not safe))
 (compile-options force-compile: #t)
 
 (import (std srfi/1))
@@ -175,14 +175,14 @@
 ;;; Calculate vector length
 
 (define (vect2:magnitude vec)
-  (sqrt (+ (expt (vect2-x vec) 2)
-           (expt (vect2-y vec) 2))))
+  (sqrt (+ (square (vect2-x vec))
+           (square (vect2-y vec)))))
 
 ;;; Calculate squared vector length
 
-(define (vect2:squaredmagnitude vec)
-  (+ (expt (vect2-x vec) 2)
-     (expt (vect2-y vec) 2)))
+(define (vect2:squaremagnitude vec)
+  (+ (square (vect2-x vec))
+     (square (vect2-y vec))))
 
 ;;; Calculate the symmetric vector
 
@@ -190,12 +190,18 @@
   (make-vect2 (- (vect2-x vec))
               (- (vect2-y vec))))
 
+;;; Absolute vector
+
+(define (vect2:abs vec)
+  (make-vect2 (abs (vect2-x vec))
+              (abs (vect2-y vec))))
+
 ;;; Normalize vector
 
 (define (vect2:normalize vec)
   (let ((div (vect2:magnitude vec)))
-    (make-vect2 (/ (abs (vect2-x vec)) div)
-                (/ (abs (vect2-y vec)) div))))
+    (make-vect2 (/ (vect2-x vec) div)
+                (/ (vect2-y vec) div))))
 
 ;;; Utility procedure to make a vector with each component 1.0 divided by the
 ;;; component of the given one
