@@ -40,6 +40,9 @@
              (agent-label a)
              (let ((pos (car (agent-node-positions a)))
                    (agents (world-agents world)))
+
+                   #;(pp (vect2:*scalar
+                       (field-least-potential-vector structure-field pos) 1.0))
                (list
                  (point-translation
                    pos
@@ -57,7 +60,7 @@
                      (vect2:*scalar
                        (agent-agent-interaction a (find-agent agents 'room3)) 0.2)
                      (vect2:*scalar
-                       (field-least-potential-vector light-field pos) 1.0)))))
+                       (field-least-potential-vector entries-field pos) 1.0)))))
              (agent-proc a))))
        (make-agent
          'kitchen
@@ -188,10 +191,11 @@
          graph
          (make-world 
            agents
-           (list light-field
+           (list ;light-field
                  entries-field
-                 structure-field
-                 pipes-field)))))
+                 ;structure-field
+                 ;pipes-field
+                 )))))
 
 ;;; Agent-agent interaction vector
 
@@ -202,8 +206,32 @@
     (vect2:/scalar (vect2- vec) (vect2:squaremagnitude vec))))
 
 ;;; Calculate least potential vector given a field and a point in it
+
 (define (field-least-potential-vector field pos)
-  (make-vect2 0.0 0.0))
+  (define (make-coords center)
+    (map
+      (lambda (c)
+        (u8-2dfield-coords->reflective-coords
+          field
+          (make-vect2
+            (fx+ (car c) (vect2-x center))
+            (fx+ (cadr c) (vect2-y center)))))
+      '((0 0)
+        (1 0) (1 1) (0 1) (-1 1) (-1 0) (-1 -1) (0 -1) (1 -1)
+        (2 0) (2 1) (2 2) (1 2) (0 2) (-1 2) (-2 2) (-2 1) (-2 0) (-2 -1) (-2 -2) (-1 -2) (0 -2) (1 -2) (2 -2) (2 -1))))
+  (pp pos)
+  (pp (u8-2dfield-position->coords field pos))
+  (pp (u8-2dfield-position->value field pos))
+  (make-vect2 0.0 0.0)
+  #;(cadr
+    (fold
+      (lambda (c current-max)
+        (let ((value-in-coords (u8-2dfield-coords->value field c)))
+          (if (> value-in-coords (car current-max))
+              (list value-in-coords (vect2- c pos))
+            current-max)))
+      (list 0 (make-vect2 0 0))
+      (make-coords (u8-2dfield-position->coords field pos)))))
 
 ;;; Agent-walls interaction vector
 

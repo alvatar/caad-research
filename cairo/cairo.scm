@@ -582,7 +582,7 @@ if(___arg1 == 0) {
   (c-lambda (unsigned-char* int int int int)
             void
             "
-___arg1[___arg2*___arg4+___arg3] = ___arg5;
+___arg1[___arg2*___arg4+___arg3] = ___arg5 ^ 0xff;
             "))
 
 (define (cairo-a8-image-set! image vect)
@@ -600,7 +600,7 @@ unsigned char *u8vectorptr = ___CAST(___U8*,___BODY_AS(___arg3,___tSUBTYPED));
 
 int i;
 for (i = 0; i < ___arg2 && i < ___arg4; i++) {
-    ___arg1[i] = u8vectorptr[i];
+    ___arg1[i] = u8vectorptr[i] ^ 0xff;
 }
             "))
 

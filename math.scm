@@ -215,3 +215,49 @@
 (define (vect2:1/vect2 vec)
   (make-vect2 (/ 1.0 (vect2-x vec))
               (/ 1.0 (vect2-y vec))))
+
+;;; Clamp to low and high vect2
+
+(define (vect2:clamp-vect2 vec lo-vec hi-vec)
+  (let ((x (vect2-x vec))
+        (y (vect2-y vec))
+        (lox (vect2-x lo-vec))
+        (loy (vect2-y lo-vec))
+        (hix (vect2-x hi-vec))
+        (hiy (vect2-y hi-vec)))
+    (make-vect2
+      (cond
+       ((< x lox)
+        lox)
+       ((>= x hix)
+        hix)
+       (else
+        x))
+      (cond
+       ((< y loy)
+        lox)
+       ((>= y hiy)
+        hiy)
+       (else
+        y)))))
+
+;;; Clamp to low and high values
+
+(define (vect2:clamp-values vec lo hi)
+  (let ((x (vect2-x vec))
+        (y (vect2-y vec)))
+    (make-vect2
+      (cond
+       ((< x lo)
+        lo)
+       ((>= x hi)
+        hi)
+       (else
+        x))
+      (cond
+       ((< y lo)
+        lo)
+       ((>= y hi)
+        hi)
+       (else
+        y)))))

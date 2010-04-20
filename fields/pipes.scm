@@ -14,7 +14,7 @@
 
 (define (make-pipes-field graph size-x size-y mapped-x mapped-y limit-polygon)
   (merge-u8-2dfields
-    (map ; produces a field per light-source
+    (map
       (lambda (pipe)
         (let ((pipe-pos (pipe-position pipe)))
           (produce-u8-2dfield-with-resolution
@@ -25,9 +25,9 @@
             mapped-y
             (lambda (v) (if (point-in-polygon? limit-polygon v)
                           (let ((d (fl* 20.0 (fl-distance-point-point v pipe-pos))))
-                            (if (fl> d 255.0) 255 (##flonum.->fixnum d)))
-                          0)))))
+                            (if (fl> d 255.0) 0 (fx- 255 (##flonum.->fixnum d))))
+                          255)))))
       (graph-pipes graph))
     (lambda (a b)
-      (let ((sum (fx- (fx+ a b) 255)))
-        (if (fx< sum 0) 0 sum)))))
+      (let ((sum (fx+ a b)))
+        (if (fx> sum 255) 255 sum)))))

@@ -21,11 +21,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
-noremap <F11> :call Compile(1)
-noremap <F10> :call CleanProgram()
-noremap <F9> :call RunProgram()
 nnoremap <F3> :vimgrep // **
+noremap <F9> :call RunProgram()
+noremap <F10> :call CleanProgram()
+noremap <F11> :call Compile(1)
+nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -160,7 +160,7 @@ badd +1 /data/projects/ensanche-core/constraints.scm
 badd +10 /data/projects/ensanche-core/filters.scm
 badd +13 /data/projects/ensanche-core/output.scm
 badd +152 /data/projects/ensanche-core/analysis.scm
-badd +270 /data/projects/ensanche-core/geometry.scm
+badd +382 /data/projects/ensanche-core/geometry.scm
 badd +55 /data/projects/ensanche-core/math.scm
 badd +1 /data/projects/ensanche-core/validators.scm
 badd +37 /data/projects/ensanche-core/utils/misc.scm
@@ -174,7 +174,7 @@ badd +140 /data/projects/ensanche-core/graph-visualization.scm
 badd +1 /data/projects/ensanche-core/fields/entries.scm
 badd +187 /data/projects/ensanche-core/fields-2d.scm
 silent! argdel *
-edit /data/projects/ensanche-core/geometry.scm
+edit /data/projects/ensanche-core/math.scm
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
@@ -184,8 +184,8 @@ set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
-exe 'vert 1resize ' . ((&columns * 139 + 139) / 279)
-exe 'vert 2resize ' . ((&columns * 139 + 139) / 279)
+exe 'vert 1resize ' . ((&columns * 137 + 139) / 279)
+exe 'vert 2resize ' . ((&columns * 141 + 139) / 279)
 argglobal
 setlocal keymap=
 setlocal noarabic
@@ -284,12 +284,12 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 465 - ((90 * winheight(0) + 46) / 92)
+let s:l = 263 - ((85 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-465
-normal! 024l
+263
+normal! 08l
 lcd /data/projects/ensanche-core/__deploy
 wincmd w
 argglobal
@@ -391,15 +391,15 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 40 - ((39 * winheight(0) + 46) / 92)
+let s:l = 225 - ((69 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-40
-normal! 030l
+225
+normal! 050l
 wincmd w
-exe 'vert 1resize ' . ((&columns * 139 + 139) / 279)
-exe 'vert 2resize ' . ((&columns * 139 + 139) / 279)
+exe 'vert 1resize ' . ((&columns * 137 + 139) / 279)
+exe 'vert 2resize ' . ((&columns * 141 + 139) / 279)
 tabnext 1
 if exists('s:wipebuf')
   silent exe 'bwipe ' . s:wipebuf

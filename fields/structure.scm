@@ -28,9 +28,9 @@
               (if (point-in-polygon? limit-polygon v)
                   (let ((d (fl* fadeout-factor
                                 (fl-distance-point-point-list v str-points))))
-                    (if (fl> d 255.0) 255 (##flonum.->fixnum d)))
-                0)))))
+                    (if (fl> d 255.0) 0 (fx- 255 (##flonum.->fixnum d))))
+                255)))))
       (graph-structurals graph))
     (lambda (a b)
-      (let ((sum (fx- (fx+ a b) 255)))
-        (if (fx< sum 0) 0 sum)))))
+      (let ((sum (fx+ a b)))
+        (if (fx> sum 255) 255 sum)))))

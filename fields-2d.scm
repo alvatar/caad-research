@@ -152,38 +152,70 @@
         (proc value (u8vector-ref (u8-2dfield-data (car rest-fields)) p))
         p
         (cdr rest-fields)))))
-  (make-u8-2dfield
-    (cond
-     ((< (length fields) 1)
-      (error "merge-u8-2dfields: you passed a null list of fields"))
-     ((< (length fields) 2)
-      (car fields))
-     (else
-      (let* ((f (car fields))
-             (field-data (u8-2dfield-data f))
-             (len (u8vector-length field-data)))
-        (do ((vec (make-u8vector len))
-             (i 0 (fx+ i 1)))
-            ((fx>= i len) vec)
-          (u8vector-set! vec
-                         i
-                         (merge-point (u8vector-ref field-data i)
-                                      i
-                                      (cdr fields)))))))
-    (u8-2dfield-size-x (car fields))
-    (u8-2dfield-size-y (car fields))
-    (u8-2dfield-mapped-x (car fields))
-    (u8-2dfield-mapped-y (car fields))))
+  (let ((first-field (car fields)))
+    (make-u8-2dfield
+      (cond
+       ((< (length fields) 1)
+        (error "merge-u8-2dfields: you passed a null list of fields"))
+       ((< (length fields) 2)
+        (u8-2dfield-data first-field))
+       (else
+        (let* ((f (car fields))
+               (field-data (u8-2dfield-data f))
+               (len (u8vector-length field-data)))
+          (do ((vec (make-u8vector len))
+               (i 0 (fx+ i 1)))
+              ((fx>= i len) vec)
+            (u8vector-set! vec
+                           i
+                           (merge-point (u8vector-ref field-data i)
+                                        i
+                                        (cdr fields)))))))
+      (u8-2dfield-size-x first-field)
+      (u8-2dfield-size-y first-field)
+      (u8-2dfield-mapped-x first-field)
+      (u8-2dfield-mapped-y first-field))))
 
 ;;; Get value from field position
 
-(define (u8-2dfield->value field pos-vec)
-  (let* ((maxx (u8-2dfield-size-x field))
-         (x (vect2-x pos-vec))
-         (y (vect2-y pos-vec))
-         (i (##flonum.->fixnum (floor (/ (* x (u8-2dfield-size-x field)) (u8-2dfield-mapped-x field)))))
-         (j (##flonum.->fixnum (floor (/ (* y (u8-2dfield-size-y field)) (u8-2dfield-mapped-y field))))))
-    (u8vector-ref (u8-2dfield-data field) (fx+ (fx* maxx j) i))))
+(define (u8-2dfield-position->value field pos)
+  (let* ((coords (u8-2dfield-position->coords field pos))
+         (i (vect2-x coords))
+         (j (vect2-y coords)))
+    (u8vector-ref (u8-2dfield-data field) (fx+ (fx* (u8-2dfield-size-x field) j) i))))
+
+;;; Get value from field coordinates
+
+(define (u8-2dfield-coords->value field coords)
+  (u8vector-ref (u8-2dfield-data field)
+                (fx+ (fx* (u8-2dfield-size-x field)
+                          (vect2-y coords))
+                     (vect2-x coords))))
+
+;;; Convert from euclidean position to field coordinates
+
+(define (u8-2dfield-position->coords field pos)
+  (let* ((x (vect2-x pos))
+         (y (vect2-y pos))
+         (mapped (max (u8-2dfield-mapped-x field) (u8-2dfield-mapped-y field)))
+         (i (inexact->exact (floor (/ (* x (u8-2dfield-size-x field)) mapped))))
+         (j (inexact->exact (floor (/ (* y (u8-2dfield-size-y field)) mapped)))))
+    (make-vect2 i j)))
+
+;;; Transform coordinates to reflective boundaries topology
+
+(define (u8-2dfield-coords->reflective-coords field coords)
+  (vect2:clamp-vect2
+    coords
+    (make-vect2 0 0)
+    (make-vect2
+      (- (u8-2dfield-size-x field) 1)
+      (- (u8-2dfield-size-y field) 1))))
+
+;;; Transform coordinates to toroidal topology
+
+(define (u8-2dfield-coords->toroidal-coords field coords)
+  coords) ; TODO
 
 ;-------------------------------------------------------------------------------
 ; List fields

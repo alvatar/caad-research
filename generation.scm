@@ -8,6 +8,7 @@
 (import (std srfi/1))
 
 (import analysis)
+(import fields-2d)
 (import generation-elements)
 (import geometry)
 (import graph)
@@ -117,13 +118,13 @@
     (lambda (backend vis-env)
       (let* ((image (visualization:create-image backend)) ; TODO: created in other place
              (max-dim (max (vect2-x size-vec) (vect2-y size-vec)))
-             (image-scale (vect2*vect2
-                          (make-vect2 max-dim max-dim)
-                          (make-vect2 (inverse maxx) (inverse maxy)))))
+             (image-scale (vect2*
+                            (make-vect2 max-dim max-dim)
+                            (make-vect2 (inverse maxx) (inverse maxy)))))
         (visualization:scale backend image-scale)
-        (visualization:image-set! image field)
+        (visualization:image-set! image (u8-2dfield-data field))
         (visualization:paint-image backend image 0.5)
-        (visualization:scale backend (vect2-one/vect2 image-scale)))))
+        (visualization:scale backend (vect2:1/vect2 image-scale)))))
   (visualization:layer-depth-set! 'fields 10))
 
 ;;; Agent visualization
@@ -161,11 +162,9 @@
   (let* ((bb (graph-bounding-box graph))
          (size-vec (vect2- (cadr bb)
                            (car bb))))
-    #|
     (for-each
       (lambda (f) (visualize-field f size-vec))
       (world-fields world))
-      |#
     (for-each
       visualize-agent
       (world-agents world))
