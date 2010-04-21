@@ -88,11 +88,11 @@
   (let* ((wall-points (wall->point-list wall))
          (mid-p (point-from-relative-in-wall wall 0.5))
          (tangent-p (point-list-tangent-in-relative wall-points 0.5))
-         (p1 (point-rotation mid-p (vect2+
+         (p1 (point-rotation-reference mid-p (vect2+
                                      mid-p
                                      (vect2:*scalar tangent-p 10.0))
                                    pi/2))
-         (p2 (point-rotation mid-p (vect2+
+         (p2 (point-rotation-reference mid-p (vect2+
                                      mid-p
                                      (vect2:*scalar tangent-p 10.0))
                                    pi/-2)))
@@ -187,6 +187,16 @@
 (define (room-area room)
   ;http://www.mathsisfun.com/geometry/area-irregular-polygons.html
   99.9) ; TODO
+
+;;; Calculate south from north direction
+
+(define (north->south vec)
+  (point-rotation vec pi))
+
+;;; Calculate north-east from north direction
+
+(define (north->north-east vec)
+  (point-rotation vec (/ pi 4.0)))
 
 ;-------------------------------------------------------------------------------
 ; Helper procedures

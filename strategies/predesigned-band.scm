@@ -40,27 +40,31 @@
              (agent-label a)
              (let ((pos (car (agent-node-positions a)))
                    (agents (world-agents world)))
-
-                   #;(pp (vect2:*scalar
-                       (field-least-potential-vector structure-field pos) 1.0))
                (list
                  (point-translation
                    pos
                    (vect2+
                      (vect2:*scalar
-                       (agent-walls-interaction pos path-list) 0.01)
+                       (agent-walls-interaction pos path-list) -0.9)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'kitchen)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'kitchen)) -0.2)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'living)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'living)) -0.2)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'room1)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'room1)) -0.2)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'room2)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'room2)) -0.2)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'room3)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'room3)) -0.2)
+                     #|
                      (vect2:*scalar
-                       (field-least-potential-vector entries-field pos) 1.0)))))
+                       (field-least-potential-vector structure-field pos) -0.05)
+                       |#
+                     (vect2:*scalar
+                       (field-least-potential-vector pipes-field pos) 0.2)
+                     (vect2:*scalar
+                       (field-least-potential-vector entries-field pos) 0.4)
+                       ))))
              (agent-proc a))))
        (make-agent
          'kitchen
@@ -75,17 +79,24 @@
                    pos
                    (vect2+
                      (vect2:*scalar
-                       (agent-walls-interaction pos path-list) 0.01)
+                       (agent-walls-interaction pos path-list) -0.9)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'distribution)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'distribution)) -0.4)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'living)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'living)) -0.2)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'room1)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'room1)) -0.4)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'room2)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'room2)) -0.4)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'room3)) 0.2)))))
+                       (agent-agent-interaction a (find-agent agents 'room3)) -0.4)
+                     #|
+                     (vect2:*scalar
+                       (field-least-potential-vector structure-field pos) -0.05)
+                       |#
+                     (vect2:*scalar
+                       (field-least-potential-vector pipes-field pos) 0.1)
+                       ))))
              (agent-proc a))))
        (make-agent
          'living
@@ -94,23 +105,34 @@
            (make-agent
              (agent-label a)
              (let ((pos (car (agent-node-positions a)))
-                   (agents (world-agents world)))
+                   (agents (world-agents world))
+                   (south (north->south (graph-north graph))))
                (list
                  (point-translation
                    pos
                    (vect2+
                      (vect2:*scalar
-                       (agent-walls-interaction pos path-list) 0.01)
+                       (agent-walls-interaction pos path-list) -0.9)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'kitchen)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'kitchen)) -0.2)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'distribution)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'distribution)) -0.4)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'room1)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'room1)) -0.4)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'room2)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'room2)) -0.4)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'room3)) 0.2)))))
+                       (agent-agent-interaction a (find-agent agents 'room3)) -0.4)
+                     #|
+                     #;(let ((lv (vect2:*scalar (field-least-potential-vector light-field pos) 0.1)))
+                       (if (vect2:=? lv (make-vect2 0.0 0.0))
+                           (vect2:*scalar (vect2:random) 0.2)
+                         lv))
+                     (vect2:*scalar
+                       (field-least-potential-vector structure-field pos) -0.05)
+                     |#
+                     (vect2:*scalar south 1.0)
+                       ))))
              (agent-proc a))))
        (make-agent
          'room1
@@ -119,23 +141,30 @@
            (make-agent
              (agent-label a)
              (let ((pos (car (agent-node-positions a)))
-                   (agents (world-agents world)))
+                   (agents (world-agents world))
+                   (north-east (north->north-east (graph-north graph))))
                (list
                  (point-translation
                    pos
                    (vect2+
                      (vect2:*scalar
-                       (agent-walls-interaction pos path-list) 0.01)
+                       (agent-walls-interaction pos path-list) -0.9)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'distribution)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'distribution)) -0.6)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'living)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'living)) -0.6)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'kitchen)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'kitchen)) -0.8)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'room2)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'room2)) -0.6)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'room3)) 0.2)))))
+                       (agent-agent-interaction a (find-agent agents 'room3)) -0.6)
+                     #|
+                     (vect2:*scalar
+                       (field-least-potential-vector structure-field pos) -0.05)
+                       |#
+                     (vect2:*scalar north-east 0.8)
+                       ))))
              (agent-proc a))))
        (make-agent
          'room2
@@ -144,23 +173,30 @@
            (make-agent
              (agent-label a)
              (let ((pos (car (agent-node-positions a)))
-                   (agents (world-agents world)))
+                   (agents (world-agents world))
+                   (north-east (north->north-east (graph-north graph))))
                (list
                  (point-translation
                    pos
                    (vect2+
                      (vect2:*scalar
-                       (agent-walls-interaction pos path-list) 0.01)
+                       (agent-walls-interaction pos path-list) -0.9)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'distribution)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'distribution)) -0.6)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'living)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'living)) -0.6)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'kitchen)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'kitchen)) -0.8)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'room1)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'room1)) -0.6)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'room3)) 0.2)))))
+                       (agent-agent-interaction a (find-agent agents 'room3)) -0.6)
+                     #|
+                     (vect2:*scalar
+                       (field-least-potential-vector structure-field pos) -0.05)
+                       |#
+                     (vect2:*scalar north-east 0.8)
+                       ))))
              (agent-proc a))))
        (make-agent
          'room3
@@ -169,32 +205,39 @@
            (make-agent
              (agent-label a)
              (let ((pos (car (agent-node-positions a)))
-                   (agents (world-agents world)))
+                   (agents (world-agents world))
+                   (north-east (north->north-east (graph-north graph))))
                (list
                  (point-translation
                    pos
                    (vect2+
                      (vect2:*scalar
-                       (agent-walls-interaction pos path-list) 0.01)
+                       (agent-walls-interaction pos path-list) -0.9)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'distribution)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'distribution)) -0.6)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'living)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'living)) -0.6)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'kitchen)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'kitchen)) -0.8)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'room1)) 0.2)
+                       (agent-agent-interaction a (find-agent agents 'room1)) -0.6)
                      (vect2:*scalar
-                       (agent-agent-interaction a (find-agent agents 'room2)) 0.2)))))
+                       (agent-agent-interaction a (find-agent agents 'room2)) -0.6)
+                     #|
+                     (vect2:*scalar
+                       (field-least-potential-vector structure-field pos) -0.05)
+                       |#
+                     (vect2:*scalar north-east 0.8)
+                       ))))
              (agent-proc a)))))))
        (values
          graph
          (make-world 
            agents
-           (list ;light-field
+           (list light-field
                  entries-field
-                 ;structure-field
-                 ;pipes-field
+                 structure-field
+                 pipes-field
                  )))))
 
 ;;; Agent-agent interaction vector
@@ -203,7 +246,7 @@
   (let* ((pos1 (car (agent-node-positions agent1)))
          (pos2 (car (agent-node-positions agent2)))
          (vec (vect2- pos2 pos1)))
-    (vect2:/scalar (vect2- vec) (vect2:squaremagnitude vec))))
+    (vect2:/scalar vec (vect2:squaremagnitude vec))))
 
 ;;; Calculate least potential vector given a field and a point in it
 
@@ -214,33 +257,33 @@
         (u8-2dfield-coords->reflective-coords
           field
           (make-vect2
-            (fx+ (car c) (vect2-x center))
-            (fx+ (cadr c) (vect2-y center)))))
+            (fx+ (fx* 5 (car c)) (vect2-x center))
+            (fx+ (fx* 5 (cadr c)) (vect2-y center)))))
       '((0 0)
         (1 0) (1 1) (0 1) (-1 1) (-1 0) (-1 -1) (0 -1) (1 -1)
         (2 0) (2 1) (2 2) (1 2) (0 2) (-1 2) (-2 2) (-2 1) (-2 0) (-2 -1) (-2 -2) (-1 -2) (0 -2) (1 -2) (2 -2) (2 -1))))
-  (pp pos)
-  (pp (u8-2dfield-position->coords field pos))
-  (pp (u8-2dfield-position->value field pos))
-  (make-vect2 0.0 0.0)
-  #;(cadr
-    (fold
-      (lambda (c current-max)
-        (let ((value-in-coords (u8-2dfield-coords->value field c)))
-          (if (> value-in-coords (car current-max))
-              (list value-in-coords (vect2- c pos))
-            current-max)))
-      (list 0 (make-vect2 0 0))
-      (make-coords (u8-2dfield-position->coords field pos)))))
+  (let ((pos-coords (u8-2dfield-position->coords field pos)))
+    (vect2:/scalar
+      (cadr
+        (fold
+          (lambda (c current-max)
+            (let ((value-in-coords (u8-2dfield-coords->value field c)))
+              (if (> value-in-coords (car current-max))
+                  (list value-in-coords (vect2- c pos-coords))
+                current-max)))
+          (list 0 (make-vect2 0 0))
+          (make-coords pos-coords)))
+      5.0)))
 
 ;;; Agent-walls interaction vector
 
 (define (agent-walls-interaction agent-pos path-list)
   (fold
     (lambda (p vec)
-      (vect2+ (vect2-
-                (mid-point (segment-first-point p) (segment-second-point p))
-                agent-pos)
-              vec))
+      (let ((distance-vec (vect2-
+                            agent-pos
+                            (mid-point (segment-first-point p) (segment-second-point p)))))
+        (vect2+ (vect2:/scalar distance-vec (vect2:magnitude distance-vec))
+                vec)))
     (make-vect2 0.0 0.0)
     path-list))

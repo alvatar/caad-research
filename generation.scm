@@ -162,9 +162,11 @@
   (let* ((bb (graph-bounding-box graph))
          (size-vec (vect2- (cadr bb)
                            (car bb))))
+    #|
     (for-each
       (lambda (f) (visualize-field f size-vec))
       (world-fields world))
+      |#
     (for-each
       visualize-agent
       (world-agents world))

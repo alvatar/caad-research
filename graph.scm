@@ -61,6 +61,11 @@
 (define (graph-structurals graph)
   ((sxpath '(structural)) graph))
 
+;;; Get the north direction
+
+(define (graph-north graph)
+  (vect2:normalize (make-vect2 1.0 1.0)))
+
 ;;; Remove element from graph
 
 (define (remove-element graph element)

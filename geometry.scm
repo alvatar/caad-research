@@ -25,7 +25,7 @@
 
 ;;; Vector rotation
 
-(define (point-rotation-origin vec r-angle)
+(define (point-rotation vec r-angle)
   (make-vect2 (- (* (vect2-x vec) (cos r-angle))
                  (* (vect2-y vec) (sin r-angle)))
               (+ (* (vect2-y vec) (cos r-angle))
@@ -38,9 +38,9 @@
 
 ;;; Point rotation
 
-(define (point-rotation ref p r-angle)
+(define (point-rotation-reference ref p r-angle)
   (vect2:+vect2 ref
-    (point-rotation-origin
+    (point-rotation
       (vect2:-vect2 p ref)
       r-angle)))
 
