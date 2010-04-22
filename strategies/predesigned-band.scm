@@ -18,9 +18,166 @@
 (import ../graph)
 (import ../math)
 
-;;; Create all necessary things to begin simulation
+;-------------------------------------------------------------------------------
+; Iteration steps and termination predicates
+;-------------------------------------------------------------------------------
 
-(define (describe-world-predesigned-band graph world)
+;;; Iteration step 1
+
+(define (predesigned-band-iteration-step-1 graph world)
+  (let*
+    ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
+     (bb-vect (segment:direction (bounding-box:diagonal-segment (polysegment:bounding-box limit-polygon))))
+     (bb-x (vect2-x bb-vect))
+     (bb-y (vect2-y bb-vect))
+     (agents (list
+       (make-agent
+         'distribution
+         (list (polygon:make-random-point-inside limit-polygon))
+         (lambda (world a) a))
+       (make-agent
+         'kitchen
+         (list (polygon:make-random-point-inside limit-polygon))
+         (lambda (world a) a))
+       (make-agent
+         'living
+         (list (polygon:make-random-point-inside limit-polygon))
+         (lambda (world a) a))
+       (make-agent
+         'room1
+         (list (polygon:make-random-point-inside limit-polygon))
+         (lambda (world a) a))
+       (make-agent
+         'room2
+         (list (polygon:make-random-point-inside limit-polygon))
+         (lambda (world a) a))
+       (make-agent
+         'room3
+         (list (polygon:make-random-point-inside limit-polygon))
+         (lambda (world a) a)))))
+
+       (values
+         graph
+         (make-world 
+           agents
+           '()))))
+
+;;; Termination predicate 1
+
+(define (predesigned-band-termination-predicate-1 graph world)
+  (not (null? world)))
+
+;;; Iteration step 2
+
+(define (predesigned-band-iteration-step-2 graph world)
+  (let*
+    ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
+     (bb-vect (segment:direction (bounding-box:diagonal-segment (polysegment:bounding-box limit-polygon))))
+     (bb-x (vect2-x bb-vect))
+     (bb-y (vect2-y bb-vect))
+     (wall-path-list (wall-list->path-list (graph-walls graph)))
+     (pipes-center-list (pipes-list->center-positions (graph-pipes graph)))
+     (entry-path (entry->point-list graph (car (graph-entries graph)))) ; TODO: only one entry taken into account
+     (north (graph-north graph))
+     (agents
+       (map
+         (lambda (a)
+           (let ((a-label (agent-label a)))
+             (cond
+              ((equal? a-label 'distribution)
+               (make-agent
+                 a-label
+                 (let ((pos (car (agent-node-positions a))))
+                   (list
+                     (translation:point
+                       pos
+                       (vect2+
+                         (vect2:*scalar
+                           (agent-walls-interaction pos wall-path-list) -1.0)
+                         (vect2:*scalar
+                           (agent-pipes-interaction pos pipes-center-list) 0.4)
+                         (vect2:*scalar
+                           (agent-entry-interaction pos entry-path) 0.6)))))
+                 (agent-proc a)))
+              ((equal? a-label 'kitchen)
+               (make-agent
+                 a-label
+                 (let ((pos (car (agent-node-positions a))))
+                   (list
+                     (translation:point
+                       pos
+                       (vect2+
+                         (vect2:*scalar
+                           (agent-walls-interaction pos wall-path-list) -1.0)
+                         (vect2:*scalar
+                           (agent-pipes-interaction pos pipes-center-list) 0.3)))))
+                 (agent-proc a)))
+              ((equal? a-label 'living)
+               (make-agent
+                 a-label
+                 (let ((pos (car (agent-node-positions a))))
+                   (list
+                     (translation:point
+                       pos
+                       (vect2+
+                         (vect2:*scalar
+                           (agent-walls-interaction pos wall-path-list) -1.0)
+                         (vect2:*scalar (north->south north) 1.4)))))
+                 (agent-proc a)))
+              ((equal? a-label 'room1)
+               (make-agent
+                 a-label
+                 (let ((pos (car (agent-node-positions a))))
+                   (list
+                     (translation:point
+                       pos
+                       (vect2+
+                         (vect2:*scalar
+                           (agent-walls-interaction pos wall-path-list) -1.0)
+                         (vect2:*scalar (north->north-east north) 1.0)))))
+                 (agent-proc a)))
+              ((equal? a-label 'room2)
+               (make-agent
+                 a-label
+                 (let ((pos (car (agent-node-positions a))))
+                   (list
+                     (translation:point
+                       pos
+                       (vect2+
+                         (vect2:*scalar
+                           (agent-walls-interaction pos wall-path-list) -1.0)
+                         (vect2:*scalar (north->north-east north) 1.0)))))
+                 (agent-proc a)))
+              ((equal? a-label 'room3)
+               (make-agent
+                 a-label
+                 (let ((pos (car (agent-node-positions a))))
+                   (list
+                     (translation:point
+                       pos
+                       (vect2+
+                         (vect2:*scalar
+                           (agent-walls-interaction pos wall-path-list) -1.0)
+                         (vect2:*scalar (north->north-east north) 1.0)))))
+                 (agent-proc a)))
+              (else
+                (error "predesigned-band-iteration-step-2: Unhandled agent type:" a-label)))))
+         (world-agents world))))
+     (visualize-world world graph)
+     (values
+       graph
+       (make-world 
+         agents
+         '()))))
+
+;;; Termination predicate 2
+
+(define (predesigned-band-termination-predicate-2 graph world)
+  #f)
+
+;;; Iteration step 3
+
+(define (predesigned-band-iteration-step-3 graph world)
   (let*
     ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
      (bb-vect (segment:direction (bounding-box:diagonal-segment (polysegment:bounding-box limit-polygon))))
@@ -250,16 +407,47 @@
                      (vect2:*scalar north-east 1.0)
                        ))))
              (agent-proc a)))))))
+
+  #|
+  (visualize-world world graph)
+  (if (stop?)
+      (values graph world)
+    (evolve-mono-nodal-agents
+      graph
+      (world-merge-agents
+        world
+        (agents-receive-new-states))))
+
+|#
+
+
+
+
        (values
          graph
          (make-world 
            agents
-           '()
-           #;(list light-field
-                 entries-field
-                 structure-field
-                 pipes-field)
-                 ))))
+           '()))))
+
+;;; Termination predicate 3
+
+(define (predesigned-band-termination-predicate-3 graph world)
+  (not (null? world))) ; TODO
+
+;;; Algorithm steps
+
+(define predesigned-band
+  (list
+    (list predesigned-band-iteration-step-1
+          predesigned-band-iteration-step-2
+          predesigned-band-iteration-step-3)
+    (list predesigned-band-termination-predicate-1
+          predesigned-band-termination-predicate-2
+          predesigned-band-termination-predicate-3)))
+
+;-------------------------------------------------------------------------------
+; Elements' interaction
+;-------------------------------------------------------------------------------
 
 ;;; Agent-agent interaction vector
 
