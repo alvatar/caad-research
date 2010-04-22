@@ -23,7 +23,7 @@
 (define (describe-world-predesigned-band graph world)
   (let*
     ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
-     (bb-vect (segment-vector (point-list->bounding-box limit-polygon)))
+     (bb-vect (segment:direction (bounding-box:diagonal-segment (polysegment:bounding-box limit-polygon))))
      (bb-x (vect2-x bb-vect))
      (bb-y (vect2-y bb-vect))
      ;(light-field (make-light-field graph graph-space-size-x graph-space-size-y bb-x bb-y limit-polygon))
@@ -36,14 +36,14 @@
      (agents (list
        (make-agent
          'distribution
-         (list (random-point-in-polygon limit-polygon))
+         (list (polygon:make-random-point-inside limit-polygon))
          (lambda (world a)
            (make-agent
              (agent-label a)
              (let ((pos (car (agent-node-positions a)))
                    (agents (world-agents world)))
                (list
-                 (point-translation
+                 (translation:point
                    pos
                    (vect2+
                      (vect2:*scalar
@@ -76,14 +76,14 @@
              (agent-proc a))))
        (make-agent
          'kitchen
-         (list (random-point-in-polygon limit-polygon))
+         (list (polygon:make-random-point-inside limit-polygon))
          (lambda (world a)
            (make-agent
              (agent-label a)
              (let ((pos (car (agent-node-positions a)))
                    (agents (world-agents world)))
                (list
-                 (point-translation
+                 (translation:point
                    pos
                    (vect2+
                      (vect2:*scalar
@@ -112,7 +112,7 @@
              (agent-proc a))))
        (make-agent
          'living
-         (list (random-point-in-polygon limit-polygon))
+         (list (polygon:make-random-point-inside limit-polygon))
          (lambda (world a)
            (make-agent
              (agent-label a)
@@ -120,7 +120,7 @@
                    (agents (world-agents world))
                    (south (north->south (graph-north graph))))
                (list
-                 (point-translation
+                 (translation:point
                    pos
                    (vect2+
                      (vect2:*scalar
@@ -150,7 +150,7 @@
              (agent-proc a))))
        (make-agent
          'room1
-         (list (random-point-in-polygon limit-polygon))
+         (list (polygon:make-random-point-inside limit-polygon))
          (lambda (world a)
            (make-agent
              (agent-label a)
@@ -158,7 +158,7 @@
                    (agents (world-agents world))
                    (north-east (north->north-east (graph-north graph))))
                (list
-                 (point-translation
+                 (translation:point
                    pos
                    (vect2+
                      (vect2:*scalar
@@ -184,7 +184,7 @@
              (agent-proc a))))
        (make-agent
          'room2
-         (list (random-point-in-polygon limit-polygon))
+         (list (polygon:make-random-point-inside limit-polygon))
          (lambda (world a)
            (make-agent
              (agent-label a)
@@ -192,7 +192,7 @@
                    (agents (world-agents world))
                    (north-east (north->north-east (graph-north graph))))
                (list
-                 (point-translation
+                 (translation:point
                    pos
                    (vect2+
                      (vect2:*scalar
@@ -218,7 +218,7 @@
              (agent-proc a))))
        (make-agent
          'room3
-         (list (random-point-in-polygon limit-polygon))
+         (list (polygon:make-random-point-inside limit-polygon))
          (lambda (world a)
            (make-agent
              (agent-label a)
@@ -226,7 +226,7 @@
                    (agents (world-agents world))
                    (north-east (north->north-east (graph-north graph))))
                (list
-                 (point-translation
+                 (translation:point
                    pos
                    (vect2+
                      (vect2:*scalar
@@ -303,7 +303,7 @@
     (lambda (p vec)
       (let ((distance-vec (vect2-
                             agent-pos
-                            (segment-mid-point p))))
+                            (segment:mid-point p))))
         (vect2+ (vect2:/scalar distance-vec (vect2:magnitude distance-vec))
                 vec)))
     (make-vect2 0.0 0.0)
@@ -326,7 +326,7 @@
 
 (define (agent-entry-interaction agent-pos entry-segment)
   (let ((distance-vec (vect2-
-                        (segment-mid-point entry-segment)
+                        (segment:mid-point entry-segment)
                         agent-pos)))
     (vect2:/scalar
       distance-vec

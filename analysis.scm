@@ -87,12 +87,12 @@
          (graph-rooms graph)))
   (let* ((wall-points (wall->point-list wall))
          (mid-p (point-from-relative-in-wall wall 0.5))
-         (tangent-p (point-list-tangent-in-relative wall-points 0.5))
-         (p1 (point-rotation-reference mid-p (vect2+
+         (tangent-p (polysegment:tangent-in-relative wall-points 0.5))
+         (p1 (rotation:point-w/reference mid-p (vect2+
                                      mid-p
                                      (vect2:*scalar tangent-p 10.0))
                                    pi/2))
-         (p2 (point-rotation-reference mid-p (vect2+
+         (p2 (rotation:point-w/reference mid-p (vect2+
                                      mid-p
                                      (vect2:*scalar tangent-p 10.0))
                                    pi/-2)))
@@ -108,14 +108,14 @@
 ;;; Are these walls connected?
 
 (define (walls-are-connected? wall1 wall2)
-  (segments-are-connected? ; TODO: segments to paths
+  (segment:connected-segment? ; TODO: segments to paths
     (wall->point-list wall1)
     (wall->point-list wall2)))
 
 ;;; Is point in room?
 
 (define (point-in-room? graph room point)
-  (point-in-polygon? (room->point-list graph room) point))
+  (polygon:point-inside? (room->point-list graph room) point))
 
 ;-------------------------------------------------------------------------------
 ; Geometrical calculations
@@ -131,20 +131,20 @@
 ;;; Calculate bounding box
 
 (define (graph-bounding-box graph)
-  (point-list->bounding-box (wall-list->point-list (graph-find-exterior-walls graph))))
+  (polysegment:bounding-box (wall-list->point-list (graph-find-exterior-walls graph))))
 
 ;;; Calculate wall mid point
 
 (define (wall-mid-point wall)
   (let ((wall-points (wall->point-list wall)))
     (mid-point
-      (segment-first-point wall-points)
-      (segment-second-point wall-points))))
+      (segment:first-point wall-points)
+      (segment:second-point wall-points))))
 
 ;;; Calculate point given wall and percentage
 
 (define (point-from-relative-in-wall wall percentage) ; TODO: generalize to polywalls
-  (point-from-relative-in-segment
+  (segment:relative-position->point
     (list
       (archpoint->point (wall-point-n wall 1))
       (archpoint->point (wall-point-n wall 2)))
@@ -153,7 +153,7 @@
 ;;; Walls common point
 
 (define (walls-common-point wall1 wall2)
-  (let ((cp (point-list-common-point?
+  (let ((cp (polysegment:common-point?
               (wall->point-list wall1)
               (wall->point-list wall2))))
     (if cp cp
@@ -191,12 +191,12 @@
 ;;; Calculate south from north direction
 
 (define (north->south vec)
-  (point-rotation vec pi))
+  (rotation:point vec pi))
 
 ;;; Calculate north-east from north direction
 
 (define (north->north-east vec)
-  (point-rotation vec (/ pi 4.0)))
+  (rotation:point vec (/ pi 4.0)))
 
 ;-------------------------------------------------------------------------------
 ; Helper procedures

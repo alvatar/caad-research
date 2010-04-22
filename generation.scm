@@ -146,7 +146,7 @@
           (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.25))
       (agent-node-positions a))
       ;; Paint label
-      (let ((pos (point-list-right-most (agent-node-positions a))))
+      (let ((pos (polysegment:extreme-right (agent-node-positions a))))
         (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
         (visualization:paint-text backend
                                   (symbol->string (agent-label a))
@@ -160,8 +160,7 @@
 
 (define (visualize-world world graph)
   (let* ((bb (graph-bounding-box graph))
-         (size-vec (vect2- (cadr bb)
-                           (car bb))))
+         (size-vec (bounding-box:size-segment bb)))
     #|
     (for-each
       (lambda (f) (visualize-field f size-vec))

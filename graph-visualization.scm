@@ -20,8 +20,7 @@
 
 (define (visualize-graph graph)
   (let* ((limits (graph-bounding-box graph))
-         (size-vec (vect2- (cadr limits)
-                           (car limits)))
+         (size-vec (bounding-box:size-segment limits))
          (frame-factor 0.7)
          (max-scale-x (/ maxx (* (vect2-x size-vec))))
          (max-scale-y (/ maxy (* (vect2-y size-vec))))
@@ -73,7 +72,7 @@
         (visualization:paint-polygon backend (room->point-list graph room)))
       ;; Paint entry
       (define (paint-entry entry)
-        (let ((door-mid-point (segment-mid-point (entry->point-list graph entry))))
+        (let ((door-mid-point (segment:mid-point (entry->point-list graph entry))))
           (visualization:paint-set-color backend 1.0 0.45 0.45 0.4)
           (visualization:paint-circle-fill backend
                                            (vect2-x door-mid-point)
@@ -132,7 +131,7 @@
   (visualization:do-later
     '%framing
     (lambda (backend vis-env)
-      (visualization:translate backend (vect2:symmetric (car limits)))
+      (visualization:translate backend (vect2:symmetric (bounding-box-lefttop limits)))
       (visualization:scale backend (make-vect2 vis-scale vis-scale))
       (visualization:translate
         backend
