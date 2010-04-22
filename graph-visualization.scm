@@ -81,7 +81,7 @@
                                            0.4)))
       ;; Paint pipe
       (define (paint-pipe pipe)
-        (let ((pos (pipe-position pipe)))
+        (let ((pos (pipe->center-position pipe)))
           (visualization:paint-set-line-width backend 0.02)
           (visualization:paint-set-color backend 1.0 1.0 1.0 1.0)
           (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.2)

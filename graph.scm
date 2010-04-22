@@ -176,19 +176,39 @@
       (list (list 'y (number->string (cadr p)))
             (list 'x (number->string (car p))))))
 
-;-------------------------------------------------------------------------------
-; Point-list conversion
-;-------------------------------------------------------------------------------
-
 ;;; Extract the basic list of point coordinates
 
 (define (archpoint->point point)
   (make-vect2 (archpoint-coord 'x point)
               (archpoint-coord 'y point)))
 
+;-------------------------------------------------------------------------------
+; Wall
+;-------------------------------------------------------------------------------
+
+;;; Get all wall points
+
+(define (wall-points wall)
+  ((sxpath '(pt @)) wall))
+
+;;; Get wall point n
+
+(define (wall-point-n wall n)
+  ((sxpath `((pt ,n) @ *)) wall))
+
+;;; Get first wall point
+
+(define (wall-first-point wall)
+  ((sxpath '((pt 1) @ *)) wall))
+
+;;; Get last wall point
+
+(define (wall-last-point wall)
+  ((sxpath '((pt 2) @ *)) wall))
+
 ;;; Convert a wall into a list of points
 
-(define (wall->point-list wall) ; TODO: cons not append
+(define (wall->point-list wall)
   (define (iter point-list to-process)
     (if (null-list? to-process)
         point-list
@@ -215,30 +235,6 @@
                   (x ,(number->string (vect2-x pa)))))
            (pt (@ (y ,(number->string (vect2-y pb)))
                   (x ,(number->string (vect2-x pb))))))))
-
-;-------------------------------------------------------------------------------
-; Wall
-;-------------------------------------------------------------------------------
-
-;;; Get all wall points
-
-(define (wall-points wall)
-  ((sxpath '(pt @)) wall))
-
-;;; Get wall point n
-
-(define (wall-point-n wall n)
-  ((sxpath `((pt ,n) @ *)) wall))
-
-;;; Get first wall point
-
-(define (wall-first-point wall)
-  ((sxpath '((pt 1) @ *)) wall))
-
-;;; Get last wall point
-
-(define (wall-last-point wall)
-  ((sxpath '((pt 2) @ *)) wall))
 
 ;-------------------------------------------------------------------------------
 ; Wall inner elements
@@ -333,8 +329,16 @@
 
 ;;; Get the pipe's position
 
-(define (pipe-position pipe)
+(define (pipe->center-position pipe)
   (archpoint->point ((sxpath '(@ *)) pipe)))
+
+;;; Get all centers of a pipe list
+
+(define (pipes-list->center-positions pipes-list) ; TODO: Maybe macrolize?
+  (map
+    (lambda (p)
+      (pipe->center-position p))
+    pipes-list))
 
 ;-------------------------------------------------------------------------------
 ; Entry
