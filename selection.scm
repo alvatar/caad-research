@@ -5,5 +5,5 @@
 ;;; Selection
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (selector)
+(define (selector new pool)
   (error "selector: to be implemented"))

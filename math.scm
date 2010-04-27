@@ -172,6 +172,11 @@
   (make-vect2 (random-real)
               (random-real)))
 
+;;; Zero vector
+
+(define (vect2:zero)
+  (make-vect2 0.0 0.0))
+
 ;;; Square root function of a vector
 
 (define (vect2:sqrt vec)
