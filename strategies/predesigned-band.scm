@@ -168,7 +168,7 @@
        graph
        (make-world 
          agents
-         '()))))
+         (world-fields world)))))
 
 ;;; Termination predicate 2
 
@@ -256,13 +256,11 @@
                        (agent-agent-interaction a (find-agent agents 'room2)) -0.8)
                      (vect2:*scalar
                        (agent-agent-interaction a (find-agent agents 'room3)) -0.8)
-                       |#
-                     #|
                      (vect2:*scalar
                        (field-least-potential-vector structure-field pos) -0.05)
-                       |#
-                     #;(vect2:*scalar
+                     (vect2:*scalar
                        (field-least-potential-vector pipes-field pos) 0.3)
+                       |#
                      (vect2:*scalar
                        (agent-pipes-interaction pos pipes-center-list) 0.3)
                        ))))
@@ -293,9 +291,7 @@
                        (agent-agent-interaction a (find-agent agents 'room2)) -0.6)
                      (vect2:*scalar
                        (agent-agent-interaction a (find-agent agents 'room3)) -0.6)
-                       |#
-                     #|
-                     #;(let ((lv (vect2:*scalar (field-least-potential-vector light-field pos) 0.1)))
+                     (let ((lv (vect2:*scalar (field-least-potential-vector light-field pos) 0.1)))
                        (if (vect2:=? lv (make-vect2 0.0 0.0))
                            (vect2:*scalar (vect2:random) 0.2)
                          lv))

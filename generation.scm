@@ -35,6 +35,10 @@
       graph
       '())))
 
+;;; Export generation algorithm
+
+(define generator generate-from-model)
+
 ;;; Generation algorithm components type
 ;;; iteration-steps: must return a values construct with "graph" and "world"
 ;;; termination-predicates: must return whether this step should be terminated
