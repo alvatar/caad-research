@@ -20,7 +20,7 @@
 
 ;;; Agent type
 
-(define-structure agent label node-positions proc)
+(define-structure agent label positions memory proc)
 
 ;;; Agent new state evaluation
 
@@ -74,7 +74,7 @@
       ;; Paint nodes string
       (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
       (visualization:paint-set-line-width backend 0.05)
-      (visualization:paint-path backend (agent-node-positions a))
+      (visualization:paint-path backend (agent-positions a))
       ;; Paint nodes
       (for-each
         (lambda (pos)
@@ -82,9 +82,17 @@
           (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.4)
           (visualization:paint-set-color backend 1.0 0.0 0.0 0.9)
           (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.25))
-      (agent-node-positions a))
+        (agent-positions a))
+      ;; Paint trace
+      (map-in-order ; FIXME: this should be for-each with different list lengths
+        (lambda (pos-a pos-b)
+          (visualization:paint-set-color backend 1.0 1.0 0.0 1.0)
+          (visualization:paint-set-line-width backend 0.2)
+          (visualization:paint-path backend (list pos-a pos-b)))
+        (agent-positions a)
+        (agent-memory a))
       ;; Paint label
-      (let ((pos (polysegment:extreme-right (agent-node-positions a))))
+      (let ((pos (polysegment:extreme-right (agent-positions a))))
         (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
         (visualization:paint-text backend
                                   (symbol->string (agent-label a))

@@ -34,26 +34,32 @@
        (make-agent
          'distribution
          (list (polygon:make-random-point-inside limit-polygon))
+         '()
          (lambda (world a) a))
        (make-agent
          'kitchen
          (list (polygon:make-random-point-inside limit-polygon))
+         '()
          (lambda (world a) a))
        (make-agent
          'living
          (list (polygon:make-random-point-inside limit-polygon))
+         '()
          (lambda (world a) a))
        (make-agent
          'room1
          (list (polygon:make-random-point-inside limit-polygon))
+         '()
          (lambda (world a) a))
        (make-agent
          'room2
          (list (polygon:make-random-point-inside limit-polygon))
+         '()
          (lambda (world a) a))
        (make-agent
          'room3
          (list (polygon:make-random-point-inside limit-polygon))
+         '()
          (lambda (world a) a)))))
 
        (values
@@ -87,7 +93,7 @@
               ((equal? a-label 'distribution)
                (make-agent
                  a-label
-                 (let ((pos (car (agent-node-positions a))))
+                 (let ((pos (car (agent-positions a))))
                    (list
                      (translation:point
                        pos
@@ -98,11 +104,12 @@
                            (agent-pipes-interaction pos pipes-center-list) 0.4)
                          (vect2:*scalar
                            (agent-entry-interaction pos entry-path) 0.6)))))
+                 (agent-positions a)
                  (agent-proc a)))
               ((equal? a-label 'kitchen)
                (make-agent
                  a-label
-                 (let ((pos (car (agent-node-positions a))))
+                 (let ((pos (car (agent-positions a))))
                    (list
                      (translation:point
                        pos
@@ -111,11 +118,12 @@
                            (agent-walls-interaction pos wall-path-list) -1.0)
                          (vect2:*scalar
                            (agent-pipes-interaction pos pipes-center-list) 0.3)))))
+                 (agent-positions a)
                  (agent-proc a)))
               ((equal? a-label 'living)
                (make-agent
                  a-label
-                 (let ((pos (car (agent-node-positions a))))
+                 (let ((pos (car (agent-positions a))))
                    (list
                      (translation:point
                        pos
@@ -123,11 +131,12 @@
                          (vect2:*scalar
                            (agent-walls-interaction pos wall-path-list) -1.0)
                          (vect2:*scalar (north->south north) 1.4)))))
+                 (agent-positions a)
                  (agent-proc a)))
               ((equal? a-label 'room1)
                (make-agent
                  a-label
-                 (let ((pos (car (agent-node-positions a))))
+                 (let ((pos (car (agent-positions a))))
                    (list
                      (translation:point
                        pos
@@ -135,11 +144,12 @@
                          (vect2:*scalar
                            (agent-walls-interaction pos wall-path-list) -1.0)
                          (vect2:*scalar (north->north-east north) 1.0)))))
+                 (agent-positions a)
                  (agent-proc a)))
               ((equal? a-label 'room2)
                (make-agent
                  a-label
-                 (let ((pos (car (agent-node-positions a))))
+                 (let ((pos (car (agent-positions a))))
                    (list
                      (translation:point
                        pos
@@ -147,11 +157,12 @@
                          (vect2:*scalar
                            (agent-walls-interaction pos wall-path-list) -1.0)
                          (vect2:*scalar (north->north-east north) 1.0)))))
+                 (agent-positions a)
                  (agent-proc a)))
               ((equal? a-label 'room3)
                (make-agent
                  a-label
-                 (let ((pos (car (agent-node-positions a))))
+                 (let ((pos (car (agent-positions a))))
                    (list
                      (translation:point
                        pos
@@ -159,6 +170,7 @@
                          (vect2:*scalar
                            (agent-walls-interaction pos wall-path-list) -1.0)
                          (vect2:*scalar (north->north-east north) 1.0)))))
+                 (agent-positions a)
                  (agent-proc a)))
               (else
                 (error "predesigned-band-iteration-step-2: Unhandled agent type:" a-label)))))
@@ -197,7 +209,7 @@
          (lambda (world a)
            (make-agent
              (agent-label a)
-             (let ((pos (car (agent-node-positions a)))
+             (let ((pos (car (agent-positions a)))
                    (agents (world-agents world)))
                (list
                  (translation:point
@@ -230,6 +242,7 @@
                      (vect2:*scalar
                        (agent-entry-interaction pos entry-path) 0.6)
                        ))))
+             #f
              (agent-proc a))))
        (make-agent
          'kitchen
@@ -237,7 +250,7 @@
          (lambda (world a)
            (make-agent
              (agent-label a)
-             (let ((pos (car (agent-node-positions a)))
+             (let ((pos (car (agent-positions a)))
                    (agents (world-agents world)))
                (list
                  (translation:point
@@ -264,6 +277,7 @@
                      (vect2:*scalar
                        (agent-pipes-interaction pos pipes-center-list) 0.3)
                        ))))
+             #f
              (agent-proc a))))
        (make-agent
          'living
@@ -271,7 +285,7 @@
          (lambda (world a)
            (make-agent
              (agent-label a)
-             (let ((pos (car (agent-node-positions a)))
+             (let ((pos (car (agent-positions a)))
                    (agents (world-agents world))
                    (south (north->south (graph-north graph))))
                (list
@@ -300,6 +314,7 @@
                      |#
                      (vect2:*scalar south 1.4)
                        ))))
+             #f
              (agent-proc a))))
        (make-agent
          'room1
@@ -307,7 +322,7 @@
          (lambda (world a)
            (make-agent
              (agent-label a)
-             (let ((pos (car (agent-node-positions a)))
+             (let ((pos (car (agent-positions a)))
                    (agents (world-agents world))
                    (north-east (north->north-east (graph-north graph))))
                (list
@@ -334,6 +349,7 @@
                        |#
                      (vect2:*scalar north-east 1.0)
                        ))))
+             #f
              (agent-proc a))))
        (make-agent
          'room2
@@ -341,7 +357,7 @@
          (lambda (world a)
            (make-agent
              (agent-label a)
-             (let ((pos (car (agent-node-positions a)))
+             (let ((pos (car (agent-positions a)))
                    (agents (world-agents world))
                    (north-east (north->north-east (graph-north graph))))
                (list
@@ -368,6 +384,7 @@
                        |#
                      (vect2:*scalar north-east 1.0)
                        ))))
+             #f
              (agent-proc a))))
        (make-agent
          'room3
@@ -375,7 +392,7 @@
          (lambda (world a)
            (make-agent
              (agent-label a)
-             (let ((pos (car (agent-node-positions a)))
+             (let ((pos (car (agent-positions a)))
                    (agents (world-agents world))
                    (north-east (north->north-east (graph-north graph))))
                (list
@@ -402,6 +419,7 @@
                        |#
                      (vect2:*scalar north-east 1.0)
                        ))))
+             #f
              (agent-proc a)))))))
 
   #|
@@ -448,8 +466,8 @@
 ;;; Agent-agent interaction vector
 
 (define (agent-agent-interaction agent1 agent2)
-  (let* ((pos1 (car (agent-node-positions agent1)))
-         (pos2 (car (agent-node-positions agent2)))
+  (let* ((pos1 (car (agent-positions agent1)))
+         (pos2 (car (agent-positions agent2)))
          (vec (vect2- pos2 pos1)))
     (vect2:/scalar vec (vect2:squaremagnitude vec))))
 
