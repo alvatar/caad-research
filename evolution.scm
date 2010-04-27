@@ -5,8 +5,13 @@
 ;;; Evolution
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (evolver)
-  '())
+;;; Describes how the evolution is performed
 
-(define (evolution-cycle evolver generator selector environment-list)
-  '())
+(define (evolver generator selector seed-data)
+  (let loop ((selected-list '()))
+    (loop (selector (generator seed-data) selected-list))))
+
+;;; Main evolution cycle, pulling in all the algorithm parts
+
+(define (evolution-cycle evolver generator selector seed-data)
+  (evolver generator selector seed-data))

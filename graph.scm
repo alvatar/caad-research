@@ -28,6 +28,11 @@
 ; General
 ;-------------------------------------------------------------------------------
 
+;;; Is this a graph
+
+(define (graph? graph)
+  (equal? (car graph) 'architecture))
+
 ;;; Get everything inside the architecture tag as a list
 
 (define (graph-parts graph)

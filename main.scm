@@ -11,6 +11,7 @@
 
 (import graph-visualization)
 (import input)
+(import output)
 (import visualization)
 
 (define (main)
@@ -18,7 +19,12 @@
   (let ((graph (generate-graph-from-xml (input))))
     (visualize-graph graph)
     (visualization:do-now)
-    (evolution-cycle evolver generator selector (list graph)))
+    (let ((output-graphs
+            (evolution-cycle evolver generator selector graph)))
+      (for-each
+        (lamdba (g)
+          (output g)
+      output-graphs))))
 
   (exit 0))
 (main)

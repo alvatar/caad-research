@@ -7,6 +7,7 @@
 
 (import (std srfi/1))
 
+(import graph)
 (import generation-elements)
 (import utils/misc)
 (import strategies/predesigned-band)
@@ -15,9 +16,15 @@
 ; General procedures
 ;-------------------------------------------------------------------------------
 
+;;; Generation algorithm components type
+;;; iteration-steps: must return a values construct with "graph" and "world"
+;;; termination-predicates: must return whether this step should be terminated
+
+(define-structure generation-components iteration-steps termination-predicates)
+
 ;;; Generate graph feeding it an initial graph
 
-(define (generate-from-model graph)
+(define (generate-from-graph graph)
   (define (execute-step it-steps term-preds graph world)
     (cond
      ((or (null? it-steps) (null? term-preds))
@@ -37,13 +44,12 @@
 
 ;;; Export generation algorithm
 
-(define generator generate-from-model)
-
-;;; Generation algorithm components type
-;;; iteration-steps: must return a values construct with "graph" and "world"
-;;; termination-predicates: must return whether this step should be terminated
-
-(define-structure generation-components iteration-steps termination-predicates)
+(define (generator seed-data)
+  (cond
+    ((graph? seed-data)
+     (generate-from-graph seed-data))
+    (else
+     (error "generator: No generation algorithm for this kind of seed data"))))
 
 ;;; Select components for the algorithm
 
