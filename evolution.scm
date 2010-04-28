@@ -8,8 +8,12 @@
 ;;; Describes how the evolution is performed
 
 (define (evolver generator selector seed-data)
+  (define (halter gen-list)
+    (>= (length gen-list) 1))
   (let loop ((selected-list '()))
-    (loop (selector (generator seed-data) selected-list))))
+    (if (halter selected-list)
+        selected-list
+      (loop (selector (generator seed-data) selected-list)))))
 
 ;;; Main evolution cycle, pulling in all the algorithm parts
 

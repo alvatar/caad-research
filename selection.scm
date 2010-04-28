@@ -12,5 +12,4 @@
   (visualization:forget-all)
   (visualize-graph new)
   (visualization:do-now)
-  (step)
-  (error "selector: to be implemented"))
+  (cons new pool))

@@ -22,9 +22,10 @@
     (let ((output-graphs
             (evolution-cycle evolver generator selector graph)))
       (for-each
-        (lamdba (g)
-          (output g)
-      output-graphs))))
+        (lambda (g)
+          (step)
+          (output g))
+      output-graphs)))
 
   (exit 0))
 (main)
