@@ -141,7 +141,7 @@
 ;;; Cleans all the external visualization procedures pending of execution
 
 (define (visualization:forget-all)
-  (set! external-painters (list (make-painter '%0 0 (lambda (a) '())))))
+  (set! external-painters (list (make-painter '%0 0 (lambda (backend env-vis) '())))))
 
 ;;; Does this layer exist already?
 
@@ -167,7 +167,11 @@
       (if (equal? (painter-layer p) layer)
         (painter-depth-set! p depth)
         p))
-    external-painters))
+    external-painters)
+  (sort!
+    external-painters
+    (lambda (p1 p2)
+      (< (painter-depth p1) (painter-depth p2)))))
 
 ;;; Receive a procedure for visualization from another module, so it can be
 ;;; executed at its right time
@@ -180,11 +184,7 @@
                                        (if (visualization:layer-exists? layer)
                                            (visualization:layer-depth layer)
                                          0)
-                                       new-procedure))
-  (sort!
-    external-painters
-    (lambda (p1 p2)
-      (< (painter-depth p1) (painter-depth p2)))))
+                                       new-procedure)))
 
 (define external-painters (list (make-painter '%0 0 (lambda (backend env-vis) '())))) ; Why should I add something so it is a list?
 

@@ -5,5 +5,12 @@
 ;;; Selection
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(import graph-visualization)
+(import visualization)
+
 (define (selector new pool)
+  (visualization:forget-all)
+  (visualize-graph new)
+  (visualization:do-now)
+  (step)
   (error "selector: to be implemented"))
