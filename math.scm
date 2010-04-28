@@ -169,8 +169,8 @@
 ;;; Random vect2
 
 (define (vect2:random)
-  (make-vect2 (random-real)
-              (random-real)))
+  (make-vect2 (fl+ -1.0 (fl* (random-real) 2.0))
+              (fl+ -1.0 (fl* (random-real) 2.0))))
 
 ;;; Zero vector
 

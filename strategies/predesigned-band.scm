@@ -191,11 +191,10 @@
       (vect2:=?e
         (car (agent-positions a))
         (car (agent-memory a))
-        0.1))
+        0.01))
     (world-agents world)))
 
 ;;; Iteration step 3
-
 
 (define (predesigned-band-iteration-step-3 graph world)
   (let*
@@ -207,11 +206,11 @@
      (pipes-center-list (pipes-list->center-positions (graph-pipes graph)))
      (entry-path (entry->point-list graph (car (graph-entries graph)))) ; TODO: only one entry taken into account
      (north (graph-north graph))
-     (agents
+     (agents (world-agents world))
+     (agents-new
        (map
          (lambda (a)
-           (let ((a-label (agent-label a))
-                 (agents (world-agents world)))
+           (let ((a-label (agent-label a)))
              (cond
               ((equal? a-label 'distribution)
                (make-agent
@@ -222,17 +221,18 @@
                        pos
                        (vect2+
                          (vect2:*scalar
-                           (agent-walls-interaction pos wall-path-list) -1.0)
+                           (agent-walls-interaction pos wall-path-list) -0.5)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'kitchen)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'living)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'living)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room1)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'room1)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room2)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'room2)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room3)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'room3)) -1.0)
+                         (vect2:random)
                          ))))
                  (agent-positions a)
                  (agent-proc a)))
@@ -245,17 +245,18 @@
                        pos
                        (vect2+
                          (vect2:*scalar
-                           (agent-walls-interaction pos wall-path-list) -1.0)
+                           (agent-walls-interaction pos wall-path-list) -0.5)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'distribution)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'distribution)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'living)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'living)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room1)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'room1)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room2)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'room2)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room3)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'room3)) -1.0)
+                         (vect2:random)
                          ))))
                  (agent-positions a)
                  (agent-proc a)))
@@ -268,17 +269,18 @@
                        pos
                        (vect2+
                          (vect2:*scalar
-                           (agent-walls-interaction pos wall-path-list) -1.0)
+                           (agent-walls-interaction pos wall-path-list) -0.5)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'kitchen)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'distribution)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'distribution)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room1)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'room1)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room2)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'room2)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room3)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'room3)) -1.0)
+                         (vect2:random)
                          ))))
                  (agent-positions a)
                  (agent-proc a)))
@@ -291,17 +293,18 @@
                        pos
                        (vect2+
                          (vect2:*scalar
-                           (agent-walls-interaction pos wall-path-list) -1.0)
+                           (agent-walls-interaction pos wall-path-list) -0.5)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'kitchen)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'distribution)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'distribution)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'living)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'living)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room2)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'room2)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room3)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'room3)) -1.0)
+                         (vect2:random)
                          ))))
                  (agent-positions a)
                  (agent-proc a)))
@@ -314,17 +317,18 @@
                        pos
                        (vect2+
                          (vect2:*scalar
-                           (agent-walls-interaction pos wall-path-list) -1.0)
+                           (agent-walls-interaction pos wall-path-list) -0.5)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'kitchen)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'distribution)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'distribution)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'living)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'living)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room1)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'room1)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room3)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'room3)) -1.0)
+                         (vect2:random)
                          ))))
                  (agent-positions a)
                  (agent-proc a)))
@@ -337,35 +341,65 @@
                        pos
                        (vect2+
                          (vect2:*scalar
-                           (agent-walls-interaction pos wall-path-list) -1.0)
+                           (agent-walls-interaction pos wall-path-list) -0.5)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'kitchen)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'distribution)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'distribution)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'living)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'living)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room1)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'room1)) -1.0)
                          (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room2)) -0.1)
+                           (agent-agent-interaction a (find-agent agents 'room2)) -1.0)
+                         (vect2:random)
                          ))))
                  (agent-positions a)
                  (agent-proc a)))
               (else
                 (error "predesigned-band-iteration-step-2: Unhandled agent type:" a-label)))))
-         (world-agents world))))
+         agents)))
 
      (visualize-world world graph)
      (values
        graph
        (make-world 
-         agents
+         agents-new
          (world-fields world)))))
 
 ;;; Termination predicate 3
 
-(define (predesigned-band-termination-predicate-3 graph world)
-  #f)
+(define predesigned-band-termination-predicate-3
+  (let ((counter 0))
+    (lambda (graph world)
+      (if (= counter 10)
+          #t
+        (begin (set! counter (+ counter 1)) #f)))))
+
+;;; Iteration step 4
+
+(define (predesigned-band-iteration-step-4 graph world)
+  (let*
+    ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
+     (bb-vect (segment:direction (bounding-box:diagonal-segment (polysegment:bounding-box limit-polygon))))
+     (bb-x (vect2-x bb-vect))
+     (bb-y (vect2-y bb-vect)))
+
+     (visualize-world world graph)
+     (values
+       graph
+       (make-world 
+         (world-agents world)
+         (world-fields world)))))
+
+;;; Termination predicate 4
+
+(define predesigned-band-termination-predicate-4
+  (let ((counter 0))
+    (lambda (graph world)
+      (if (= counter 1)
+          #t
+        (begin (set! counter (+ counter 1)) #f)))))
 
 ;;; Algorithm steps
 
@@ -373,10 +407,12 @@
   (list
     (list predesigned-band-iteration-step-1
           predesigned-band-iteration-step-2
-          predesigned-band-iteration-step-3)
+          predesigned-band-iteration-step-3
+          predesigned-band-iteration-step-4)
     (list predesigned-band-termination-predicate-1
           predesigned-band-termination-predicate-2
-          predesigned-band-termination-predicate-3)))
+          predesigned-band-termination-predicate-3
+          predesigned-band-termination-predicate-4)))
 
 ;-------------------------------------------------------------------------------
 ; Elements' interaction
@@ -388,7 +424,9 @@
   (let* ((pos1 (car (agent-positions agent1)))
          (pos2 (car (agent-positions agent2)))
          (vec (vect2- pos2 pos1)))
-    (vect2:/scalar vec (vect2:squaremagnitude vec))))
+    (if (vect2:=?e pos1 pos2 0.1)
+        (vect2:*scalar (vect2:random) 0.2)
+      (vect2:/scalar vec (vect2:squaremagnitude vec)))))
 
 ;;; Calculate least potential vector given a field and a point in it
 
