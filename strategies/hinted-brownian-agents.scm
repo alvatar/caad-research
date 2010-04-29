@@ -30,9 +30,6 @@
 (define (iteration-step-1 graph world)
   (let*
     ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
-     (bb-vect (segment:direction (bounding-box:diagonal-segment (polysegment:bounding-box limit-polygon))))
-     (bb-x (vect2-x bb-vect))
-     (bb-y (vect2-y bb-vect))
      (agents (list
        (make-agent
          'distribution
@@ -374,7 +371,8 @@
     ((new-graph
        graph))
 
-     (visualize-world world graph)
+     ;(pp (graph-regeneration '((a b c d)) ))
+
      (values
        new-graph
        (make-world 
@@ -402,6 +400,57 @@
           termination-predicate-2
           termination-predicate-3
           termination-predicate-4)))
+
+;-------------------------------------------------------------------------------
+; Walls generation
+;-------------------------------------------------------------------------------
+
+(define (graph-regeneration graph agents)
+  #;(define (choose-agent-a lis)
+    (list-ref lis (random-integer (length lis))))
+  #;(define (choose-agent-b agent-a lis)
+    (fold
+      (lambda (a current)
+        (let ((distance-current (<distance> agent-a a)))
+          (if (< distance-current (car current))
+              (list distance-current a)
+            current)))
+      (car lis)
+      (cdr lis)))
+  #;(define (make-partition-in-graph-with-references in-room agent-a agent-b)
+    (op-split
+      graph
+      <context>
+      <constraints>
+        (<calculate-point-between-agents> agent-a agent-b)))
+  (define (make-partition-in-graph in-room)
+    graph)
+  (define (find-next-room-to-partition)
+    room
+    #f)
+  (define (agents-in-room room)
+    (filter
+      (lambda (a)
+        (every
+          (lambda (p)
+            (polygon:point-inside? (room->point-list graph room) p))
+          (agent-positions a))) ; TODO: wrong! if an agent is between to rooms, what to do?
+       agents))
+  ;; Iterate with new graph looking for rooms with more than one agent
+  (let ((next-room (find-next-room-to-partition)))
+    (if next-room
+        (let* (;(agents-inside (agents-in-room next-room))
+               ;(agent-a (choose-agent-a agents-inside))
+               ;(agent-b (choose-agent-b agent-a lis))
+               (new-graph (make-partition-in-graph
+                            next-room
+                            ;agent-a
+                            ;agent-b
+                            )))
+            (if (<checker> new-graph) ; Continue with this graph only if it's good enough
+                (graph-regeneration new-graph agents)
+              (graph-regeneration graph agents)))
+      graph)))
 
 ;-------------------------------------------------------------------------------
 ; Elements' interaction
