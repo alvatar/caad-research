@@ -13,7 +13,9 @@
   (let loop ((selected-list '()))
     (if (halter selected-list)
         selected-list
-      (loop (selector (generator seed-data) selected-list)))))
+      (loop (selector
+              ((generator #f seed-data) seed-data) ; create the generator and execute it
+              selected-list)))))
 
 ;;; Main evolution cycle, pulling in all the algorithm parts
 

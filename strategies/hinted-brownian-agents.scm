@@ -2,7 +2,8 @@
 ;;; Licensed under the GPLv3 license, see LICENSE file for full description.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; A predesigned band strategy
+;;; A strategy based on agents with brownian motion but hinted initial
+;;; positions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1))
@@ -18,13 +19,15 @@
 (import ../graph)
 (import ../math)
 
+(export hinted-brownian-agents)
+
 ;-------------------------------------------------------------------------------
 ; Iteration steps and termination predicates
 ;-------------------------------------------------------------------------------
 
 ;;; Iteration step 1
 
-(define (predesigned-band-iteration-step-1 graph world)
+(define (iteration-step-1 graph world)
   (let*
     ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
      (bb-vect (segment:direction (bounding-box:diagonal-segment (polysegment:bounding-box limit-polygon))))
@@ -70,20 +73,16 @@
 
 ;;; Termination predicate 1
 
-(define (predesigned-band-termination-predicate-1 graph world)
+(define (termination-predicate-1 graph world)
   (not (null? world)))
 
 ;;; Iteration step 2
 
-(define (predesigned-band-iteration-step-2 graph world)
+(define (iteration-step-2 graph world)
   (let*
-    ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
-     (bb-vect (segment:direction (bounding-box:diagonal-segment (polysegment:bounding-box limit-polygon))))
-     (bb-x (vect2-x bb-vect))
-     (bb-y (vect2-y bb-vect))
-     (wall-path-list (wall-list->path-list (graph-walls graph)))
+    ((wall-path-list (wall-list->path-list (graph-walls graph)))
      (pipes-center-list (pipes-list->center-positions (graph-pipes graph)))
-     (entry-path (entry->point-list graph (car (graph-entries graph)))) ; TODO: only one entry taken into account
+     (entry-path (entry->point-list graph (car (graph-entries graph))))
      (north (graph-north graph))
      (agents
        (map
@@ -173,7 +172,7 @@
                  (agent-positions a)
                  (agent-proc a)))
               (else
-                (error "predesigned-band-iteration-step-2: Unhandled agent type:" a-label)))))
+                (error "iteration-step-2: Unhandled agent type:" a-label)))))
          (world-agents world))))
 
      (visualize-world world graph)
@@ -185,7 +184,7 @@
 
 ;;; Termination predicate 2
 
-(define (predesigned-band-termination-predicate-2 graph world)
+(define (termination-predicate-2 graph world)
   (every
     (lambda (a)
       (vect2:=?e
@@ -196,168 +195,160 @@
 
 ;;; Iteration step 3
 
-(define (predesigned-band-iteration-step-3 graph world)
+(define (iteration-step-3 graph world)
   (let*
-    ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
-     (bb-vect (segment:direction (bounding-box:diagonal-segment (polysegment:bounding-box limit-polygon))))
-     (bb-x (vect2-x bb-vect))
-     (bb-y (vect2-y bb-vect))
-     (wall-path-list (wall-list->path-list (graph-walls graph)))
-     (pipes-center-list (pipes-list->center-positions (graph-pipes graph)))
-     (entry-path (entry->point-list graph (car (graph-entries graph)))) ; TODO: only one entry taken into account
-     (north (graph-north graph))
+    ((wall-path-list (wall-list->path-list (graph-walls graph)))
      (agents (world-agents world))
      (agents-new
-       (map
-         (lambda (a)
-           (let ((a-label (agent-label a)))
-             (cond
-              ((equal? a-label 'distribution)
-               (make-agent
-                 a-label
-                 (let ((pos (car (agent-positions a))))
-                   (list
-                     (translation:point
-                       pos
-                       (vect2+
-                         (vect2:*scalar
-                           (agent-walls-interaction pos wall-path-list) -0.5)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'living)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room1)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room2)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room3)) -1.0)
-                         (vect2:random)
-                         ))))
-                 (agent-positions a)
-                 (agent-proc a)))
-              ((equal? a-label 'kitchen)
-               (make-agent
-                 a-label
-                 (let ((pos (car (agent-positions a))))
-                   (list
-                     (translation:point
-                       pos
-                       (vect2+
-                         (vect2:*scalar
-                           (agent-walls-interaction pos wall-path-list) -0.5)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'distribution)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'living)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room1)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room2)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room3)) -1.0)
-                         (vect2:random)
-                         ))))
-                 (agent-positions a)
-                 (agent-proc a)))
-              ((equal? a-label 'living)
-               (make-agent
-                 a-label
-                 (let ((pos (car (agent-positions a))))
-                   (list
-                     (translation:point
-                       pos
-                       (vect2+
-                         (vect2:*scalar
-                           (agent-walls-interaction pos wall-path-list) -0.5)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'distribution)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room1)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room2)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room3)) -1.0)
-                         (vect2:random)
-                         ))))
-                 (agent-positions a)
-                 (agent-proc a)))
-              ((equal? a-label 'room1)
-               (make-agent
-                 a-label
-                 (let ((pos (car (agent-positions a))))
-                   (list
-                     (translation:point
-                       pos
-                       (vect2+
-                         (vect2:*scalar
-                           (agent-walls-interaction pos wall-path-list) -0.5)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'distribution)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'living)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room2)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room3)) -1.0)
-                         (vect2:random)
-                         ))))
-                 (agent-positions a)
-                 (agent-proc a)))
-              ((equal? a-label 'room2)
-               (make-agent
-                 a-label
-                 (let ((pos (car (agent-positions a))))
-                   (list
-                     (translation:point
-                       pos
-                       (vect2+
-                         (vect2:*scalar
-                           (agent-walls-interaction pos wall-path-list) -0.5)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'distribution)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'living)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room1)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room3)) -1.0)
-                         (vect2:random)
-                         ))))
-                 (agent-positions a)
-                 (agent-proc a)))
-              ((equal? a-label 'room3)
-               (make-agent
-                 a-label
-                 (let ((pos (car (agent-positions a))))
-                   (list
-                     (translation:point
-                       pos
-                       (vect2+
-                         (vect2:*scalar
-                           (agent-walls-interaction pos wall-path-list) -0.5)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'distribution)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'living)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room1)) -1.0)
-                         (vect2:*scalar
-                           (agent-agent-interaction a (find-agent agents 'room2)) -1.0)
-                         (vect2:random)
-                         ))))
-                 (agent-positions a)
-                 (agent-proc a)))
-              (else
-                (error "predesigned-band-iteration-step-2: Unhandled agent type:" a-label)))))
+       (map (lambda (a)
+         (let ((a-label (agent-label a)))
+           (cond
+            ((equal? a-label 'distribution)
+             (make-agent
+               a-label
+               (let ((pos (car (agent-positions a))))
+                 (list
+                   (translation:point
+                     pos
+                     (vect2+
+                       (vect2:*scalar
+                         (agent-walls-interaction pos wall-path-list) -0.5)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'living)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'room1)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'room2)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'room3)) -1.0)
+                       (vect2:random)
+                       ))))
+               (agent-positions a)
+               (agent-proc a)))
+            ((equal? a-label 'kitchen)
+             (make-agent
+               a-label
+               (let ((pos (car (agent-positions a))))
+                 (list
+                   (translation:point
+                     pos
+                     (vect2+
+                       (vect2:*scalar
+                         (agent-walls-interaction pos wall-path-list) -0.5)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'distribution)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'living)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'room1)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'room2)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'room3)) -1.0)
+                       (vect2:random)
+                       ))))
+               (agent-positions a)
+               (agent-proc a)))
+            ((equal? a-label 'living)
+             (make-agent
+               a-label
+               (let ((pos (car (agent-positions a))))
+                 (list
+                   (translation:point
+                     pos
+                     (vect2+
+                       (vect2:*scalar
+                         (agent-walls-interaction pos wall-path-list) -0.5)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'distribution)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'room1)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'room2)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'room3)) -1.0)
+                       (vect2:random)
+                       ))))
+               (agent-positions a)
+               (agent-proc a)))
+            ((equal? a-label 'room1)
+             (make-agent
+               a-label
+               (let ((pos (car (agent-positions a))))
+                 (list
+                   (translation:point
+                     pos
+                     (vect2+
+                       (vect2:*scalar
+                         (agent-walls-interaction pos wall-path-list) -0.5)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'distribution)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'living)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'room2)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'room3)) -1.0)
+                       (vect2:random)
+                       ))))
+               (agent-positions a)
+               (agent-proc a)))
+            ((equal? a-label 'room2)
+             (make-agent
+               a-label
+               (let ((pos (car (agent-positions a))))
+                 (list
+                   (translation:point
+                     pos
+                     (vect2+
+                       (vect2:*scalar
+                         (agent-walls-interaction pos wall-path-list) -0.5)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'distribution)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'living)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'room1)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'room3)) -1.0)
+                       (vect2:random)
+                       ))))
+               (agent-positions a)
+               (agent-proc a)))
+            ((equal? a-label 'room3)
+             (make-agent
+               a-label
+               (let ((pos (car (agent-positions a))))
+                 (list
+                   (translation:point
+                     pos
+                     (vect2+
+                       (vect2:*scalar
+                         (agent-walls-interaction pos wall-path-list) -0.5)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'distribution)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'living)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'room1)) -1.0)
+                       (vect2:*scalar
+                         (agent-agent-interaction a (find-agent agents 'room2)) -1.0)
+                       (vect2:random)
+                       ))))
+               (agent-positions a)
+               (agent-proc a)))
+            (else
+              (error "iteration-step-3: Unhandled agent type:" a-label)))))
          agents)))
 
      (visualize-world world graph)
@@ -369,7 +360,7 @@
 
 ;;; Termination predicate 3
 
-(define predesigned-band-termination-predicate-3
+(define termination-predicate-3
   (let ((counter 0))
     (lambda (graph world)
       (if (= counter 10)
@@ -378,23 +369,21 @@
 
 ;;; Iteration step 4
 
-(define (predesigned-band-iteration-step-4 graph world)
-  (let*
-    ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
-     (bb-vect (segment:direction (bounding-box:diagonal-segment (polysegment:bounding-box limit-polygon))))
-     (bb-x (vect2-x bb-vect))
-     (bb-y (vect2-y bb-vect)))
+(define (iteration-step-4 graph world)
+  (let
+    ((new-graph
+       graph))
 
      (visualize-world world graph)
      (values
-       graph
+       new-graph
        (make-world 
          (world-agents world)
          (world-fields world)))))
 
 ;;; Termination predicate 4
 
-(define predesigned-band-termination-predicate-4
+(define termination-predicate-4
   (let ((counter 0))
     (lambda (graph world)
       (if (= counter 1)
@@ -403,16 +392,16 @@
 
 ;;; Algorithm steps
 
-(define predesigned-band
+(define hinted-brownian-agents
   (list
-    (list predesigned-band-iteration-step-1
-          predesigned-band-iteration-step-2
-          predesigned-band-iteration-step-3
-          predesigned-band-iteration-step-4)
-    (list predesigned-band-termination-predicate-1
-          predesigned-band-termination-predicate-2
-          predesigned-band-termination-predicate-3
-          predesigned-band-termination-predicate-4)))
+    (list iteration-step-1
+          iteration-step-2
+          iteration-step-3
+          iteration-step-4)
+    (list termination-predicate-1
+          termination-predicate-2
+          termination-predicate-3
+          termination-predicate-4)))
 
 ;-------------------------------------------------------------------------------
 ; Elements' interaction
