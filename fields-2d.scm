@@ -74,9 +74,9 @@
             (u8vector-set! vec
                            (fx+ (fx+ i (fx* size-x (fx+ j area-j))) area-i)
                            value)
-            (it-i (incr area-i)))
+            (it-i (add1 area-i)))
            (else #t)))
-        (it-j (incr area-j)))
+        (it-j (add1 area-j)))
        (else #t))))
   (make-u8-2dfield
     (let ((point (make-vect2 0 0))
@@ -115,9 +115,9 @@
                   (u8vector-set! vec
                                  buffer-pos
                                  value))
-                (it-i (incr area-i))))
+                (it-i (add1 area-i))))
            (else #t)))
-        (it-j (incr area-j)))
+        (it-j (add1 area-j)))
        (else #t))))
   (make-u8-2dfield
     (let* ((point (make-vect2 0 0))
@@ -224,16 +224,16 @@
 ;;; Produce 2d fields with a lambda
 
 (define (make-2d-field size-x size-y proc)
-  (let ((limit-x (decr size-x))
-        (limit-y (decr size-y)))
+  (let ((limit-x (sub1 size-x))
+        (limit-y (sub1 size-y)))
     (define (iter x y lis)
       (cond
        ((and (fx= x 0) (fx= y 0))
         lis)
        ((fx= x 0)
-        (iter limit-x (decr y) (cons (proc (make-vect2 0 y)) lis)))
+        (iter limit-x (sub1 y) (cons (proc (make-vect2 0 y)) lis)))
        (else
-        (iter (decr x) y (cons (proc (make-vect2 x y)) lis)))))
+        (iter (sub1 x) y (cons (proc (make-vect2 x y)) lis)))))
     (iter limit-x limit-y '())))
 
 ;;; Flatten a list of fields (merge them)

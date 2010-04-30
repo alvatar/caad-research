@@ -19,10 +19,11 @@
 ;;; iteration-steps: must return a values construct with "graph" and "world"
 ;;; termination-predicates: must return whether this step should be terminated
 
-(define-structure generation-components iteration-steps termination-predicates)
+;(define-structure generation-components iteration-steps termination-predicates)
 
 ;;; Make a generator procedure that takes an initial graph as argument
 
+#|
 (define (generate-from-graph generation-components)
   (lambda (graph)
     (define (execute-step it-steps term-preds graph world)
@@ -40,6 +41,18 @@
         (generation-components-termination-predicates generation-components)
         graph
         '())))
+        |#
+(define (generate-from-graph steps)
+  (define (execute-step rest-steps graph world)
+    (cond
+     ((null? rest-steps)
+      graph)
+     (else
+      (receive (g w)
+        ((car rest-steps) graph world)
+        (execute-step (cdr rest-steps) g w)))))
+  (lambda (graph)
+    (execute-step steps graph '())))
 
 ;;; Generator: creates a procedure that can be used for generating graphs. It takes
 ;;;   care of choosing the right generation approach and the generation algorithmic
@@ -50,9 +63,7 @@
 
 (define (generator generation-hints seed-data)
   (define (select-components)
-    (make-generation-components
-      (car hinted-brownian-agents)
-      (cadr hinted-brownian-agents))) ; TODO: expand for more components' types
+    hinted-brownian-agents) ; TODO: expand for more components' types
   (cond
     ((and (not generation-hints) (graph? seed-data))
      (generate-from-graph (select-components)))

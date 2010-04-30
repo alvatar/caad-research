@@ -49,6 +49,16 @@
 (define (=~ a b)
   (=~e a b equal-accuracy))
 
+;;; add 1
+
+(define (add1 x)
+  (+ x 1))
+
+;;; substract 1
+
+(define (sub1 x)
+  (- x 1))
+
 ;;; Inverse function
 
 (define (inverse x)
@@ -69,16 +79,6 @@
 
 (define (flsquare x)
   (fl* x x))
-
-;;; Fixnum increment
-
-(define (incr x)
-  (fx+ x 1))
-
-;;; Fixnum decrement
-
-(define (decr x)
-  (fx- x 1))
 
 ;-------------------------------------------------------------------------------
 ; Vector dimension 2
