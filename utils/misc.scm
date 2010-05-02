@@ -97,16 +97,30 @@
 
 (define-syntax when
   (syntax-rules ()
-    ((when condition form . forms)
+    ((_ condition form . forms)
      (if condition (begin form . forms) #f))))
 
 ;;; Extract only the nth-value from a function returning multiple values
 
 (define-syntax nth-value
   (syntax-rules ()
-    ((nth-value n values-producing-form)
+    ((_ n values-producing-form)
      (call-with-values
        (lambda () values-producing-form)
        (lambda all-values
          (list-ref all-values n))))))
 
+;;; If-let
+;;; if-form that binds the evaluated value for use inside the #t #f forms
+
+(define-syntax if-let
+  (syntax-rules ()
+    ((_ (a value))
+     (let ((a value))
+       (if a a #f)))
+    ((_ (a value) form-t)
+     (let ((a value))
+       (if a form-t #f)))
+    ((_ (a value) form-t form-f)
+     (let ((a value))
+       (if a form-t form-f)))))

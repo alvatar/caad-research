@@ -18,6 +18,7 @@
 (import ../generation-elements)
 (import ../graph)
 (import ../math)
+(import ../utils/misc)
 
 (export hinted-brownian-agents)
 
@@ -356,7 +357,7 @@
     ((new-graph
        graph))
 
-     ;(pp (graph-regeneration '((a b c d)) ))
+     (pp (graph-regeneration graph (world-agents world)))
      (step)
 
      (values
@@ -395,11 +396,9 @@
       <context>
       <constraints>
         (<calculate-point-between-agents> agent-a agent-b)))
-  (define (make-partition-in-graph in-room)
-    graph)
-  (define (find-next-room-to-partition)
-    room
-    #f)
+  (define (make-partition-in-graph in-room) graph)
+  (define (find-next-room-to-partition) #f)
+  (define (check-graph graph) #t)
   (define (agents-in-room room)
     (filter
       (lambda (a)
@@ -409,20 +408,23 @@
           (agent-positions a))) ; TODO: wrong! if an agent is between to rooms, what to do?
        agents))
   ;; Iterate with new graph looking for rooms with more than one agent
-  (let ((next-room (find-next-room-to-partition)))
-    (if next-room
-        (let* (;(agents-inside (agents-in-room next-room))
-               ;(agent-a (choose-agent-a agents-inside))
-               ;(agent-b (choose-agent-b agent-a lis))
-               (new-graph (make-partition-in-graph
-                            next-room
-                            ;agent-a
-                            ;agent-b
-                            )))
-            (if (<checker> new-graph) ; Continue with this graph only if it's good enough
-                (graph-regeneration new-graph agents)
+  (if-let (next-room (find-next-room-to-partition))
+    (display "MAL ASUNTO\n")
+    (begin (display next-room) (step))))
+          #|
+          (let* (;(agents-inside (agents-in-room next-room))
+                 ;(agent-a (choose-agent-a agents-inside))
+                 ;(agent-b (choose-agent-b agent-a lis))
+                 (new-graph (make-partition-in-graph
+                              next-room
+                              ;agent-a
+                              ;agent-b
+                              )))
+            (if (check-graph new-graph) ; Continue with this graph only if it's good enough
+              (graph-regeneration new-graph agents)
               (graph-regeneration graph agents)))
-      graph)))
+      graph))
+      |#
 
 ;-------------------------------------------------------------------------------
 ; Elements' interaction
