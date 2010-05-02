@@ -22,6 +22,11 @@
 
 (define-structure agent label positions memory proc)
 
+;;; Agent head position
+
+(define (agent-head-position a)
+  (car (agent-positions a)))
+
 ;;; Agent new state evaluation
 
 (define (agent-new-state agent world)
