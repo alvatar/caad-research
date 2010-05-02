@@ -14,8 +14,8 @@
 (export op-split)
 (export op-merge)
 
-;; Apply operation to context
-;;
+;;; Apply operation to context
+
 (define (apply-operation-in-context graph context new-subgraph)
   (define (matches-context? elem)
     (equal? elem context))
@@ -32,8 +32,8 @@
      graph-tail))
   (car (do-in-context (list graph)))) ; Iteration must start at top level
 
-;; Apply operation to a graph and all contexts matching
-;;
+;;; Apply operation to a graph and all contexts matching
+
 (define (apply-operation 
           operation
           graph
@@ -50,17 +50,30 @@
 ; Basic operations
 ;-------------------------------------------------------------------------------
 
-;; Identity
-;;
+;;; Identity
+
 (define (op-identity graph context-selector constraints)
   (apply-operation-in-context
    graph
    context-selector
    (context-selector graph)))
 
-;; Remove
-;;
+;;; Add element
+
+(define (op-add graph context-selector constraints) ; TODO: This should be an operation
+  '())
+
+;;; Remove
+
 (define (op-remove graph context-selector constraints)
+  (apply-operation-in-context
+   graph
+   context-selector
+   '()))
+
+;;; Move
+
+(define (op-move graph context-selector constraints)
   (apply-operation-in-context
    graph
    context-selector
@@ -70,8 +83,8 @@
 ; Topology modifications
 ;-------------------------------------------------------------------------------
 
-;; Split a room
-;;
+;;; Split a room
+
 (define (op-split graph context-selector constraints)
   (let* ((subgraph (context-selector graph))
          (first-wall (room-wall graph (context-selector graph) 0)) ; TODO: First wall selected with constraint
@@ -142,8 +155,8 @@
             ; TODO: eliminar muros partidos
             ; TODO: eliminar referencias a muros eliminados
 
-;; Merge two rooms
-;;
+;;; Merge two rooms
+
 (define (op-merge graph context-selector constraints)
   (if (null-list? (context-selector graph)) ; TODO: TEMP!!!
       graph
@@ -197,39 +210,21 @@
              (cadr merged-rooms)
              '()))))
 
-;; Create new element
-;;
-(define (op-create-element graph context-selector constraints)
-  '())
-
-;; Remove element
-;;
-(define (op-remove-element graph context-selector constraints)
-  '())
-
-;; Move
-;;
-(define (op-move graph context-selector constraints)
-  (apply-operation-in-context
-   graph
-   context-selector
-   '()))
-
 ;-------------------------------------------------------------------------------
 ; Boundary modifications
 ;-------------------------------------------------------------------------------
 
-;; Expand
-;;
+;;; Expand
+
 (define (op-expand graph context-selector constraints)
   (apply-operation-in-context
    graph
    context-selector
    '()))
 
-;; Contract
-;;
-(define (op-contract graph context-selector constraints)
+;;; Shrink
+
+(define (op-shrink graph context-selector constraints)
   (apply-operation-in-context
    graph
    context-selector
@@ -239,40 +234,40 @@
 ; Post-operations
 ;-------------------------------------------------------------------------------
 
-;; Stabilize structure: add, move or replace pilars
-;;
+;;; Stabilize structure: add, move or replace pilars
+
 (define (op-stabilize-structure graph context-selector constraints)
   (apply-operation-in-context
    graph
    context-selector
    '()))
 
-;; Fix accesses
-;;
+;;; Fix accesses
+
 (define (op-fix-accesses graph context-selector constraints)
   (apply-operation-in-context
    graph
    context-selector
    '()))
 
-;; Fix malformed graph
-;;
+;;; Fix malformed graph
+
 (define (op-fix-malformed graph context-selector constraints)
   (remove
     (lambda (lst)
       (equal? lst '()))
     graph))
 
-;; Fix room topology
-;;
+;;; Fix room topology
+
 (define (op-fix-room-topology graph context-selector constraints)
   (apply-operation-in-context
    graph
    context-selector
    '()))
 
-;; Fix everything
-;;
+;;; Fix everything
+
 (define (op-fix-everything graph context-selector constraints)
   (apply-operation-in-context
    graph

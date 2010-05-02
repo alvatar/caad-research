@@ -368,7 +368,7 @@
 ;;; Algorithm steps
 
 (define hinted-brownian-agents
-  (list iteration-step-1
+  (list iteration-step-1 ; TODO: name them and generalize-externalize when possible
         iteration-step-2
         iteration-step-3
         iteration-step-4))

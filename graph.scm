@@ -73,7 +73,7 @@
 
 ;;; Remove element from graph
 
-(define (remove-element graph element)
+(define (remove-element graph element) ; TODO: This should be an operation
   (remove
     (lambda (e)
       (equal? e element))
@@ -81,7 +81,7 @@
 
 ;;; Remove element-list from graph
 
-(define (remove-elements graph element-list)
+(define (remove-elements graph element-list) ; TODO: This should be an operation
   (remove
     (lambda (e)
       (any (lambda (e-in-element-list)

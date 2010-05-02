@@ -71,6 +71,18 @@
    (else
     (cons (map* f (car lis)) (map* f (cdr lis))))))
 
+;;; U combinator
+
+(define U
+  (lambda (f) (f f)))
+
+;;; Y combinator
+
+(define Y
+  (lambda (X)
+    (U (lambda (proc)
+         (X (lambda (arg) ((U proc) arg)))))))
+
 ;-------------------------------------------------------------------------------
 ; Macro procedures
 ;-------------------------------------------------------------------------------
