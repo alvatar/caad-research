@@ -19,8 +19,14 @@
 ;;; Debug print
 
 (define (p v)
-  (display v)
-  (newline)
+  (pp v)
+  v)
+
+;;; Debug print and step
+
+(define (ps v)
+  (pp v)
+  (step)
   v)
 
 ;;; 0.0-1.0 range to u8 integer

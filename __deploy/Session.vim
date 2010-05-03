@@ -21,11 +21,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
-noremap <F11> :call Compile(1)
-noremap <F10> :call CleanProgram()
-noremap <F9> :call RunProgram()
 nnoremap <F3> :vimgrep // **
+noremap <F9> :call RunProgram()
+noremap <F10> :call CleanProgram()
+noremap <F11> :call Compile(1)
+nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -95,19 +95,17 @@ let v:this_session=expand("<sfile>:p")
 let DidEnhancedCommentify =  1 
 let Tlist_Max_Submenu_Items =  20 
 let Tlist_Auto_Update =  1 
-let ScreenShellWidth =  -1 
-let ScreenShellTmuxInitArgs = ""
 let CTags_CScope_Dir_List = "/data/projects/ensanche-core/.."
 let Tlist_WinWidth =  30 
 let ScreenShellSession = "tmpvjTRA9U0"
 let ScreenShellTerminal = "urxvt"
 let ScreenShellInitialFocus = "vim"
-let Tlist_Enable_Fold_Column =  1 
+let ScreenShellTmuxInitArgs = ""
 let Tlist_Close_On_Select =  1 
 let Tlist_GainFocus_On_ToggleOpen =  1 
 let Tlist_Use_SingleClick =  0 
 let ScreenShellGnuScreenVerticalSupport = ""
-let Tlist_WinHeight =  10 
+let ScreenShellQuitOnVimExit =  1 
 let Tlist_File_Fold_Auto_Close =  0 
 let Tlist_Auto_Open =  0 
 let ScreenShellServerName = "vim"
@@ -119,8 +117,8 @@ let Tlist_Inc_Winwidth =  1
 let EnhCommentifyPretty = "yes"
 let Tlist_Display_Tag_Scope =  1 
 let Tlist_Compact_Format =  0 
+let ScreenShellWidth =  -1 
 let EnhCommentifyCallbackExists = "Yes"
-let ScreenShellQuitOnVimExit =  1 
 let TagList_title = "__Tag_List__"
 let Tlist_Use_Horiz_Window =  0 
 let ScreenShellExternal =  0 
@@ -133,7 +131,9 @@ let Tlist_Exit_OnlyWindow =  1
 let NetrwTopLvlMenu = "Netrw."
 let Tlist_Display_Prototype =  0 
 let Tlist_Ctags_Cmd = "exuberant-ctags"
+let Tlist_Enable_Fold_Column =  1 
 let NetrwMenuPriority =  80 
+let Tlist_WinHeight =  10 
 let ScreenShellHeight =  15 
 let Tlist_Highlight_Tag_On_BufEnter =  1 
 let Tlist_Auto_Highlight_Tag =  1 
@@ -154,7 +154,7 @@ badd +322 /data/projects/ensanche-core/graph.scm
 badd +27 /data/projects/ensanche-core/input.scm
 badd +288 /data/projects/ensanche-core/visualization.scm
 badd +14 /data/projects/ensanche-core/context.scm
-badd +107 /data/projects/ensanche-core/operations.scm
+badd +93 /data/projects/ensanche-core/operations.scm
 badd +10 /data/projects/ensanche-core/filters.scm
 badd +10 /data/projects/ensanche-core/output.scm
 badd +152 /data/projects/ensanche-core/analysis.scm
@@ -172,7 +172,8 @@ badd +1 /data/projects/ensanche-core/fields/entries.scm
 badd +187 /data/projects/ensanche-core/fields-2d.scm
 badd +17 /data/projects/ensanche-core/evolution.scm
 badd +9 /data/projects/ensanche-core/selection.scm
-badd +22 /data/projects/ensanche-core/strategies/hinted-brownian-agents.scm
+badd +425 /data/projects/ensanche-core/strategies/hinted-brownian-agents.scm
+badd +15 /data/projects/ensanche-core/context-tree.scm
 silent! argdel *
 edit /data/projects/ensanche-core/operations.scm
 set splitbelow splitright
@@ -184,8 +185,8 @@ set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
-exe 'vert 1resize ' . ((&columns * 105 + 106) / 212)
-exe 'vert 2resize ' . ((&columns * 106 + 106) / 212)
+exe 'vert 1resize ' . ((&columns * 138 + 139) / 279)
+exe 'vert 2resize ' . ((&columns * 140 + 139) / 279)
 argglobal
 setlocal keymap=
 setlocal noarabic
@@ -284,12 +285,12 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 93 - ((15 * winheight(0) + 37) / 75)
+let s:l = 89 - ((14 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-93
-normal! 08l
+89
+normal! 037l
 wincmd w
 argglobal
 edit /data/projects/ensanche-core/strategies/hinted-brownian-agents.scm
@@ -390,16 +391,17 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 379 - ((37 * winheight(0) + 37) / 75)
+let s:l = 425 - ((45 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-379
-normal! 05l
+425
+normal! 0
+lcd /data/projects/ensanche-core/__deploy
 wincmd w
 2wincmd w
-exe 'vert 1resize ' . ((&columns * 105 + 106) / 212)
-exe 'vert 2resize ' . ((&columns * 106 + 106) / 212)
+exe 'vert 1resize ' . ((&columns * 138 + 139) / 279)
+exe 'vert 2resize ' . ((&columns * 140 + 139) / 279)
 tabnext 1
 if exists('s:wipebuf')
   silent exe 'bwipe ' . s:wipebuf

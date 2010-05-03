@@ -7,12 +7,13 @@
 
 (import (std srfi/1))
 (import (std misc/uuid))
+(import context-tree)
 (import geometry)
 (import graph)
 (import utils/misc)
 
-(export op-split)
-(export op-merge)
+(export op-split-room)
+(export op-merge-rooms)
 
 ;;; Apply operation to context
 
@@ -85,20 +86,33 @@
 
 ;;; Split a room
 
-(define (op-split graph context-selector constraints)
-  (let* ((subgraph (context-selector graph))
-         (first-wall (room-wall graph (context-selector graph) 0)) ; TODO: First wall selected with constraint
-         (second-wall (room-wall graph (context-selector graph) 2)) ; TODO: Second wall selected with constraint, taking first
-         (first-split-point (constraints (random-real)))
-         (second-split-point (constraints (random-real)))
+(define (op-split-room context-tree) ;graph context-selector constraints)
+  (let* ((graph (context-tree:level context-tree 0))
+         (room (car (context-tree:level context-tree 1))) ; TODO: room list ;(context-selector graph))
+         (walls (context-tree:level context-tree 2))
+         (split-points (context-tree:level context-tree 3))
+         ;; pick up contexts
+         (first-wall (car walls)) ;(room-wall graph (context-selector graph) 0)) ; TODO: wall selected with constraint
+         (second-wall (cadr walls)) ;(room-wall graph (context-selector graph) 2))
+         (first-split-point (car split-points))
+         (second-split-point (cadr split-points)) ; (constraints (random-real)))
+         ;; generate unique identifiers
          (new-wall-uid (make-uuid))
          (first-wall-uid-1-half (make-uuid))
          (first-wall-uid-2-half (make-uuid))
          (second-wall-uid-1-half (make-uuid))
          (second-wall-uid-2-half (make-uuid)))
-    ; TODO: Check context somehow and redirect to correct splitting algorithm
+         (display "----------------------------------------------\n")
+         (pp graph)
+         (display "----------------------------------------------\n")
+         (pp room)
+         (display "----------------------------------------------\n")
+         (pp walls)
+         (display "----------------------------------------------\n")
+         (pp split-points)
+         (display "----------------------------------------------\n")
     (receive (fore aft)
-             (room-break graph subgraph (element-uid first-wall) (element-uid second-wall))
+             (room-break graph room (element-uid first-wall) (element-uid second-wall))
       (append
         (apply-operation-in-context
           graph
@@ -157,7 +171,7 @@
 
 ;;; Merge two rooms
 
-(define (op-merge graph context-selector constraints)
+(define (op-merge-rooms graph context-selector constraints)
   (if (null-list? (context-selector graph)) ; TODO: TEMP!!!
       graph
       

@@ -101,7 +101,7 @@
 ;;; Get element's uid
 
 (define (element-uid elem)
-  (if (null-list? elem)
+  (if (null? elem)
       (error "element-uid: Element is null")
     (cadar ((sxpath '(@ uid)) elem))))
 

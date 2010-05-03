@@ -11,14 +11,12 @@
 (import ../analysis)
 (import ../context-tree)
 (import ../fields-2d)
-(import ../fields/entries)
-(import ../fields/light)
-(import ../fields/pipes)
-(import ../fields/structure)
 (import ../geometry)
 (import ../generation-elements)
 (import ../graph)
 (import ../math)
+(import ../operations)
+(import ../output)
 (import ../utils/misc)
 
 (export hinted-brownian-agents)
@@ -371,8 +369,8 @@
 
 (define hinted-brownian-agents
   (list iteration-step-1 ; TODO: name them and generalize-externalize when possible
-        iteration-step-2
-        iteration-step-3
+        ;iteration-step-2
+        ;iteration-step-3
         iteration-step-4))
 
 ;-------------------------------------------------------------------------------
@@ -424,9 +422,20 @@
       (graph-rooms graph)))
 
   (define (make-partition-in-graph in-room)
-    (make-context-tree `( (,in-room () ()) ,graph () ) )
-    graph ; TODO: NEXT!
-    )
+    (op-split-room
+      (make-context-tree `[,graph
+                            ()
+                            (,in-room
+                              ()
+                              (,(room-wall graph in-room 0)
+                               (,(room-wall graph in-room 2)
+                                ()
+                                (,(random-real)
+                                  ()
+                                  ()))
+                               (,(random-real)
+                                 ()
+                                 ())))])))
 
   (define (check-graph graph)
     graph) ; TODO: NEXT!
@@ -492,7 +501,7 @@
     (make-vect2 0.0 0.0)
     path-list))
 
-
+;;; Agent-walls interaction vector (not squared distance)
 
 (define (agent-walls-interaction-simple agent-pos path-list)
   (fold
