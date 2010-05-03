@@ -7,6 +7,7 @@
 
 (import (std srfi/1))
 (import (std misc/uuid))
+(import analysis)
 (import context-tree)
 (import geometry)
 (import graph)
@@ -102,21 +103,12 @@
          (first-wall-uid-2-half (make-uuid))
          (second-wall-uid-1-half (make-uuid))
          (second-wall-uid-2-half (make-uuid)))
-         (display "----------------------------------------------\n")
-         (pp graph)
-         (display "----------------------------------------------\n")
-         (pp room)
-         (display "----------------------------------------------\n")
-         (pp walls)
-         (display "----------------------------------------------\n")
-         (pp split-points)
-         (display "----------------------------------------------\n")
     (receive (fore aft)
              (room-break graph room (element-uid first-wall) (element-uid second-wall))
       (append
         (apply-operation-in-context
           graph
-          context-selector
+          room
           (list
             (append `(room (@ (uid ,(make-uuid))))
                     (cdr fore)
@@ -133,8 +125,8 @@
                   (point-from-relative-in-wall first-wall first-split-point) ; TODO: With constraints (orthogonality and elements)
                   (point-from-relative-in-wall second-wall second-split-point)) ; TODO: With constraints (orthogonality and elements)
           new-wall-uid))
-        (if (is-end-point?
-              (wall-list->point-list (reference-list-to-elements graph (cdr fore)))
+        (if (segment:is-end-point?
+              (ps (wall-list-open->polysegment (reference-list-to-elements graph (cdr fore))))
               (archpoint->point (wall-first-point first-wall)))
             (create-splitted-wall
               (find-element-with-uid graph (element-uid (car fore)))
@@ -146,14 +138,14 @@
               first-split-point
               first-wall-uid-2-half
               first-wall-uid-1-half))
-        (if (is-end-point?
+        (if (segment:is-end-point?
 #;(define (polywall->point-list wall-lis)
   (define (iter pt-lis lis)
     (if (null-list? lis)
         pt-lis
       (iter (append pt-lis (wall->point-list (car lis))) (cdr lis))))
   (iter '() wall-lis))
-              (wall-list->point-list (reference-list-to-elements graph (cdr aft)))
+              (wall-list-open->polysegment (reference-list-to-elements graph (cdr aft)))
               (archpoint->point (wall-first-point second-wall)))
             (create-splitted-wall
               (find-element-with-uid graph (element-uid (car aft)))
@@ -315,10 +307,10 @@
   (let ((wall-a-points (wall->point-list (car wall-list))) ; TODO: try to generalize
         (wall-b-points (wall->point-list (cadr wall-list))))
     (if (parallel? wall-a-points wall-b-points)
-        (let ((first-point (if (is-end-point? wall-b-points (car wall-a-points))
+        (let ((first-point (if (segment:is-end-point? wall-b-points (car wall-a-points))
                                (cadr wall-a-points)
                              (car wall-a-points)))
-              (second-point (if (is-end-point? wall-a-points (car wall-b-points))
+              (second-point (if (segment:is-end-point? wall-a-points (car wall-b-points))
                                 (cadr wall-b-points)
                               (car wall-b-points))))
           (list (point-list->wall

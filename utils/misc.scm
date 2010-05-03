@@ -13,7 +13,7 @@
 ;(compile-options cc-options: "-w" force-compile: #t)
 
 ;-------------------------------------------------------------------------------
-; Miscelaneous procedures
+; Debugging
 ;-------------------------------------------------------------------------------
 
 ;;; Debug print
@@ -22,12 +22,16 @@
   (pp v)
   v)
 
-;;; Debug print and step
+;;; Debug print and step in place
 
-(define (ps v)
-  (pp v)
-  (step)
-  v)
+(define-syntax ps
+  (syntax-rules ()
+    ((_ form)
+     (begin (pp form) (step)))))
+
+;-------------------------------------------------------------------------------
+; Miscelaneous procedures
+;-------------------------------------------------------------------------------
 
 ;;; 0.0-1.0 range to u8 integer
 

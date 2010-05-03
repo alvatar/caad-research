@@ -357,7 +357,7 @@
        graph))
 
      (graph-regeneration-from-agents graph (world-agents world))
-     (step)
+     ;(step)
 
      (values
        new-graph

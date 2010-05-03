@@ -162,12 +162,12 @@
         (pp (wall->point-list wall2))
         (error "walls-common-point: given walls don't have any common point")))))
 
-;;; Convert a list of walls into a list of points
+;;; Convert a list of walls into a polysegment
 
-(define (wall-list->point-list wall-list)
+(define (wall-list->polysegment wall-list)
   (define (iter point-list rest-walls)
     ;(if (and (not (null? point-list)) (eq? (car point-list) #f)) (begin (pp point-list) (error "wall-list->point-list: Walls are not connected!")))
-    (if (< (length rest-walls) 2)
+    (if (null? (cdr rest-walls))
         point-list
       (iter
         (cons (walls-common-point
