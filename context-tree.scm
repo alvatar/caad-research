@@ -18,6 +18,11 @@
                 (caddr tree))
     'leaf))
 
+;;; Get the context-tree root node
+
+(define (context-tree:root context-tree)
+  (context-tree:first-in-level context-tree 0))
+
 ;;; Extract a list of all nodes in the same level
 
 (define (context-tree:level context-tree n)

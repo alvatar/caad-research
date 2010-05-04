@@ -191,7 +191,7 @@
     (let loop ((counter 0)
                (agents (world-agents world)))
       (visualize-world (make-world agents '()) graph)
-      (if (>= counter 10) ; stop condition
+      (if (>= counter 4) ; stop condition
           (values
             graph
             (make-world 
@@ -356,9 +356,16 @@
 (define (iteration-step-4 graph world)
   (let
     ((new-graph
-       graph))
+       ;graph))
+       (graph-regeneration-from-agents graph (world-agents world))))
 
-     (graph-regeneration-from-agents graph (world-agents world))
+     ;(visualization:forget-all)
+     ;(pp new-graph)
+     ;(time (visualize-graph new-graph))
+     ;(visualization:do-now)
+     ;(visualize-world world new-graph)
+     (display "REGENERATION DONE\n")
+     (step)
 
      (values
        new-graph
@@ -371,7 +378,7 @@
 (define hinted-brownian-agents
   (list iteration-step-1 ; TODO: name them and generalize-externalize when possible
         ;iteration-step-2
-        ;iteration-step-3
+        iteration-step-3
         iteration-step-4))
 
 ;-------------------------------------------------------------------------------
@@ -441,11 +448,12 @@
   (define (check-graph graph)
     graph) ; TODO: NEXT!
 
+  ;(visualization:forget-all)
+  ;(visualize-graph graph)
+  ;(visualization:do-now)
   (pp graph)
-  (visualization:forget-all)
-  (visualize-graph graph)
-  (visualization:do-now)
-  (step)
+  (display "\n---------------------------\nSTEP\n")
+  ;(step)
   ;; Iterate with new graph looking for rooms with more than one agent
   (if-let (next-room (find-next-room-to-partition))
     (if-let (new-graph (check-graph (make-partition-in-graph next-room)))

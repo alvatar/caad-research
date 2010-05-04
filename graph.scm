@@ -38,7 +38,7 @@
 (define (graph? graph)
   (equal? (graph-type graph) 'architecture))
 
-;;; Get everything inside the graph
+;;; Get everything inside the graph as-is
 
 (define (graph-contents graph)
   ;((sxpath '(*)) graph))
@@ -50,6 +50,8 @@
 
 (define (graph-parts graph type)
   ((sxpath `(,@type)) graph))
+
+;;; Get all parts of a graph
 
 (define (graph-all-parts graph)
   ((sxpath '(*)) graph))
@@ -100,7 +102,7 @@
 (define (find-element-with-uid graph uid)
   (if-let (element (find
                      (lambda (e) (equal? uid (element-uid e)))
-                     (graph-all-parts graph)))
+                     (graph-walls graph))) ; TODO: generalize!!
     element
     (begin (display "UID: ")(display uid)(newline)
            (error "Element with such UID not found"))))

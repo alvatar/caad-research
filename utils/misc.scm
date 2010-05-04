@@ -27,7 +27,10 @@
 (define-syntax ps
   (syntax-rules ()
     ((_ form)
-     (begin (pp form) (step)))))
+     (let ((res form))
+       (pp res)
+       (step)
+       res))))
 
 ;-------------------------------------------------------------------------------
 ; Miscelaneous procedures

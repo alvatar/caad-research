@@ -121,6 +121,27 @@
 (define (polysegment:close plis)
   (snoc plis (car plis)))
 
+;;; Append two point lists (optimized for second one being shorter)
+
+(define (polysegment:append a b)
+  (let ((fa (first a))
+        (la (last a))
+        (fb (first b))
+        (lb (last b)))
+    (cond ; target situation: ----->x---->>
+     ((vect2:=? fa fb) ; case: <-----x---->>
+      (append-reverse a (cdr b)))
+     ((vect2:=? fa lb) ; case: <-----x<<----
+      (append-reverse a (cdr (reverse b))))
+     ((vect2:=? la fb) ; case : ----->x---->>
+      (append a (cdr b)))
+     ((vect2:=? la lb) ; case: ----->x<<----
+      (append a (cdr (reverse b))))
+     (else
+      (pp a)
+      (pp b)
+      (error "Segments cannot be connected")))))
+
 ;;; Polysegment centroid
 
 (define (polysegment:centroid plis)
@@ -135,7 +156,7 @@
         (cdr plis-tail)))))
   (cond
    ((null? plis)
-    (error "point-list-centroid: argument #1 should be a point list"))
+    (error "Argument #1 should be a point list"))
    (else
     (iter 0 (make-vect2 0.0 0.0) plis))))
 
@@ -149,7 +170,7 @@
      (else
        (iter (f current (car plis-tail)) (cdr plis-tail)))))
   (if (null-list? plis)
-      (error "polysegment:extreme : argument #1 must be a point list")
+      (error "Argument #1 must be a point list")
     (iter (car plis) (cdr plis))))
 
 ;;; Polysegment right-most point

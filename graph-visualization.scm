@@ -96,7 +96,7 @@
               (raise "Malformed SXML")
             (cond
               ((equal? (car elem) 'wall)
-               (paint-wall
+               #;(paint-wall
                  elem)
                (paint-windows-in-wall 
                  elem)

@@ -56,7 +56,7 @@
     (define (iter lis1)
       (let ((first (car lis1)))
         (if (null-list? lis1)
-            (error "find-common-wall: No common wall found")
+            (error "No common wall found")
           (if (any (lambda (elem) (equal? elem first)) walls-room-b)
               (element-uid first)
             (iter (cdr lis1))))))
@@ -160,36 +160,23 @@
       (begin
         (pp (wall->polysegment wall1))
         (pp (wall->polysegment wall2))
-        (error "walls-common-point: given walls don't have any common point")))))
+        (error "Given walls don't have any common point")))))
 
 ;;; Convert a list of walls into a polysegment
 
-(define (wall-list->polysegment walls)
+(define (wall-list->polysegment wlis)
   (cond
-   ((null? walls)
-    '())
+   ((null? (cdr wlis))
+    (wall->polysegment (car wlis)))
    (else
-    (let ((w (wall->polysegment (car walls)))
-          (ws (wall-list->polysegment (cdr walls))))
-      (if (null? ws)
-          w
-        (let ((connected-in-order? (vect2:=? (last w) (first ws))))
-          (append
-            (cond
-             (connected-in-order?
-              w)
-             (else
-              (reverse w)))
-            (cond
-             (connected-in-order?
-              (cdr ws))
-             (else
-              ws)))))))))
-
+    (polysegment:append
+      (wall->polysegment (car wlis))
+      (wall-list->polysegment (cdr wlis))))))
+      
 ;;; Calculate the points that enclose a room polygon as a list
 
 (define (room->point-list graph room)
-  (wall-list->polysegment (room-walls graph room)))
+  (cdr (wall-list->polysegment (room-walls graph room)))) ; First point because it's equal to last
 
 ;;; Calculate room area
 
@@ -219,7 +206,7 @@
       (cond
        ((null? wall-list)
         (pp first)
-        (error "room-sort-walls: This wall cannot be connected to any other one"))
+        (error "This wall cannot be connected to any other one"))
        ((walls-are-connected? (reference-to-element graph first) (reference-to-element graph (car wall-list)))
         (car wall-list))
        (else
@@ -230,7 +217,7 @@
         (iter (cons next sorted) (remove (lambda (e) (equal? e next)) remaining))))) ; (it sorts backwards)
   
   (if (null? wall-list)
-      (error "sort-wall-list-connected: argument #2 (wall-list) is null")
+      (error "Argument #2 (wall-list) is null")
     (iter (list (car wall-list)) (cdr wall-list))))
 
 ;;; Sort walls in a room, so they are connected
