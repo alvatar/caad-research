@@ -208,7 +208,7 @@
       (iter
         (cons (archpoint->point (cdar to-process)) point-list)
         (cdr to-process))))
-    (iter '() (wall-points wall)))
+  (iter '() (wall-points wall)))
 
 ;;; Convert a list of walls into a list of segments
 

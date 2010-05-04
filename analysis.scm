@@ -153,17 +153,18 @@
 ;;; Walls common point
 
 (define (walls-common-point wall1 wall2)
-  (let ((cp (polysegment:common-point?
-              (wall->polysegment wall1)
-              (wall->polysegment wall2))))
-    (if cp cp
-      (begin
-        (pp (wall->polysegment wall1))
-        (pp (wall->polysegment wall2))
-        (error "Given walls don't have any common point")))))
+  (if-let (cp (polysegment:common-point?
+                (wall->polysegment wall1)
+                (wall->polysegment wall2)))
+    cp
+    (begin
+      (pp (wall->polysegment wall1))
+      (pp (wall->polysegment wall2))
+      (error "Given walls don't have any common point"))))
 
 ;;; Convert a list of walls into a polysegment
 
+#|
 (define (wall-list->polysegment wlis)
   (cond
    ((null? (cdr wlis))
@@ -172,6 +173,28 @@
     (polysegment:append
       (wall->polysegment (car wlis))
       (wall-list->polysegment (cdr wlis))))))
+      |#
+
+(define (wall-list->polysegment wall-list)
+  (define (iter point-list rest-walls)
+    (if (< (length rest-walls) 2)
+        point-list
+      (iter
+        (cons (walls-common-point
+                (car rest-walls)
+                (cadr rest-walls))
+              point-list)
+        (cdr rest-walls))))
+  (cond
+   ((null? (cdr wall-list))
+    (wall->polysegment (car wall-list)))
+   ((null? (cddr wall-list))
+    (polysegment:append (wall->polysegment (car wlis)) (wall->polysegment (cadr wlis))))
+   (else
+    (iter '() (snoc wall-list (car wall-list))))))
+
+
+
       
 ;;; Calculate the points that enclose a room polygon as a list
 
