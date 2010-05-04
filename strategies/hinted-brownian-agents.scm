@@ -14,10 +14,12 @@
 (import ../geometry)
 (import ../generation-elements)
 (import ../graph)
+(import ../graph-visualization)
 (import ../math)
 (import ../operations)
 (import ../output)
 (import ../utils/misc)
+(import ../visualization)
 
 (export hinted-brownian-agents)
 
@@ -356,7 +358,7 @@
     ((new-graph
        graph))
 
-     ;(graph-regeneration-from-agents graph (world-agents world))
+     (graph-regeneration-from-agents graph (world-agents world))
 
      (values
        new-graph
@@ -401,7 +403,7 @@
         (every
           (lambda (p)
             (polygon:point-inside? (room->point-list graph r) p))
-          (agent-positions a))) ; TODO: wrong! if an agent is between to rooms, what to do?
+          (agent-positions a))) ; TODO: wrong! if an agent is between two rooms, what to do?
        agents))
 
   (define (num-agents-in-room r)
@@ -439,6 +441,11 @@
   (define (check-graph graph)
     graph) ; TODO: NEXT!
 
+  (pp graph)
+  (visualization:forget-all)
+  (visualize-graph graph)
+  (visualization:do-now)
+  (step)
   ;; Iterate with new graph looking for rooms with more than one agent
   (if-let (next-room (find-next-room-to-partition))
     (if-let (new-graph (check-graph (make-partition-in-graph next-room)))

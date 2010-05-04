@@ -28,18 +28,31 @@
 ; General
 ;-------------------------------------------------------------------------------
 
+;;; Subgraph type
+
+(define (graph-type graph)
+  (car graph))
+
 ;;; Is this a graph
 
 (define (graph? graph)
-  (equal? (car graph) 'architecture))
+  (equal? (graph-type graph) 'architecture))
 
-;;; Get everything inside the architecture tag as a list
+;;; Get everything inside the graph
 
-(define (graph-parts graph)
+(define (graph-contents graph)
   ;((sxpath '(*)) graph))
   (if (null-list? graph)
       (error "You sent me a null graph. What should I do with this?")
     (cdr graph)))
+
+;;; Get all parts of a graph that are of a specific type
+
+(define (graph-parts graph type)
+  ((sxpath `(,@type)) graph))
+
+(define (graph-all-parts graph)
+  ((sxpath '(*)) graph))
 
 ;;; Get all walls in the graph
 
@@ -71,29 +84,6 @@
 (define (graph-north graph)
   (vect2:normalize (make-vect2 1.0 1.0)))
 
-;;; Remove element from graph
-
-(define (remove-element graph element) ; TODO: This should be an operation
-  (remove
-    (lambda (e)
-      (equal? e element))
-    graph))
-
-;;; Remove element-list from graph
-
-(define (remove-elements graph element-list) ; TODO: This should be an operation
-  (remove
-    (lambda (e)
-      (any (lambda (e-in-element-list)
-             (equal? e-in-element-list e))
-           element-list))
-    graph))
-
-;;; Add element to graph
-
-(define (add-element graph element)
-  (append graph `(,element)))
-
 ;-------------------------------------------------------------------------------
 ; Element references and UID
 ;-------------------------------------------------------------------------------
@@ -108,16 +98,12 @@
 ;;; Find the element with that specific uid
 
 (define (find-element-with-uid graph uid)
-  (define (iter elem-list-tail)
-    (cond
-     ((null-list? elem-list-tail)
-      (display "UID: ")(display uid)(newline)
-      (error "Wall with such UID not found"))
-     ((equal? (element-uid (car elem-list-tail)) uid)
-      (car elem-list-tail))
-     (else
-      (iter (cdr elem-list-tail)))))
-  (iter (graph-walls graph))) ; TODO!!!!!!!!!!!!!!!!!!!! GENERALIZE)
+  (if-let (element (find
+                     (lambda (e) (equal? uid (element-uid e)))
+                     (graph-all-parts graph)))
+    element
+    (begin (display "UID: ")(display uid)(newline)
+           (error "Element with such UID not found"))))
 
 ;;; Get the element from a reference element (consisting only of its uid)
 
@@ -131,7 +117,7 @@
     (if (null? ref-lis)
         elem-lis
       (iter (append elem-lis (list (reference-to-element graph (car ref-lis)))) (cdr ref-lis))))
-  (iter '() ref-lis))
+  (iter '() ref-lis)) ; TODO: cons! no append!
 
 ;;; Make a reference from an UID
 

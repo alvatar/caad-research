@@ -33,7 +33,7 @@
                                    (append a new-subgraph (cdr b)))))
            elem))
      graph-tail))
-  (car (do-in-context (list graph)))) ; Iteration must start at top level
+  (ps (car (do-in-context (list graph))))) ; Iteration must start at top level
 
 ;;; Apply operation to a graph and all contexts matching
 
@@ -63,20 +63,30 @@
 
 ;;; Add element
 
-(define (op-add graph context-selector constraints) ; TODO: This should be an operation
-  '())
+(define (op-add graph element)
+  (append graph `(,element)))
 
-;;; Remove
+;;; Remove element from graph
 
-(define (op-remove graph context-selector constraints)
-  (apply-operation-in-context
-   graph
-   context-selector
-   '()))
+(define (op-remove graph element)
+  (remove
+    (lambda (e)
+      (equal? e element))
+    graph))
+
+;;; Remove element-list from graph
+
+(define (op-remove-multiple graph element-list)
+  (remove
+    (lambda (e)
+      (any (lambda (e-in-element-list)
+             (equal? e-in-element-list e))
+           element-list))
+    graph))
 
 ;;; Move
 
-(define (op-move graph context-selector constraints)
+(define (op-move graph context-tree)
   (apply-operation-in-context
    graph
    context-selector
@@ -89,8 +99,8 @@
 ;;; Split a room
 
 (define (op-split-room context-tree) ;graph context-selector constraints)
-  (let* ((graph (context-tree:level context-tree 0))
-         (room (car (context-tree:level context-tree 1))) ; TODO: room list ;(context-selector graph))
+  (let* ((graph (context-tree:first-in-level context-tree 0))
+         (room (context-tree:first-in-level context-tree 1)) ; TODO: room list ;(context-selector graph))
          (walls (context-tree:level context-tree 2))
          (split-points (context-tree:level context-tree 3))
          ;; pick up contexts

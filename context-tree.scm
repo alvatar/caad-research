@@ -35,3 +35,14 @@
                            target
                            current)))))
   (extract-level context-tree n 0))
+
+;;; Find the first node in a level
+
+(define (context-tree:first-in-level context-tree n)
+  (define (extract tree-pos target current)
+    (cond
+     ((and (< current target) (not (null? (btree-child tree-pos))))
+      (extract (make-context-tree (btree-child tree-pos)) target (add1 current)))
+     (else
+      (btree-node tree-pos))))
+  (extract context-tree n 0))

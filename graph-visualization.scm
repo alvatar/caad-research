@@ -110,7 +110,7 @@
                (paint-entry elem))
               ((equal? (car elem) 'pipe)
                (paint-pipe elem)))))
-        (graph-parts graph))))
+        (graph-contents graph))))
   (visualization:layer-depth-set! 'graph 80)
 
   (visualization:do-later
