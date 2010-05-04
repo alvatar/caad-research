@@ -29,7 +29,7 @@
 
 (define (iteration-step-1 graph world)
   (let*
-    ((limit-polygon (wall-list->point-list (graph-find-exterior-walls graph)))
+    ((limit-polygon (wall-list->polysegment (graph-find-exterior-walls graph)))
      (agents (list
        (make-agent
          'distribution
@@ -356,8 +356,7 @@
     ((new-graph
        graph))
 
-     (graph-regeneration-from-agents graph (world-agents world))
-     ;(step)
+     ;(graph-regeneration-from-agents graph (world-agents world))
 
      (values
        new-graph

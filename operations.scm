@@ -11,6 +11,7 @@
 (import context-tree)
 (import geometry)
 (import graph)
+(import math)
 (import utils/misc)
 
 (export op-split-room)
@@ -126,7 +127,7 @@
                   (point-from-relative-in-wall second-wall second-split-point)) ; TODO: With constraints (orthogonality and elements)
           new-wall-uid))
         (if (segment:is-end-point?
-              (ps (wall-list-open->polysegment (reference-list-to-elements graph (cdr fore))))
+              (wall-list->polysegment (reference-list-to-elements graph (cdr fore)))
               (archpoint->point (wall-first-point first-wall)))
             (create-splitted-wall
               (find-element-with-uid graph (element-uid (car fore)))
@@ -145,7 +146,7 @@
         pt-lis
       (iter (append pt-lis (wall->point-list (car lis))) (cdr lis))))
   (iter '() wall-lis))
-              (wall-list-open->polysegment (reference-list-to-elements graph (cdr aft)))
+              (wall-list->polysegment (reference-list-to-elements graph (cdr aft)))
               (archpoint->point (wall-first-point second-wall)))
             (create-splitted-wall
               (find-element-with-uid graph (element-uid (car aft)))

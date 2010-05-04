@@ -36,7 +36,7 @@
             connected-walls
           (iter
             (cdr wall-list)
-            (if (is-end-point? (wall->point-list (car wall-list)) point)
+            (if (is-end-point? (wall->polysegment (car wall-list)) point)
                 (append connected-walls (list (car wall-list)))
               connected-walls))))
       (iter (graph-walls graph) '()))
@@ -85,7 +85,7 @@
   (define (point-in-any-room? p)
     (any (lambda (room) (point-in-room? graph room p))
          (graph-rooms graph)))
-  (let* ((wall-points (wall->point-list wall))
+  (let* ((wall-points (wall->polysegment wall))
          (mid-p (point-from-relative-in-wall wall 0.5))
          (tangent-p (polysegment:tangent-in-relative wall-points 0.5))
          (p1 (rotation:point-w/reference mid-p (vect2+
@@ -102,15 +102,15 @@
 ;;; Is the wall described in a reverse order from a given reference?
 
 (define (wall-is-reversed? wall point)
-  (> (distance-point-point (wall->point-list point) (wall->point-list (wall-first-point wall)))
-     (distance-point-point (wall->point-list point) (wall->point-list (wall-last-point wall)))))
+  (> (distance-point-point (wall->polysegment point) (wall->polysegment (wall-first-point wall)))
+     (distance-point-point (wall->polysegment point) (wall->polysegment (wall-last-point wall)))))
 
 ;;; Are these walls connected?
 
 (define (walls-are-connected? wall1 wall2)
   (segment:connected-segment? ; TODO: segments to paths
-    (wall->point-list wall1)
-    (wall->point-list wall2)))
+    (wall->polysegment wall1)
+    (wall->polysegment wall2)))
 
 ;;; Is point in room?
 
@@ -131,12 +131,12 @@
 ;;; Calculate bounding box
 
 (define (graph-bounding-box graph)
-  (polysegment:bounding-box (wall-list->point-list (graph-find-exterior-walls graph))))
+  (polysegment:bounding-box (wall-list->polysegment (graph-find-exterior-walls graph))))
 
 ;;; Calculate wall mid point
 
 (define (wall-mid-point wall)
-  (let ((wall-points (wall->point-list wall)))
+  (let ((wall-points (wall->polysegment wall)))
     (mid-point
       (segment:first-point wall-points)
       (segment:second-point wall-points))))
@@ -154,33 +154,42 @@
 
 (define (walls-common-point wall1 wall2)
   (let ((cp (polysegment:common-point?
-              (wall->point-list wall1)
-              (wall->point-list wall2))))
+              (wall->polysegment wall1)
+              (wall->polysegment wall2))))
     (if cp cp
       (begin
-        (pp (wall->point-list wall1))
-        (pp (wall->point-list wall2))
+        (pp (wall->polysegment wall1))
+        (pp (wall->polysegment wall2))
         (error "walls-common-point: given walls don't have any common point")))))
 
 ;;; Convert a list of walls into a polysegment
 
-(define (wall-list->polysegment wall-list)
-  (define (iter point-list rest-walls)
-    ;(if (and (not (null? point-list)) (eq? (car point-list) #f)) (begin (pp point-list) (error "wall-list->point-list: Walls are not connected!")))
-    (if (null? (cdr rest-walls))
-        point-list
-      (iter
-        (cons (walls-common-point
-                (car rest-walls)
-                (cadr rest-walls))
-              point-list)
-        (cdr rest-walls))))
-  (iter '() (snoc wall-list (car wall-list))))
+(define (wall-list->polysegment walls)
+  (cond
+   ((null? walls)
+    '())
+   (else
+    (let ((w (wall->polysegment (car walls)))
+          (ws (wall-list->polysegment (cdr walls))))
+      (if (null? ws)
+          w
+        (let ((connected-in-order? (vect2:=? (last w) (first ws))))
+          (append
+            (cond
+             (connected-in-order?
+              w)
+             (else
+              (reverse w)))
+            (cond
+             (connected-in-order?
+              (cdr ws))
+             (else
+              ws)))))))))
 
 ;;; Calculate the points that enclose a room polygon as a list
 
 (define (room->point-list graph room)
-  (wall-list->point-list (room-walls graph room)))
+  (wall-list->polysegment (room-walls graph room)))
 
 ;;; Calculate room area
 
