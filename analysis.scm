@@ -153,9 +153,9 @@
 ;;; Walls common point
 
 (define (walls-common-point wall1 wall2)
-  (if-let (cp (polysegment:common-point?
-                (wall->polysegment wall1)
-                (wall->polysegment wall2)))
+  (aif cp (polysegment:common-point?
+            (wall->polysegment wall1)
+            (wall->polysegment wall2))
     cp
     (begin
       (pp (wall->polysegment wall1))
@@ -199,7 +199,7 @@
 ;;; Calculate the points that enclose a room polygon as a list
 
 (define (room->point-list graph room)
-  (cdr (wall-list->polysegment (room-walls graph room)))) ; First point because it's equal to last
+  (wall-list->polysegment (room-walls graph room))) ; First point because it's equal to last
 
 ;;; Calculate room area
 

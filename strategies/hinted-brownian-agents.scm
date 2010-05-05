@@ -356,9 +356,9 @@
 (define (iteration-step-4 graph world)
   (let
     ((new-graph
-       ;graph))
-       (graph-regeneration-from-agents graph (world-agents world))))
-
+       graph))
+       ;(graph-regeneration-from-agents graph (world-agents world))))
+(graph-regeneration-from-agents graph (world-agents world))
      ;(visualization:forget-all)
      ;(pp new-graph)
      ;(time (visualize-graph new-graph))
@@ -448,15 +448,15 @@
   (define (check-graph graph)
     graph) ; TODO: NEXT!
 
-  ;(visualization:forget-all)
-  ;(visualize-graph graph)
-  ;(visualization:do-now)
+  (visualization:forget-all)
+  (visualize-graph graph)
+  (visualization:do-now)
   (pp graph)
   (display "\n---------------------------\nSTEP\n")
-  ;(step)
+  (step)
   ;; Iterate with new graph looking for rooms with more than one agent
-  (if-let (next-room (find-next-room-to-partition))
-    (if-let (new-graph (check-graph (make-partition-in-graph next-room)))
+  (aif next-room (find-next-room-to-partition)
+    (aif new-graph (check-graph (make-partition-in-graph next-room))
       (graph-regeneration-from-agents new-graph agents)
       (graph-regeneration-from-agents graph agents))
     graph))

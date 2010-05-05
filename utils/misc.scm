@@ -36,23 +36,11 @@
 ; Miscelaneous procedures
 ;-------------------------------------------------------------------------------
 
-;;; 0.0-1.0 range to u8 integer
-
-(define (normalized-inexact->integer value)
-  (modulo (inexact->exact (round (* 255 value))) 255))
-
 ;;; snoc
 
 (define snoc
   (lambda (ls x)
     (append ls (list x))))
-
-;;; Take the first one of a list, if is not a list, take the element itself
-
-#;(define (first-or-element list-or-element)
-  (if (list? list-or-element)
-      (car list-or-element)
-    (list-or-element)))
 
 ;;; Rotates the list until the first one satisfies the predicate
 
@@ -68,11 +56,6 @@
        (else
         (iter (append (cdr lis-iter) (list x)) (+ n 1))))))
   (iter lis 0))
-
-;;; Call/cc with one extra argument
-
-(define (call/cc1 procedure value)
-  (call/cc (lambda (k) (procedure k value))))
 
 ;;; atom?
 
@@ -113,12 +96,58 @@
   (syntax-rules ()
     ((syntax-error) (syntax-error "Bad use of syntax error!"))))
 
+;;; Anaforic if
+
+(define-syntax aif
+  (syntax-rules ()
+    ((_ var expr iftrue iffalse)
+     (let ((var expr))
+       (if var
+         iftrue
+         iffalse)))
+    ((_ var test expr iftrue iffalse)
+     (let ((var expr))
+       (if (test var)
+         iftrue
+         iffalse)))))
+
 ;;; When
 
 (define-syntax when
   (syntax-rules ()
     ((_ condition form . forms)
      (if condition (begin form . forms) #f))))
+
+;;; Bind only one variable
+
+(define-syntax let1
+  (syntax-rules ()
+    ((_ var expr body ...)
+     (let ((var expr)) body ...))))
+
+;;; Do a fixed number of times
+
+(define-syntax dotimes
+  (syntax-rules ()
+    ((_ (var n res) . body)
+     (do ((limit n)
+          (var 0 (+ var 1)))
+         ((>= var limit) res)
+       . body))
+    ((_ (var n) . body)
+     (do ((limit n)
+          (var 0 (+ var 1)))
+         ((>= var limit))
+       . body))))
+
+;;; Begin returning the value of the first expression
+
+(define-syntax begin0
+  (syntax-rules ()
+    ((_ expr0 expr1 ...)
+     (let ((return expr0))
+       expr1 ...
+       return))))
 
 ;;; Extract only the nth-value from a function returning multiple values
 
@@ -129,18 +158,3 @@
        (lambda () values-producing-form)
        (lambda all-values
          (list-ref all-values n))))))
-
-;;; If-let
-;;; if-form that binds the evaluated value for use inside the #t #f forms
-
-(define-syntax if-let
-  (syntax-rules ()
-    ((_ (a value))
-     (let ((a value))
-       (if a a #f)))
-    ((_ (a value) form-t)
-     (let ((a value))
-       (if a form-t #f)))
-    ((_ (a value) form-t form-f)
-     (let ((a value))
-       (if a form-t form-f)))))

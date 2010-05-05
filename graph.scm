@@ -100,9 +100,9 @@
 ;;; Find the element with that specific uid
 
 (define (find-element-with-uid graph uid)
-  (if-let (element (find
-                     (lambda (e) (equal? uid (element-uid e)))
-                     (graph-walls graph))) ; TODO: generalize!!
+  (aif element (find
+                 (lambda (e) (equal? uid (element-uid e)))
+                 (graph-walls graph)) ; TODO: generalize!!
     element
     (begin (display "UID: ")(display uid)(newline)
            (error "Element with such UID not found"))))
