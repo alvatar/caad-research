@@ -8,8 +8,6 @@
 ;(declare (standard-bindings)(extended-bindings)(block)(not safe))
 ;(compile-options force-compile: #t)
 
-(import (std srfi/1))
-
 ;(compile-options cc-options: "-w" force-compile: #t)
 
 ;-------------------------------------------------------------------------------
@@ -33,14 +31,31 @@
        res))))
 
 ;-------------------------------------------------------------------------------
-; Miscelaneous procedures
+; List procedures
 ;-------------------------------------------------------------------------------
+
+;;; atom?
+
+(define atom?
+  (lambda (x)
+    (and (not (pair? x)) (not (null? x)))))
 
 ;;; snoc
 
 (define snoc
   (lambda (ls x)
     (append ls (list x))))
+
+;;; Recursive map
+
+(define (map* f lis)
+  (cond
+   ((null? lis)
+    '())
+   ((atom? lis)
+    (f lis))
+   (else
+    (cons (map* f (car lis)) (map* f (cdr lis))))))
 
 ;;; Rotates the list until the first one satisfies the predicate
 
@@ -57,22 +72,9 @@
         (iter (append (cdr lis-iter) (list x)) (+ n 1))))))
   (iter lis 0))
 
-;;; atom?
-
-(define atom?
-  (lambda (x)
-    (and (not (pair? x)) (not (null? x)))))
-
-;;; Recursive map
-
-(define (map* f lis)
-  (cond
-   ((null? lis)
-    '())
-   ((atom? lis)
-    (f lis))
-   (else
-    (cons (map* f (car lis)) (map* f (cdr lis))))))
+;-------------------------------------------------------------------------------
+; Functional/lambda
+;-------------------------------------------------------------------------------
 
 ;;; U combinator
 
@@ -86,14 +88,96 @@
     (U (lambda (proc)
          (X (lambda (arg) ((U proc) arg)))))))
 
-;;; Explicit currying
+;-------------------------------------------------------------------------------
+; Memoization
+;-------------------------------------------------------------------------------
+
+;;; Function computation memoization specifying a key generation procedure
+
+(define (memoize/key-gen key-gen f)
+  (let ((memos '()))
+    (lambda args
+      (let ((key (apply key-gen args)))
+        (apply
+          values
+          (cond
+           ((assoc key memos)
+            => cdr)
+           (else
+             (call-with-values
+               (lambda ()
+                 (apply f args))
+               (lambda results
+                 (set! memos ; Put the new result in memos
+                   (cons (cons key results)
+                         memos))
+                 results)))))))))
+
+;;; Function computation memoization with default key generation
+
+(define (memoize f)
+  (memoize/key-gen (lambda (args) args) f))
+
+;;; Macro for memoized function definition (with default key generator)
+
+(define-syntax define-memoized
+  (syntax-rules (lambda)
+    ((_ (name args ...) body ...)
+     (define name
+       (letrec ((name (lambda (args ...) body ...)))
+         (memoize name))))
+    ((_ name (lambda (args ...) body ...))
+     (define-memoized (name args ...) body ...))))
+
+;;; Macro for memoized function definition (specifying a key generator)
+
+(define-syntax define-memoized/key-gen
+  (syntax-rules ()
+	((_ name
+       (lambda (args-for-key ...) body-for-key ...)
+       (lambda (args ...) body ...))
+	 (define name
+	   (letrec ((name (lambda (args ...) body ...)))
+         (memoize/key-gen
+		   (lambda (args-for-key ...) body-for-key ...)
+           name))))))
+
+;-------------------------------------------------------------------------------
+; Currying
+;-------------------------------------------------------------------------------
+
+;;; Explicit currying of an arbitrary function
 
 (define (curry fun . args)
   (lambda x
     (apply fun (append args x))))
 
+;;; Define an automatically curryable function
+;;; Sample usage:
+;;; (define-curried (foo x y z) (+ x (/ y z))) ;; foo has arity 3
+;;; ((foo 3) 1 2) ;; (foo 3) is a procedure with arity 2
+;;; ((foo 3 1) 2) ;; (foo 3 2) is a procedure with arity 1
+
+(define-syntax curried
+  (syntax-rules ()
+    ((_ () body ...)
+     (lambda () body ...))
+    ((_ (arg) body ...)
+     (lambda (arg) body ...))
+    ((_ (arg args ...) body ...)
+     (lambda (arg . rest)
+       (let ((next (curried (args ...) body ...)))
+         (if (null? rest)
+             next
+             (apply next rest)))))))
+
+(define-syntax define-curried
+  (syntax-rules ()
+    ((_ (name args ...) body ...)
+     (define name (curried (args ...) body ...)))))
+
 ;-------------------------------------------------------------------------------
-; Macro procedures
+; Utility macros
 ;-------------------------------------------------------------------------------
 
 ;;; Syntax error macro
@@ -164,26 +248,3 @@
        (lambda () values-producing-form)
        (lambda all-values
          (list-ref all-values n))))))
-
-;;; Define curryable function
-;;; Sample usage:
-;;; (define-curried (foo x y z) (+ x (/ y z))) ;; foo has arity 3
-;;; ((foo 3) 1 2) ;; (foo 3) is a procedure with arity 2
-;;; ((foo 3 1) 2) ;; (foo 3 2) is a procedure with arity 1
-
-(define-syntax curried
-  (syntax-rules ()
-    ((_ () body ...)
-     (lambda () body ...))
-    ((_ (arg) body ...)
-     (lambda (arg) body ...))
-    ((_ (arg args ...) body ...)
-     (lambda (arg . rest)
-       (let ((next (_ (args ...) body ...)))
-         (if (null? rest)
-             next
-             (apply next rest)))))))
-(define-syntax define-curried
-  (syntax-rules ()
-    ((_ (name args ...) body ...)
-     (define name (curried (args ...) body ...)))))

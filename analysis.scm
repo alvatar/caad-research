@@ -13,23 +13,13 @@
 (import utils/misc)
 
 ;-------------------------------------------------------------------------------
-; Graph selection
-;-------------------------------------------------------------------------------
-
-(define (accept? graph)
-  #f) ; TODO
-
-(define (select-graph graph-list)
-  (car graph-list)) ; TODO
-
-;-------------------------------------------------------------------------------
 ; Finders/selectors
 ;-------------------------------------------------------------------------------
 
 ;;; Find walls connected to a given one
 
 (define (find-walls-connected-to graph uid)
-  (let ((wall (find-element-with-uid graph uid)))
+  (let ((wall (find-element/uid graph uid)))
     (define (find-walls-with-point point)
       (define (iter wall-list connected-walls)
         (if (null-list? wall-list)
@@ -164,7 +154,6 @@
 
 ;;; Convert a list of walls into a polysegment
 
-#|
 (define (wall-list->polysegment wlis)
   (cond
    ((null? (cdr wlis))
@@ -173,28 +162,6 @@
     (polysegment:append
       (wall->polysegment (car wlis))
       (wall-list->polysegment (cdr wlis))))))
-      |#
-
-(define (wall-list->polysegment wall-list)
-  (define (iter point-list rest-walls)
-    (if (< (length rest-walls) 2)
-        point-list
-      (iter
-        (cons (walls-common-point
-                (car rest-walls)
-                (cadr rest-walls))
-              point-list)
-        (cdr rest-walls))))
-  (cond
-   ((null? (cdr wall-list))
-    (wall->polysegment (car wall-list)))
-   ((null? (cddr wall-list))
-    (polysegment:append (wall->polysegment (car wlis)) (wall->polysegment (cadr wlis))))
-   (else
-    (iter '() (snoc wall-list (car wall-list))))))
-
-
-
       
 ;;; Calculate the points that enclose a room polygon as a list
 
@@ -230,7 +197,7 @@
        ((null? wall-list)
         (pp first)
         (error "This wall cannot be connected to any other one"))
-       ((walls-are-connected? (reference-to-element graph first) (reference-to-element graph (car wall-list)))
+       ((walls-are-connected? (reference->element graph first) (reference->element graph (car wall-list)))
         (car wall-list))
        (else
         (find-next first (cdr wall-list)))))
@@ -255,7 +222,7 @@
          ((null-list? wall-list)
           (display first)(newline)
           (error "room-sort-walls: This wall cannot be connected to any other one"))
-         ((walls-are-connected? (reference-to-element graph first) (reference-to-element graph (car wall-list)))
+         ((walls-are-connected? (reference->element graph first) (reference->element graph (car wall-list)))
           (car wall-list))
          (else
           (find-next first (cdr wall-list)))))

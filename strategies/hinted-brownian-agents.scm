@@ -448,9 +448,9 @@
   (define (check-graph graph)
     graph) ; TODO: NEXT!
 
-  (visualization:forget-all)
-  (visualize-graph graph)
-  (visualization:do-now)
+  ;(visualization:forget-all)
+  ;(visualize-graph graph)
+  ;(visualization:do-now)
   (pp graph)
   (display "\n---------------------------\nSTEP\n")
   (step)

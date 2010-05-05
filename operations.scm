@@ -137,28 +137,28 @@
                 new-wall-uid))
         ;; Split touched walls at the splitting point (add 2 new ones)
         (if (segment:is-end-point?
-              (wall-list->polysegment (reference-list-to-elements graph (cdr fore)))
+              (wall-list->polysegment (lreferences->lelements graph (cdr fore)))
               (archpoint->point (wall-first-point first-wall)))
             (create-splitted-wall
-              (find-element-with-uid graph (element-uid (car fore)))
+              (find-element/uid graph (element-uid (car fore)))
               first-split-point
               first-wall-uid-1-half
               first-wall-uid-2-half)
           (create-splitted-wall
-            (find-element-with-uid graph (element-uid (car fore)))
+            (find-element/uid graph (element-uid (car fore)))
             first-split-point
             first-wall-uid-2-half
             first-wall-uid-1-half))
         (if (segment:is-end-point?
-              (wall-list->polysegment (reference-list-to-elements graph (cdr aft)))
+              (wall-list->polysegment (lreferences->lelements graph (cdr aft)))
               (archpoint->point (wall-first-point second-wall)))
             (create-splitted-wall
-              (find-element-with-uid graph (element-uid (car aft)))
+              (find-element/uid graph (element-uid (car aft)))
               second-split-point
               second-wall-uid-1-half
               second-wall-uid-2-half)
           (create-splitted-wall
-            (find-element-with-uid graph (element-uid (car aft)))
+            (find-element/uid graph (element-uid (car aft)))
             second-split-point
             second-wall-uid-2-half
             second-wall-uid-1-half))))))
@@ -213,7 +213,7 @@
                  (car wall-bifurcations))
                touched-walls-b
                (cadr wall-bifurcations))
-             (find-element-with-uid graph common-wall-uid))))
+             (find-element/uid graph common-wall-uid))))
     (apply-operation-in-context
              (apply-operation-in-context
                graph-with-changed-walls

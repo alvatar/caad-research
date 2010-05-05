@@ -99,7 +99,7 @@
 
 ;;; Find the element with that specific uid
 
-(define (find-element-with-uid graph uid)
+(define (find-element/uid graph uid)
   (aif element (find
                  (lambda (e) (equal? uid (element-uid e)))
                  (graph-walls graph)) ; TODO: generalize!!
@@ -109,34 +109,34 @@
 
 ;;; Get the element from a reference element (consisting only of its uid)
 
-(define (reference-to-element graph ref)
-  (find-element-with-uid graph (element-uid ref)))
+(define (reference->element graph ref)
+  (find-element/uid graph (element-uid ref)))
 
-;;; Get the element from a reference element (consisting only of its uid)
+;;; Get the elements from a reference list
 
-(define (reference-list-to-elements graph ref-lis)
+(define (lreferences->lelements graph ref-lis)
   (define (iter elem-lis ref-lis)
     (if (null? ref-lis)
         elem-lis
-      (iter (append elem-lis (list (reference-to-element graph (car ref-lis)))) (cdr ref-lis))))
+      (iter (append elem-lis (list (reference->element graph (car ref-lis)))) (cdr ref-lis))))
   (iter '() ref-lis)) ; TODO: cons! no append!
 
 ;;; Make a reference from an UID
 
-(define (make-ref-from-uid type element-uid)
+(define (uid->reference type element-uid)
   `(,type (@ (uid ,element-uid))))
 
 ;;; Make a reference from an element
 
-(define (make-ref-from-element element)
+(define (element->reference element)
   `(,(car element) (@ (uid ,(element-uid element)))))
 
 ;;; Make a reference list from an element list
 
-(define (make-refs-from-elements element-list)
+(define (lelements->lreferences element-list)
   (map
     (lambda (e)
-      (make-ref-from-element e))
+      (element->reference e))
     element-list))
 
 ;-------------------------------------------------------------------------------
@@ -148,8 +148,8 @@
 (define (archpoint-coord coordinate point)
   (define (find-coordinate point)
     (cond
-     ((null-list? point)
-      (error "You sent me a null point. Seriously, what should I do with this?? Boy, I'm having a bad day thanks to you."))
+     ((null? point)
+      (error "You sent me a null point"))
      ((equal? (caar point) coordinate)
       (string->number (cadar point)))
      (else
@@ -163,11 +163,13 @@
 
 ;;; Make point
 
+#|
 (define (make-archpoint p)
   (if (point? p)
       (error "Error making point: argument #1 is not a point")
       (list (list 'y (number->string (cadr p)))
             (list 'x (number->string (car p))))))
+            |#
 
 ;;; Extract the basic list of point coordinates
 
@@ -293,7 +295,7 @@
 ;;; Get a wall in the room by index
 
 (define (room-wall graph room n)
-  (find-element-with-uid graph (cadr (list-ref ((sxpath '(wall @ uid)) room) n))))
+  (find-element/uid graph (cadr (list-ref ((sxpath '(wall @ uid)) room) n))))
 
 ;;; Get list of wall references in the room
 
@@ -311,7 +313,7 @@
       (collect-walls
         (append wall-lis
                 (list
-                  (find-element-with-uid graph (car uid-lis))))
+                  (find-element/uid graph (car uid-lis))))
         (cdr uid-lis))))
   (let ((uids (make-uid-list)))
     (collect-walls '() uids)))
@@ -341,7 +343,7 @@
 
 (define (entry->point-list graph entry)
   (let* ((doorNumber (string->number (car ((sxpath '(@ doorNumber *text*)) entry))))
-         (wall (reference-to-element graph ((sxpath '(*)) entry)))
+         (wall (reference->element graph ((sxpath '(*)) entry)))
          (doors (wall-doors wall)))
     (if (> doorNumber (length doors))
         (error "entry->point-list: entry is assigned door number that doesn't exist in the referenced wall"))
