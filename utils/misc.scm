@@ -86,6 +86,12 @@
     (U (lambda (proc)
          (X (lambda (arg) ((U proc) arg)))))))
 
+;;; Explicit currying
+
+(define (curry fun . args)
+  (lambda x
+    (apply fun (append args x))))
+
 ;-------------------------------------------------------------------------------
 ; Macro procedures
 ;-------------------------------------------------------------------------------
@@ -158,3 +164,26 @@
        (lambda () values-producing-form)
        (lambda all-values
          (list-ref all-values n))))))
+
+;;; Define curryable function
+;;; Sample usage:
+;;; (define-curried (foo x y z) (+ x (/ y z))) ;; foo has arity 3
+;;; ((foo 3) 1 2) ;; (foo 3) is a procedure with arity 2
+;;; ((foo 3 1) 2) ;; (foo 3 2) is a procedure with arity 1
+
+(define-syntax curried
+  (syntax-rules ()
+    ((_ () body ...)
+     (lambda () body ...))
+    ((_ (arg) body ...)
+     (lambda (arg) body ...))
+    ((_ (arg args ...) body ...)
+     (lambda (arg . rest)
+       (let ((next (_ (args ...) body ...)))
+         (if (null? rest)
+             next
+             (apply next rest)))))))
+(define-syntax define-curried
+  (syntax-rules ()
+    ((_ (name args ...) body ...)
+     (define name (curried (args ...) body ...)))))
