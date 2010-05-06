@@ -48,14 +48,48 @@
 
 ;;; Recursive map
 
-(define (map* f lis)
+(define (map* f l)
   (cond
-   ((null? lis)
+   ((null? l)
     '())
-   ((atom? lis)
-    (f lis))
+   ((atom? l)
+    (f l))
    (else
-    (cons (map* f (car lis)) (map* f (cdr lis))))))
+    (cons (map* f (car l)) (map* f (cdr l))))))
+
+;;; Recursive substitution in a list
+
+(define (subst* new old l)
+  (xsubst* cons new old l))
+
+;;; Recursive multiple substitution in a list
+
+(define (msubst* new old l)
+  (xsubst* append new old l))
+
+;;; Recursive substitution in a list
+
+(define (xsubst* f new old l)
+  ((letrec ((X (lambda (l)
+    (cond
+      ((null? l)
+       '())
+      ((atom? (car l)) ; Atoms level
+       (cond
+         ((eq? (car l) old)
+          (f
+            new
+            (X (cdr l))))
+         (else
+           (cons
+             (car l)
+             (X (cdr l))))))
+      ((equal? (car l) old) ; Sublist level
+       (f new (X (cdr l))))
+      (else
+        (cons
+          (X (car l))
+          (X (cdr l)))))))) X) l))
 
 ;;; Rotates the list until the first one satisfies the predicate
 
@@ -153,7 +187,7 @@
     (apply fun (append args x))))
 
 ;;; Define an automatically curryable function
-;;; Sample usage:
+;;;
 ;;; (define-curried (foo x y z) (+ x (/ y z))) ;; foo has arity 3
 ;;; ((foo 3) 1 2) ;; (foo 3) is a procedure with arity 2
 ;;; ((foo 3 1) 2) ;; (foo 3 2) is a procedure with arity 1

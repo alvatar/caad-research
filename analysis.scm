@@ -80,11 +80,11 @@
          (tangent-p (polysegment:tangent-in-relative wall-points 0.5))
          (p1 (rotation:point-w/reference mid-p (vect2+
                                      mid-p
-                                     (vect2:*scalar tangent-p 10.0))
+                                     (vect2:*scalar tangent-p wall-thickness))
                                    pi/2))
          (p2 (rotation:point-w/reference mid-p (vect2+
                                      mid-p
-                                     (vect2:*scalar tangent-p 10.0))
+                                     (vect2:*scalar tangent-p wall-thickness))
                                    pi/-2)))
     (not (and (point-in-any-room? p1)
                             (point-in-any-room? p2)))))
@@ -110,13 +110,6 @@
 ;-------------------------------------------------------------------------------
 ; Geometrical calculations
 ;-------------------------------------------------------------------------------
-
-;;; Get graph limits (extreme points)
-
-(define (graph-limit-x graph)
-  500.0) ; TODO: calculate
-(define (graph-limit-y graph)
-  500.0) ; TODO: calculate
 
 ;;; Calculate bounding box
 
@@ -146,7 +139,7 @@
   (aif cp (polysegment:common-point?
             (wall->polysegment wall1)
             (wall->polysegment wall2))
-    cp
+       cp
     (begin
       (pp (wall->polysegment wall1))
       (pp (wall->polysegment wall2))
@@ -195,16 +188,21 @@
     (define (find-next first wall-list) ; (it sorts backwards)
       (cond
        ((null? wall-list)
-        (pp first)
-        (error "This wall cannot be connected to any other one"))
+        #f)
        ((walls-are-connected? (reference->element graph first) (reference->element graph (car wall-list)))
         (car wall-list))
        (else
         (find-next first (cdr wall-list)))))
     (if (null? remaining)
         sorted
-      (let ((next (find-next (car sorted) remaining)))
-        (iter (cons next sorted) (remove (lambda (e) (equal? e next)) remaining))))) ; (it sorts backwards)
+      (aif next (find-next (car sorted) remaining)
+        (iter (cons next sorted) (remove (lambda (e) (equal? e next)) remaining))
+        (begin
+          (display "----------\n")
+          (pp sorted)
+          (display "----------\n")
+          (pp remaining)
+          (error "sort-walls-connected -- This wall cannot be connected to any other")))))
   
   (if (null? wall-list)
       (error "Argument #2 (wall-list) is null")

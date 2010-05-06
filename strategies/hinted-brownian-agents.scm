@@ -430,7 +430,7 @@
       (graph-rooms graph)))
 
   (define (make-partition-in-graph in-room)
-    (op-split-room
+    (op:split-room
       (make-context-tree `[,graph
                             ()
                             (,in-room
@@ -448,12 +448,12 @@
   (define (check-graph graph)
     graph) ; TODO: NEXT!
 
-  ;(visualization:forget-all)
-  ;(visualize-graph graph)
-  ;(visualization:do-now)
   (pp graph)
+  (visualization:forget-all)
+  (visualize-graph graph)
+  (visualization:do-now)
   (display "\n---------------------------\nSTEP\n")
-  (step)
+  ;(step)
   ;; Iterate with new graph looking for rooms with more than one agent
   (aif next-room (find-next-room-to-partition)
     (aif new-graph (check-graph (make-partition-in-graph next-room))
