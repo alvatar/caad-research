@@ -161,16 +161,6 @@
 (define (archpoint-n n point-list)
   (cdr (list-ref point-list n)))
 
-;;; Make point
-
-#|
-(define (make-archpoint p)
-  (if (point? p)
-      (error "Error making point: argument #1 is not a point")
-      (list (list 'y (number->string (cadr p)))
-            (list 'x (number->string (car p))))))
-            |#
-
 ;;; Extract the basic list of point coordinates
 
 (define (archpoint->point point)

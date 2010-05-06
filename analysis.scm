@@ -7,10 +7,40 @@
 
 (import (std srfi/1))
 
+(import auxiliary-operations)
 (import geometry)
 (import graph)
 (import math)
 (import utils/misc)
+
+;-------------------------------------------------------------------------------
+; Predicates
+;-------------------------------------------------------------------------------
+
+;;; Is this wall exterior?
+
+(define (exterior-wall? wall graph)
+  (define (point-in-any-room? p)
+    (any (lambda (room) (point-in-room? graph room p))
+         (graph-rooms graph)))
+  (let* ((wall-points (wall->polysegment wall))
+         (mid-p (point-from-relative-in-wall wall 0.5))
+         (tangent-p (polysegment:tangent-in-relative wall-points 0.5))
+         (p1 (rotation:point-w/reference mid-p (vect2+
+                                     mid-p
+                                     (vect2:*scalar tangent-p equal-accuracy))
+                                   pi/2))
+         (p2 (rotation:point-w/reference mid-p (vect2+
+                                     mid-p
+                                     (vect2:*scalar tangent-p equal-accuracy))
+                                   pi/-2)))
+    (not (and (point-in-any-room? p1)
+                            (point-in-any-room? p2)))))
+
+;;; Is point in room?
+
+(define (point-in-room? graph room point)
+  (polygon:point-inside? (room->point-list graph room) point))
 
 ;-------------------------------------------------------------------------------
 ; Finders/selectors
@@ -18,7 +48,7 @@
 
 ;;; Find walls connected to a given one
 
-(define (find-walls-connected-to graph uid)
+(define (find-walls-connected/uid graph uid)
   (let ((wall (find-element/uid graph uid)))
     (define (find-walls-with-point point)
       (define (iter wall-list connected-walls)
@@ -40,7 +70,7 @@
 
 ;;; Find common wall
 
-(define (room-find-common-wall rooms)
+(define (find-common-room-walls rooms)
   (let ((walls-room-a (room-wall-refs (car rooms)))
         (walls-room-b (room-wall-refs (cadr rooms))))
     (define (iter lis1)
@@ -54,7 +84,7 @@
 
 ;;; Find the exterior walls
 
-(define (graph-find-exterior-walls graph)
+(define (find-exterior-walls graph)
   (define (iter exterior-walls rest-walls)
     (cond
      ((null? rest-walls)
@@ -66,86 +96,15 @@
   (sort-wall-list-connected graph (iter '() (graph-walls graph))))
 
 ;-------------------------------------------------------------------------------
-; Predicates
-;-------------------------------------------------------------------------------
-
-;;; Is this wall exterior?
-
-(define (exterior-wall? wall graph)
-  (define (point-in-any-room? p)
-    (any (lambda (room) (point-in-room? graph room p))
-         (graph-rooms graph)))
-  (let* ((wall-points (wall->polysegment wall))
-         (mid-p (point-from-relative-in-wall wall 0.5))
-         (tangent-p (polysegment:tangent-in-relative wall-points 0.5))
-         (p1 (rotation:point-w/reference mid-p (vect2+
-                                     mid-p
-                                     (vect2:*scalar tangent-p wall-thickness))
-                                   pi/2))
-         (p2 (rotation:point-w/reference mid-p (vect2+
-                                     mid-p
-                                     (vect2:*scalar tangent-p wall-thickness))
-                                   pi/-2)))
-    (not (and (point-in-any-room? p1)
-                            (point-in-any-room? p2)))))
-
-;;; Is the wall described in a reverse order from a given reference?
-
-(define (wall-is-reversed? wall point)
-  (> (distance-point-point (wall->polysegment point) (wall->polysegment (wall-first-point wall)))
-     (distance-point-point (wall->polysegment point) (wall->polysegment (wall-last-point wall)))))
-
-;;; Are these walls connected?
-
-(define (walls-are-connected? wall1 wall2)
-  (segment:connected-segment? ; TODO: segments to paths
-    (wall->polysegment wall1)
-    (wall->polysegment wall2)))
-
-;;; Is point in room?
-
-(define (point-in-room? graph room point)
-  (polygon:point-inside? (room->point-list graph room) point))
-
-;-------------------------------------------------------------------------------
-; Geometrical calculations
+; Geometrical properties
 ;-------------------------------------------------------------------------------
 
 ;;; Calculate bounding box
 
 (define (graph-bounding-box graph)
-  (polysegment:bounding-box (wall-list->polysegment (graph-find-exterior-walls graph))))
+  (polysegment:bounding-box (wall-list->polysegment (find-exterior-walls graph))))
 
-;;; Calculate wall mid point
-
-(define (wall-mid-point wall)
-  (let ((wall-points (wall->polysegment wall)))
-    (mid-point
-      (segment:first-point wall-points)
-      (segment:second-point wall-points))))
-
-;;; Calculate point given wall and percentage
-
-(define (point-from-relative-in-wall wall percentage) ; TODO: generalize to polywalls
-  (segment:relative-position->point
-    (list
-      (archpoint->point (wall-point-n wall 1))
-      (archpoint->point (wall-point-n wall 2)))
-    percentage))
-
-;;; Walls common point
-
-(define (walls-common-point wall1 wall2)
-  (aif cp (polysegment:common-point?
-            (wall->polysegment wall1)
-            (wall->polysegment wall2))
-       cp
-    (begin
-      (pp (wall->polysegment wall1))
-      (pp (wall->polysegment wall2))
-      (error "Given walls don't have any common point"))))
-
-;;; Convert a list of walls into a polysegment
+;;; Calculate the polysegment that describes a list of walls
 
 (define (wall-list->polysegment wlis)
   (cond
@@ -156,7 +115,7 @@
       (wall->polysegment (car wlis))
       (wall-list->polysegment (cdr wlis))))))
       
-;;; Calculate the points that enclose a room polygon as a list
+;;; Calculate the polysegment that describes a room
 
 (define (room->point-list graph room)
   (wall-list->polysegment (room-walls graph room))) ; First point because it's equal to last
@@ -176,58 +135,3 @@
 
 (define (north->north-east vec)
   (rotation:point vec (/ pi 4.0)))
-
-;-------------------------------------------------------------------------------
-; Helper procedures
-;-------------------------------------------------------------------------------
-
-;;; Sort walls in a wall list so they are connected properly
-
-(define (sort-wall-list-connected graph wall-list) ; TODO: check if the last and the first are really connected
-  (define (iter sorted remaining)
-    (define (find-next first wall-list) ; (it sorts backwards)
-      (cond
-       ((null? wall-list)
-        #f)
-       ((walls-are-connected? (reference->element graph first) (reference->element graph (car wall-list)))
-        (car wall-list))
-       (else
-        (find-next first (cdr wall-list)))))
-    (if (null? remaining)
-        sorted
-      (aif next (find-next (car sorted) remaining)
-        (iter (cons next sorted) (remove (lambda (e) (equal? e next)) remaining))
-        (begin
-          (display "----------\n")
-          (pp sorted)
-          (display "----------\n")
-          (pp remaining)
-          (error "sort-walls-connected -- This wall cannot be connected to any other")))))
-  
-  (if (null? wall-list)
-      (error "Argument #2 (wall-list) is null")
-    (iter (list (car wall-list)) (cdr wall-list))))
-
-;;; Sort walls in a room, so they are connected
-
-#|
-(define (room-sort-walls graph room) ; TODO: check if the last and the first are really connected
-;;;;; IS THIS RIGHT? ISn't sort-walls-connected better?
-  (let ((walls (room-wall-refs room)))
-    (define (iter sorted remaining)
-      (define (find-next first wall-list) ; (it sorts backwards)
-        (cond
-         ((null-list? wall-list)
-          (display first)(newline)
-          (error "room-sort-walls: This wall cannot be connected to any other one"))
-         ((walls-are-connected? (reference->element graph first) (reference->element graph (car wall-list)))
-          (car wall-list))
-         (else
-          (find-next first (cdr wall-list)))))
-      (if (null-list? remaining)
-          sorted
-        (let ((next (find-next (car sorted) remaining)))
-          (iter (cons next sorted) (remove (lambda (e) (equal? e next)) remaining))))) ; (it sorts backwards)
-    `(,(append `(room (@ (uid ,(element-uid room))))
-                         (iter (list (car walls)) (cdr walls))))))
-                         |#

@@ -8,6 +8,7 @@
 (import (std srfi/1))
 (import (std misc/uuid))
 (import analysis)
+(import auxiliary-operations)
 (import context-tree)
 (import geometry)
 (import graph)
@@ -49,9 +50,6 @@
         new-graph
         (do-until-valid)))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Architectural high-level operations on the graph
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;-------------------------------------------------------------------------------
 ; Basic operations
 ;-------------------------------------------------------------------------------
@@ -120,6 +118,7 @@
                room
                (element-uid first-wall)
                (element-uid second-wall)) ; TODO: walls no uids
+        (op:fix-room-topology
       ;; Remove touched walls
       (op:remove-multiple
         ;; Update references of rooms to old walls
@@ -188,7 +187,7 @@
             second-wall-uid-2-half))
         (list
           first-wall
-          second-wall)))))
+          second-wall))))))
 
 ;;; Merge two rooms
 
@@ -200,7 +199,7 @@
          (room-a (car merged-rooms))
          (room-b (cadr merged-rooms))
          (common-wall-uid (room-find-common-wall merged-rooms))
-         (wall-bifurcations (find-walls-connected-to graph common-wall-uid)) ; TODO: filter out walls that don't belong to either room
+         (wall-bifurcations (find-walls-connected/uid graph common-wall-uid)) ; TODO: filter out walls that don't belong to either room
          (possible-uid-1 (make-uuid))
          (possible-uid-2 (make-uuid))
          (touched-walls-a (try-to-merge-if-parallel-walls (car wall-bifurcations) possible-uid-1))
@@ -295,11 +294,15 @@
 
 ;;; Fix room topology
 
-(define (op:fix-room-topology graph context-selector constraints)
-  (apply-operation-in-context
-   graph
-   context-selector
-   '()))
+(define (op:fix-room-topology graph)
+  (fold
+    (lambda (r graph)
+      (msubst*
+        (sort-room-walls graph r)
+        r
+        graph))
+    graph
+    (graph-rooms graph)))
 
 ;;; Fix everything
 
@@ -308,60 +311,3 @@
    graph
    context-selector
    '()))
-
-;-------------------------------------------------------------------------------
-; Helper operations
-;-------------------------------------------------------------------------------
-
-;;; Create 2 walls splitting one in a point
-
-(define (create-splitted-wall wall split-point-relative uuid1 uuid2)
-  (let ((split-point (point-from-relative-in-wall wall split-point-relative))
-        (first-point (wall-first-point wall))
-        (second-point (wall-last-point wall)))
-  `((wall (@ (uid ,uuid1))
-         (pt (@ (y ,(number->string (archpoint-coord 'y first-point)))
-                (x ,(number->string (archpoint-coord 'x first-point)))))
-         (pt (@ (y ,(number->string (vect2-y split-point)))
-                (x ,(number->string (vect2-x split-point))))))
-   (wall (@ (uid ,uuid2))
-         (pt (@ (y ,(number->string (vect2-y split-point)))
-                (x ,(number->string (vect2-x split-point)))))
-         (pt (@ (y ,(number->string (archpoint-coord 'y second-point)))
-                (x ,(number->string (archpoint-coord 'x second-point)))))))))
-
-;;; Update refs to doors in rooms
-
-(define (update-wall-refs-in-rooms graph uid new-uids)
-(ps graph)
-  (ps (msubst*
-    (p `(wall (@ (uid ,uid))))
-    (p (map (lambda (u) (uid->reference 'wall u)) new-uids))
-    graph)))
-
-;;; Try to merge into one wall if the two given are parallel
-
-(define (try-to-merge-if-parallel-walls wall-list new-uid)
-  (let ((wall-a-points (wall->point-list (car wall-list))) ; TODO: try to generalize
-        (wall-b-points (wall->point-list (cadr wall-list))))
-    (if (parallel? wall-a-points wall-b-points)
-        (let ((first-point (if (segment:is-end-point? wall-b-points (car wall-a-points))
-                               (cadr wall-a-points)
-                             (car wall-a-points)))
-              (second-point (if (segment:is-end-point? wall-a-points (car wall-b-points))
-                                (cadr wall-b-points)
-                              (car wall-b-points))))
-          (list (point-list->wall
-                (list first-point second-point)
-                new-uid)))
-        wall-list)))
-
-;;; Break in two lists from where a wall was found
-;;; Warning! This assumes that rooms contain topologically connected walls
-
-(define (room-break graph room first-wall-uid second-wall-uid)
-  ; TODO: check if walls are ordered
-  (break (lambda (wall) (equal? second-wall-uid (element-uid wall)))
-         (rotate-until-first
-           (lambda (wall) (equal? first-wall-uid (element-uid wall)))
-           (room-wall-refs room))))

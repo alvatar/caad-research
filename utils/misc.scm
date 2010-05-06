@@ -62,10 +62,10 @@
 (define (subst* new old l)
   (xsubst* cons new old l))
 
-;;; Recursive multiple substitution in a list
+;;; Recursive substitution with multiple 'news' in a list
 
-(define (msubst* new old l)
-  (xsubst* append new old l))
+(define (msubst* lnew old l)
+  (xsubst* append lnew old l))
 
 ;;; Recursive substitution in a list
 

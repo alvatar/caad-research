@@ -31,7 +31,7 @@
 
 (define (iteration-step-1 graph world)
   (let*
-    ((limit-polygon (wall-list->polysegment (graph-find-exterior-walls graph)))
+    ((limit-polygon (wall-list->polysegment (find-exterior-walls graph)))
      (agents (list
        (make-agent
          'distribution
@@ -435,8 +435,8 @@
                             ()
                             (,in-room
                               ()
-                              (,(room-wall graph in-room 0)
-                               (,(room-wall graph in-room 2)
+                              (,(room-wall graph in-room 1)
+                               (,(room-wall graph in-room 3)
                                 ()
                                 (,(random-real)
                                   ()
@@ -459,7 +459,9 @@
     (aif new-graph (check-graph (make-partition-in-graph next-room))
       (graph-regeneration-from-agents new-graph agents)
       (graph-regeneration-from-agents graph agents))
-    graph))
+
+  (exit 123)))
+    ;graph))
 
 ;-------------------------------------------------------------------------------
 ; Elements' interaction
