@@ -111,11 +111,11 @@
 ;;; Break in two lists from where a wall was found
 ;;; Warning! This assumes that rooms contain topologically connected walls
 
-(define (room-break graph room first-wall-uid second-wall-uid)
+(define (room-break graph room first-wall-ref second-wall-ref)
   ; TODO: check if walls are ordered
-  (break (lambda (wall) (equal? second-wall-uid (element-uid wall)))
+  (break (lambda (wall) (equal? second-wall-ref wall))
          (rotate-until-first
-           (lambda (wall) (equal? first-wall-uid (element-uid wall)))
+           (lambda (wall) (equal? first-wall-ref wall))
            (room-wall-refs room))))
 
 ;;; Fix order of walls in a room

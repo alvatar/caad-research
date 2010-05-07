@@ -91,103 +91,104 @@
    '()))
 
 ;-------------------------------------------------------------------------------
-; Topology modifications
+; Topological operations
 ;-------------------------------------------------------------------------------
 
 ;;; Split a room
 
 (define (op:split-room context-tree) ;graph context-selector constraints)
-  (let* ((graph (context-tree:first-in-level context-tree 0))
-         (room (context-tree:first-in-level context-tree 1)) ; TODO: room list ;(context-selector graph))
-         (walls (context-tree:level context-tree 2))
-         (split-points (context-tree:level context-tree 3))
-         ;; Pick up contexts
-         (first-wall (car walls)) ;(room-wall graph (context-selector graph) 0)) ; TODO: wall selected with constraint
-         (second-wall (cadr walls)) ;(room-wall graph (context-selector graph) 2))
-         (first-split-point (car split-points)) ; (constraints (random-real)))
-         (second-split-point (cadr split-points))
-         ;; Generate unique identifiers
-         (new-wall-uid (make-uuid))
-         (first-wall-uid-1-half (make-uuid))
-         (first-wall-uid-2-half (make-uuid))
-         (second-wall-uid-1-half (make-uuid))
-         (second-wall-uid-2-half (make-uuid)))
-    (receive (fore aft)
-             (room-break
-               graph
-               room
-               (element-uid first-wall)
-               (element-uid second-wall)) ; TODO: walls no uids
+  (let ((graph (context-tree:first-in-level context-tree 0))
+        (room (context-tree:first-in-level context-tree 1)) ; TODO: with a room list
+        (walls (context-tree:level context-tree 2))
+        (split-points (context-tree:level context-tree 3)))
+    ;; Pick up contexts and generate uids
+    (let ((first-wall (car walls)) ; TODO: wall selected with constraint
+          (second-wall (cadr walls)) ;(room-wall graph (context-selector graph) 2))
+          (first-split-point (car split-points)) ; (constraints (random-real)))
+          (second-split-point (cadr split-points))
+          (new-wall-uid (make-uuid))
+          (first-wall-uid-1-half (make-uuid))
+          (first-wall-uid-2-half (make-uuid))
+          (second-wall-uid-1-half (make-uuid))
+          (second-wall-uid-2-half (make-uuid)))
+      (receive (fore aft)
+               (room-break
+                 graph
+                 room
+                 (element->reference first-wall)
+                 (element->reference second-wall))
+        (let ((graph/new-elements
+                (append
+                  ;; Substitution of old room by the 2 new ones
+                  (apply-operation-in-context
+                    graph
+                    room
+                    (list
+                      (append `(room (@ (uid ,(make-uuid))))
+                              (cdr fore)
+                              (list `(wall (@ (uid ,first-wall-uid-1-half))))
+                              (list `(wall (@ (uid ,new-wall-uid))))
+                              (list `(wall (@ (uid ,second-wall-uid-2-half)))))
+                      (append `(room (@ (uid ,(make-uuid))))
+                              (cdr aft)
+                              (list `(wall (@ (uid ,second-wall-uid-1-half))))
+                              (list `(wall (@ (uid ,new-wall-uid))))
+                              (list `(wall (@ (uid ,first-wall-uid-2-half)))))))
+                  ;; Splitting wall
+                  (list (point-list->wall
+                          (list
+                            (point-from-relative-in-wall first-wall first-split-point)
+                            (point-from-relative-in-wall second-wall second-split-point))
+                          new-wall-uid))
+                  ;; Split touched walls at the splitting point (add 2 new ones)
+                  (if (segment:is-end-point?
+                        (wall-list->polysegment (lreferences->lelements graph (cdr fore)))
+                        (archpoint->point (wall-first-point first-wall)))
+                      (create-splitted-wall
+                        first-wall
+                        first-split-point
+                        first-wall-uid-1-half
+                        first-wall-uid-2-half)
+                    (create-splitted-wall
+                      first-wall
+                      ; TODO: curry!
+                      ;(find-element/uid graph (element-uid (car fore)))
+                      first-split-point
+                      first-wall-uid-2-half
+                      first-wall-uid-1-half))
+                  (if (segment:is-end-point?
+                        (wall-list->polysegment (lreferences->lelements graph (cdr aft)))
+                        (archpoint->point (wall-first-point second-wall)))
+                      (create-splitted-wall
+                        ;(find-element/uid graph (element-uid (car aft)))
+                        second-wall
+                        second-split-point
+                        second-wall-uid-1-half
+                        second-wall-uid-2-half)
+                    (create-splitted-wall
+                      ;(find-element/uid graph (element-uid (car aft)))
+                      second-wall
+                      second-split-point
+                      second-wall-uid-2-half
+                      second-wall-uid-1-half)))))
         (op:fix-room-topology
-      ;; Remove touched walls
-      (op:remove-multiple
-        ;; Update references of rooms to old walls
-        (update-wall-refs-in-rooms
-          (update-wall-refs-in-rooms
-            (append
-              ;; Substitution of old room by the 2 new ones
-              (apply-operation-in-context
-                graph
-                room
+          ;; Remove touched walls
+          (op:remove-multiple
+            ;; Update references of rooms to old walls
+            (update-wall-refs-in-rooms
+              (update-wall-refs-in-rooms
+                graph/new-elements
+                (element-uid first-wall)
                 (list
-                  (append `(room (@ (uid ,(make-uuid))))
-                          (cdr fore)
-                          (list `(wall (@ (uid ,first-wall-uid-1-half))))
-                          (list `(wall (@ (uid ,new-wall-uid))))
-                          (list `(wall (@ (uid ,second-wall-uid-2-half)))))
-                  (append `(room (@ (uid ,(make-uuid))))
-                          (cdr aft)
-                          (list `(wall (@ (uid ,second-wall-uid-1-half))))
-                          (list `(wall (@ (uid ,new-wall-uid))))
-                          (list `(wall (@ (uid ,first-wall-uid-2-half)))))))
-              ;; Splitting wall
-              (list (point-list->wall
-                      (list
-                        (point-from-relative-in-wall first-wall first-split-point)
-                        (point-from-relative-in-wall second-wall second-split-point))
-                      new-wall-uid))
-              ;; Split touched walls at the splitting point (add 2 new ones)
-              (if (segment:is-end-point?
-                    (wall-list->polysegment (lreferences->lelements graph (cdr fore)))
-                    (archpoint->point (wall-first-point first-wall)))
-                  (create-splitted-wall
-                    first-wall
-                    first-split-point
-                    first-wall-uid-1-half
-                    first-wall-uid-2-half)
-                (create-splitted-wall
-                  first-wall
-                  ; TODO: curry!
-                  ;(find-element/uid graph (element-uid (car fore)))
-                  first-split-point
-                  first-wall-uid-2-half
-                  first-wall-uid-1-half))
-              (if (segment:is-end-point?
-                    (wall-list->polysegment (lreferences->lelements graph (cdr aft)))
-                    (archpoint->point (wall-first-point second-wall)))
-                  (create-splitted-wall
-                    ;(find-element/uid graph (element-uid (car aft)))
-                    second-wall
-                    second-split-point
-                    second-wall-uid-1-half
-                    second-wall-uid-2-half)
-                (create-splitted-wall
-                  ;(find-element/uid graph (element-uid (car aft)))
-                  second-wall
-                  second-split-point
-                  second-wall-uid-2-half
-                  second-wall-uid-1-half)))
-            (element-uid first-wall)
+                  first-wall-uid-1-half
+                  first-wall-uid-2-half))
+              (element-uid second-wall)
+              (list
+                second-wall-uid-1-half
+                second-wall-uid-2-half))
             (list
-              first-wall-uid-1-half
-              first-wall-uid-2-half))
-          (element-uid second-wall)
-          (list
-            second-wall-uid-1-half
-            second-wall-uid-2-half))
-        (list
-          first-wall
-          second-wall))))))
+              first-wall
+              second-wall))))))))
 
 ;;; Merge two rooms
 
@@ -268,7 +269,7 @@
 ; Post-operations
 ;-------------------------------------------------------------------------------
 
-;;; Stabilize structure: add, move or replace pilars
+;;; Stabilize structure: add, move or replace pilars (TODO)
 
 (define (op:stabilize-structure graph context-selector constraints)
   (apply-operation-in-context
@@ -276,7 +277,7 @@
    context-selector
    '()))
 
-;;; Fix accesses
+;;; Fix accesses (TODO)
 
 (define (op:fix-accesses graph context-selector constraints)
   (apply-operation-in-context
@@ -284,7 +285,7 @@
    context-selector
    '()))
 
-;;; Fix malformed graph
+;;; Fix malformed graph (TODO)
 
 (define (op:fix-malformed graph context-selector constraints)
   (remove
@@ -304,7 +305,7 @@
     graph
     (graph-rooms graph)))
 
-;;; Fix everything
+;;; Fix everything (TODO)
 
 (define (op:fix-everything graph context-selector constraints)
   (apply-operation-in-context

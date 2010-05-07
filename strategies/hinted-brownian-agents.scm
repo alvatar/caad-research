@@ -87,6 +87,7 @@
          (north (graph-north graph)))
     (let loop ((agents (world-agents world)))
       (visualize-world (make-world agents '()) graph)
+      (visualization:do-now)
       (if (stop? agents)
           (values
             graph
@@ -191,6 +192,7 @@
     (let loop ((counter 0)
                (agents (world-agents world)))
       (visualize-world (make-world agents '()) graph)
+      (visualization:do-now)
       (if (>= counter 4) ; stop condition
           (values
             graph
@@ -377,7 +379,7 @@
 
 (define hinted-brownian-agents
   (list iteration-step-1 ; TODO: name them and generalize-externalize when possible
-        ;iteration-step-2
+        iteration-step-2
         iteration-step-3
         iteration-step-4))
 
@@ -451,6 +453,7 @@
   (pp graph)
   (visualization:forget-all)
   (visualize-graph graph)
+  (visualize-world (make-world agents '()) graph)
   (visualization:do-now)
   (display "\n---------------------------\nSTEP\n")
   ;(step)

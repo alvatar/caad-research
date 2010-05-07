@@ -112,6 +112,7 @@
 (define (visualize-world world graph)
   (let* ((bb (graph-bounding-box graph))
          (size-vec (bounding-box:size-segment bb)))
+    (visualization:forget-layers '(agents fields))
     #|
     (for-each
       (lambda (f) (visualize-field f size-vec))
@@ -119,6 +120,4 @@
       |#
     (for-each
       visualize-agent
-      (world-agents world))
-    (visualization:do-now)
-    (visualization:forget-layers '(agents fields))))
+      (world-agents world))))
