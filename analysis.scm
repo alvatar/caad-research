@@ -101,8 +101,10 @@
 
 ;;; Calculate bounding box
 
-(define (graph-bounding-box graph)
-  (polysegment:bounding-box (wall-list->polysegment (find-exterior-walls graph))))
+(define-memoized/key-gen graph-bounding-box 
+  (lambda (graph) (element-uid graph))
+  (lambda (graph)
+    (polysegment:bounding-box (wall-list->polysegment (find-exterior-walls graph)))))
 
 ;;; Calculate the polysegment that describes a list of walls
 

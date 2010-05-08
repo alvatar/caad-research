@@ -450,7 +450,7 @@
   (define (check-graph graph)
     graph) ; TODO: NEXT!
 
-  (pp graph)
+  ;(pp graph)
   (visualization:forget-all)
   (visualize-graph graph)
   (visualize-world (make-world agents '()) graph)

@@ -44,7 +44,7 @@
   ;((sxpath '(*)) graph))
   (if (null-list? graph)
       (error "You sent me a null graph. What should I do with this?")
-    (cdr graph)))
+    (cddr graph)))
 
 ;;; Get all parts of a graph that are of a specific type
 

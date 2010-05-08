@@ -141,36 +141,26 @@
                             (point-from-relative-in-wall second-wall second-split-point))
                           new-wall-uid))
                   ;; Split touched walls at the splitting point (add 2 new ones)
-                  (if (segment:is-end-point?
-                        (wall-list->polysegment (lreferences->lelements graph (cdr fore)))
-                        (archpoint->point (wall-first-point first-wall)))
-                      (create-splitted-wall
-                        first-wall
-                        first-split-point
-                        first-wall-uid-1-half
-                        first-wall-uid-2-half)
-                    (create-splitted-wall
-                      first-wall
-                      ; TODO: curry!
-                      ;(find-element/uid graph (element-uid (car fore)))
-                      first-split-point
-                      first-wall-uid-2-half
-                      first-wall-uid-1-half))
-                  (if (segment:is-end-point?
-                        (wall-list->polysegment (lreferences->lelements graph (cdr aft)))
-                        (archpoint->point (wall-first-point second-wall)))
-                      (create-splitted-wall
-                        ;(find-element/uid graph (element-uid (car aft)))
-                        second-wall
-                        second-split-point
-                        second-wall-uid-1-half
-                        second-wall-uid-2-half)
-                    (create-splitted-wall
-                      ;(find-element/uid graph (element-uid (car aft)))
-                      second-wall
-                      second-split-point
-                      second-wall-uid-2-half
-                      second-wall-uid-1-half)))))
+                  (let ((create-first-splitted-wall (curry create-splitted-wall first-wall first-split-point)))
+                    (if (segment:is-end-point?
+                          (wall-list->polysegment (lreferences->lelements graph (cdr fore)))
+                          (archpoint->point (wall-first-point first-wall)))
+                        (create-first-splitted-wall
+                          first-wall-uid-1-half
+                          first-wall-uid-2-half)
+                      (create-first-splitted-wall
+                        first-wall-uid-2-half
+                        first-wall-uid-1-half)))
+                  (let ((create-second-splitted-wall (curry create-splitted-wall second-wall second-split-point)))
+                    (if (segment:is-end-point?
+                          (wall-list->polysegment (lreferences->lelements graph (cdr aft)))
+                          (archpoint->point (wall-first-point second-wall)))
+                        (create-second-splitted-wall
+                          second-wall-uid-1-half
+                          second-wall-uid-2-half)
+                      (create-second-splitted-wall
+                        second-wall-uid-2-half
+                        second-wall-uid-1-half))))))
         (op:fix-room-topology
           ;; Remove touched walls
           (op:remove-multiple
