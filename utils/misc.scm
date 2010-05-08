@@ -210,6 +210,30 @@
     ((_ (name args ...) body ...)
      (define name (curried (args ...) body ...)))))
 
+;;; Curried lambda
+;;;
+;;; (lambda-curried (x y z) (+ x y z)) =>
+;;;   (lambda (x) (lambda (y) (lambda (z) (+ x y z))))
+;;; (map map (map (lambda-curried (a b) (* a b)) '(1 2 3)) '((4 5 6) (7 8 9) (10 11 12)))
+
+(define-macro (lambda-curried bindings . body)
+  (define (fold-right kons knil lis1)
+    (let recur ((lis lis1))
+       (if (null? lis) knil
+	    (let ((head (car lis)))
+	      (kons head (recur (cdr lis)))))))
+  (if (null? bindings) `(lambda () ,@body)
+    (fold-right (lambda (arg curr-body) `(lambda (,arg) ,curr-body))
+	 (cons 'begin body) bindings)))
+
+;;; Uncurrying
+;;;
+;;; (uncurry (lambda (a) (lambda (b) (lambda (c) (+ a b c)))) 5 2 1)
+
+(define (uncurry f . arglist)
+  (if (null? arglist) f
+    (apply uncurry (f (car arglist)) (cdr arglist))))
+
 ;-------------------------------------------------------------------------------
 ; Utility macros
 ;-------------------------------------------------------------------------------
