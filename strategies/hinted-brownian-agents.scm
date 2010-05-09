@@ -433,19 +433,24 @@
 
   (define (make-partition-in-graph in-room)
     (op:split-room
-      (make-context-tree `[,graph
-                            ()
-                            (,in-room
+      (receive (walls points)
+               (room-line-intersection
+                 graph
+                 in-room
+                 (make-infiniteline/origin-angle <point-inside-inner-polygon> <angle-perpendicular-to-longest-wall>))
+        (make-context-tree `[,graph
                               ()
-                              (,(room-wall graph in-room 1)
-                               (,(room-wall graph in-room 3)
+                              (,in-room
                                 ()
-                                (,(random-real)
+                                (,(car walls)
+                                 (,(cadr walls)
                                   ()
-                                  ()))
-                               (,(random-real)
-                                 ()
-                                 ())))])))
+                                  (,(cadr points)
+                                    ()
+                                    ()))
+                                 (,(car points)
+                                   ()
+                                   ())))]))))
 
   (define (check-graph graph)
     graph) ; TODO: NEXT!
@@ -462,9 +467,7 @@
     (aif new-graph (check-graph (make-partition-in-graph next-room))
       (graph-regeneration-from-agents new-graph agents)
       (graph-regeneration-from-agents graph agents))
-
-  (exit 123)))
-    ;graph))
+    graph))
 
 ;-------------------------------------------------------------------------------
 ; Elements' interaction
