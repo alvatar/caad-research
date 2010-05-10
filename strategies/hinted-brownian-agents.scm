@@ -433,24 +433,26 @@
 
   (define (make-partition-in-graph in-room)
     (op:split-room
+      #|
       (receive (walls points)
                (room-line-intersection
                  graph
                  in-room
                  (make-infiniteline/origin-angle <point-inside-inner-polygon> <angle-perpendicular-to-longest-wall>))
+                 |#
         (make-context-tree `[,graph
                               ()
                               (,in-room
                                 ()
-                                (,(car walls)
-                                 (,(cadr walls)
+                                (,(room-wall graph in-room 1);(car walls)
+                                 (,(room-wall graph in-room 3);(cadr walls)
                                   ()
-                                  (,(cadr points)
+                                  (,(random-real);(cadr points)
                                     ()
                                     ()))
-                                 (,(car points)
+                                 (,(random-real);(car points)
                                    ()
-                                   ())))]))))
+                                   ())))])))
 
   (define (check-graph graph)
     graph) ; TODO: NEXT!
