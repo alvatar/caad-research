@@ -25,7 +25,7 @@
 ;;; Are these walls connected?
 
 (define (walls-are-connected? wall1 wall2)
-  (segment:connected-segment? ; TODO: segments to paths
+  (path:connected-path?
     (wall->polysegment wall1)
     (wall->polysegment wall2)))
 
@@ -37,7 +37,7 @@
 
 (define (point-from-relative-in-wall wall percentage) ; TODO: generalize to polywalls
   (segment:relative-position->point
-    (list
+    (make-segment
       (archpoint->point (wall-point-n wall 1))
       (archpoint->point (wall-point-n wall 2)))
     percentage))
@@ -47,8 +47,8 @@
 (define (wall-mid-point wall)
   (let ((wall-points (wall->polysegment wall)))
     (mid-point
-      (segment:first-point wall-points)
-      (segment:second-point wall-points))))
+      (segment-a wall-points)
+      (segment-b wall-points))))
 
 ;;; Walls common point
 

@@ -35,7 +35,7 @@
                                      (vect2:*scalar tangent-p equal-accuracy))
                                    pi/-2)))
     (not (and (point-in-any-room? p1)
-                            (point-in-any-room? p2)))))
+              (point-in-any-room? p2)))))
 
 ;;; Is point in room?
 

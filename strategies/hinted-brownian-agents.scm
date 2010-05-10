@@ -519,7 +519,7 @@
     (lambda (p vec)
       (let ((distance-vec (vect2-
                             agent-pos
-                            (segment:mid-point p))))
+                            (segment:mid-point (path->segment p)))))
         (vect2+ (vect2:/scalar distance-vec (vect2:magnitude distance-vec))
                 vec)))
     (make-vect2 0.0 0.0)
@@ -532,7 +532,7 @@
     (lambda (p vec)
       (let ((distance-vec (vect2-
                             agent-pos
-                            (segment:mid-point p))))
+                            (segment:mid-point (path->segment p)))))
         (vect2+ distance-vec
                 vec)))
     (make-vect2 0.0 0.0)
@@ -553,9 +553,9 @@
 
 ;;; Agent-pipes interaction vector
 
-(define (agent-entry-interaction agent-pos entry-segment)
+(define (agent-entry-interaction agent-pos entry)
   (let ((distance-vec (vect2-
-                        (segment:mid-point entry-segment)
+                        (segment:mid-point (path->segment entry))
                         agent-pos)))
     (vect2:/scalar
       distance-vec

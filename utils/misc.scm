@@ -122,63 +122,13 @@
     (U (lambda (proc)
          (X (lambda (arg) ((U proc) arg)))))))
 
-;-------------------------------------------------------------------------------
-; Memoization
-;-------------------------------------------------------------------------------
+;;; Function composition
 
-;;; Function computation memoization specifying a key generation procedure
-
-(define (memoize/key-gen key-gen f)
-  (let ((memos '()))
+(define (compose . fns)
+  (define (make-chain fn chain)
     (lambda args
-      (let ((key (apply key-gen args)))
-        (apply
-          values
-          (cond
-           ((assoc key memos)
-            => cdr)
-           (else
-             (call-with-values
-               (lambda ()
-                 (apply f args))
-               (lambda results
-                 (set! memos ; Put the new result in memos
-                   (cons (cons key results)
-                         memos))
-                 results)))))))))
-
-;;; Function computation memoization with default key generation
-
-(define (memoize f)
-  (memoize/key-gen (lambda (args) args) f))
-
-;;; Macro for memoized function definition (with default key generator)
-
-(define-syntax define-memoized
-  (syntax-rules (lambda)
-    ((_ (name args ...) body ...)
-     (define name
-       (letrec ((name (lambda (args ...) body ...)))
-         (memoize name))))
-    ((_ name (lambda (args ...) body ...))
-     (define-memoized (name args ...) body ...))))
-
-;;; Macro for memoized function definition (specifying a key generator)
-
-(define-syntax define-memoized/key-gen
-  (syntax-rules ()
-	((_ name
-       (lambda (args-for-key ...) body-for-key ...)
-       (lambda (args ...) body ...))
-	 (define name
-	   (letrec ((name (lambda (args ...) body ...)))
-         (memoize/key-gen
-		   (lambda (args-for-key ...) body-for-key ...)
-           name))))))
-
-;-------------------------------------------------------------------------------
-; Currying
-;-------------------------------------------------------------------------------
+      (call-with-values (lambda () (apply fn args)) chain)))
+  (reduce make-chain values fns))
 
 ;;; Explicit currying of an arbitrary function
 
@@ -235,7 +185,61 @@
     (apply uncurry (f (car arglist)) (cdr arglist))))
 
 ;-------------------------------------------------------------------------------
-; Utility macros
+; Memoization
+;-------------------------------------------------------------------------------
+
+;;; Function computation memoization specifying a key generation procedure
+
+(define (memoize/key-gen key-gen f)
+  (let ((memos '()))
+    (lambda args
+      (let ((key (apply key-gen args)))
+        (apply
+          values
+          (cond
+           ((assoc key memos)
+            => cdr)
+           (else
+             (call-with-values
+               (lambda ()
+                 (apply f args))
+               (lambda results
+                 (set! memos ; Put the new result in memos
+                   (cons (cons key results)
+                         memos))
+                 results)))))))))
+
+;;; Function computation memoization with default key generation
+
+(define (memoize f)
+  (memoize/key-gen (lambda (args) args) f))
+
+;;; Macro for memoized function definition (with default key generator)
+
+(define-syntax define-memoized
+  (syntax-rules (lambda)
+    ((_ (name args ...) body ...)
+     (define name
+       (letrec ((name (lambda (args ...) body ...)))
+         (memoize name))))
+    ((_ name (lambda (args ...) body ...))
+     (define-memoized (name args ...) body ...))))
+
+;;; Macro for memoized function definition (specifying a key generator)
+
+(define-syntax define-memoized/key-gen
+  (syntax-rules ()
+	((_ name
+       (lambda (args-for-key ...) body-for-key ...)
+       (lambda (args ...) body ...))
+	 (define name
+	   (letrec ((name (lambda (args ...) body ...)))
+         (memoize/key-gen
+		   (lambda (args-for-key ...) body-for-key ...)
+           name))))))
+
+;-------------------------------------------------------------------------------
+; Syntax
 ;-------------------------------------------------------------------------------
 
 ;;; Syntax error macro

@@ -6,21 +6,55 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;(declare (standard-bindings)(extended-bindings)(block)(not safe))
-(compile-options force-compile: #t)
+;(compile-options force-compile: #t)
 
 (import (std srfi/1))
 
 (import math)
 (import utils/misc)
 
+;;; run-time checks macro
+
+#;(define-syntax check-arg
+  (syntax-rules ()
+    ((check-arg ignore ...) #f)))
+(define-syntax check-arg
+  (syntax-rules ()
+    ((_ predicate arg proc)
+     (if (not (predicate arg))
+         (begin
+           (pp arg)
+           (error "Unexpected argument type in" proc))))))
+
 ;-------------------------------------------------------------------------------
 ; Point 2d
 ;-------------------------------------------------------------------------------
 
-(define make-point2d make-vect2)
-(define point2d? vect2?)
-(define point2d-x vect2-x)
-(define point2d-y vect2-y)
+(define make-point make-vect2)
+(define point? vect2?)
+(define point-x vect2-x)
+(define point-y vect2-y)
+
+;-------------------------------------------------------------------------------
+; Direction 2d
+;-------------------------------------------------------------------------------
+
+(define make-direction make-vect2)
+(define direction? vect2?)
+(define direction-x vect2-x)
+(define direction-y vect2-y)
+
+;-------------------------------------------------------------------------------
+; Infinite lines 2d
+;-------------------------------------------------------------------------------
+
+(define-structure line a b c)
+
+;-------------------------------------------------------------------------------
+; Ray (semi-infinite line) 2d
+;-------------------------------------------------------------------------------
+
+(define-structure ray o direction)
 
 ;-------------------------------------------------------------------------------
 ; Point operations
@@ -29,10 +63,10 @@
 ;;; Point rotation
 
 (define (rotation:point vec r-angle)
-  (make-point2d (- (* (point2d-x vec) (cos r-angle))
-                   (* (point2d-y vec) (sin r-angle)))
-                (+ (* (point2d-y vec) (cos r-angle))
-                   (* (point2d-x vec) (sin r-angle)))))
+  (make-point (- (* (point-x vec) (cos r-angle))
+                   (* (point-y vec) (sin r-angle)))
+                (+ (* (point-y vec) (cos r-angle))
+                   (* (point-x vec) (sin r-angle)))))
 
 ;;; Point rotation
 
@@ -51,39 +85,37 @@
 ; Segments
 ;-------------------------------------------------------------------------------
 
-;;; First point of segment
-
-(define (segment:first-point seg)
-  (car seg))
-
-;;; Second point of segment
-
-(define (segment:second-point seg)
-  (cadr seg))
+(define-structure segment a b)
 
 ;;; Segment's direction vector
 
-(define (segment:direction seg)
+(define (segment->direction seg)
   (vect2:-vect2
-    (segment:second-point seg)
-    (segment:first-point seg)))
+    (segment-b seg)
+    (segment-a seg)))
 
 ;;; Segment length
 
 (define (segment:length seg)
-  (vect2:magnitude (segment:direction seg)))
+  (vect2:magnitude (segment->direction seg)))
+
+;;; Reverse segment
+
+(define (segment:reverse seg)
+  (make-segment (segment-b seg)
+                (segment-a seg)))
 
 ;;; Tell whether the point is an end point of the segment
 
 (define (segment:is-end-point? segment point)
-  (let* ((px (point2d-x point))
-         (py (point2d-y point))
-         (a (segment:first-point segment))
-         (ax (point2d-x a))
-         (ay (point2d-y a))
-         (b (segment:second-point segment))
-         (bx (point2d-x b))
-         (by (point2d-y b)))
+  (let* ((px (point-x point))
+         (py (point-y point))
+         (a (segment-a segment))
+         (ax (point-x a))
+         (ay (point-y a))
+         (b (segment-b segment))
+         (bx (point-x b))
+         (by (point-y b)))
     (or (and
           (=~ ax px)
           (=~ ay py))
@@ -94,36 +126,66 @@
 ;;; Tell whether the two segments are connected
 
 (define (segment:connected-segment? seg1 seg2)
-  (or (segment:is-end-point? seg2 (segment:first-point seg1))
-      (segment:is-end-point? seg2 (segment:second-point seg1))))
+  (or (segment:is-end-point? seg2 (segment-a seg1))
+      (segment:is-end-point? seg2 (segment-b seg1))))
 
 ;;; Tell whether the segments are parallel
 
 (define (segment:parallel-segment? seg1 seg2)
   (vect2:=?e
-    (vect2:normalize (segment:direction seg1))
-    (vect2:normalize (segment:direction seg2))
+    (vect2:normalize (segment->direction seg1))
+    (vect2:normalize (segment->direction seg2))
     0.01))
 
 ;;; Calculate absolute point given segment and percent
 
 (define (segment:relative-position->point seg rel)
-  (let ((vec (segment:direction seg))
-        (O (segment:first-point seg)))
-    (make-point2d (+ (point2d-x O) (* (point2d-x vec) rel))
-                  (+ (point2d-y O) (* (point2d-y vec) rel)))))
+  (let ((vec (segment->direction seg))
+        (O (segment-a seg)))
+    (make-point (+ (point-x O) (* (point-x vec) rel))
+                (+ (point-y O) (* (point-y vec) rel)))))
 
 ;;; Calculate the segment's mid point
 
 (define (segment:mid-point seg)
-  (let ((a (segment:first-point seg))
-        (b (segment:second-point seg)))
-    (make-point2d (average (point2d-x a) (point2d-x b))
-                  (average (point2d-y a) (point2d-y b)))))
+  (let ((a (segment-a seg))
+        (b (segment-b seg)))
+    (make-point (average (point-x a) (point-x b))
+                  (average (point-y a) (point-y b)))))
 
 ;-------------------------------------------------------------------------------
 ; Polysegments
 ;-------------------------------------------------------------------------------
+
+;;; Picks the first and the last points of the path to build the segment
+
+(define (path->segment plis)
+  (make-segment (first plis)
+                (last plis)))
+
+;; Is end point?
+
+(define (path:is-end-point? segment point)
+  (let* ((px (point-x point))
+         (py (point-y point))
+         (a (first segment))
+         (ax (point-x a))
+         (ay (point-y a))
+         (b (last segment))
+         (bx (point-x b))
+         (by (point-y b)))
+    (or (and
+          (=~ ax px)
+          (=~ ay py))
+        (and
+          (=~ bx px)
+          (=~ by py)))))
+
+;;; Are these paths connected?
+
+(define (path:connected-path? p1 p2)
+  (or (path:is-end-point? p2 (first p1))
+      (path:is-end-point? p2 (last p1))))
 
 ;;; Close a point-list (repeats first point in the last position)
 
@@ -167,7 +229,7 @@
    ((null? plis)
     (error "Argument #1 should be a point list"))
    (else
-    (iter 0 (make-point2d 0.0 0.0) plis))))
+    (iter 0 (make-point 0.0 0.0) plis))))
 
 ;;; Polysegment extreme point
 
@@ -178,7 +240,7 @@
       current)
      (else
        (iter (f current (car plis-tail)) (cdr plis-tail)))))
-  (if (null-list? plis)
+  (if (null? plis)
       (error "Argument #1 must be a point list")
     (iter (car plis) (cdr plis))))
 
@@ -188,7 +250,7 @@
   (polysegment:extreme
     plis
     (lambda (current next)
-      (if (< (point2d-x current) (point2d-x next))
+      (if (< (point-x current) (point-x next))
           next
         current))))
 
@@ -198,7 +260,7 @@
   (polysegment:extreme
     plis
     (lambda (current next)
-      (if (> (point2d-x current) (point2d-x next))
+      (if (> (point-x current) (point-x next))
           next
         current))))
 
@@ -208,7 +270,7 @@
   (polysegment:extreme
     plis
     (lambda (current next)
-      (if (< (point2d-y current) (point2d-y next))
+      (if (< (point-y current) (point-y next))
           next
         current))))
 
@@ -218,7 +280,7 @@
   (polysegment:extreme
     plis
     (lambda (current next)
-      (if (> (point2d-x current) (point2d-x next))
+      (if (> (point-x current) (point-x next))
           next
         current))))
 
@@ -232,14 +294,13 @@
 
 ;;; Calculate the tangent vector in a point-list given the relative position
 
-(define (polysegment:tangent-in-relative point-list rel)
-  (if (not (= (length point-list) 2))
-      (error "point-list-tangent-in-relative: only segments implemented"))
-  (vect2:normalize
-    (segment:direction
-      (list
-        (segment:relative-position->point point-list rel)
-        (segment:second-point point-list))))) ; TODO: handle polysegments
+(define (polysegment:tangent-in-relative plis rel)
+  (let ((approx (path->segment plis))) ; TODO: handle polysegments properly
+    (vect2:normalize
+      (segment->direction
+        (make-segment
+          (segment:relative-position->point approx rel)
+          (segment-b approx))))))
 
 ;-------------------------------------------------------------------------------
 ; Polygons
@@ -253,13 +314,13 @@
     (cond
      ((null? a-points)
       c)
-     ((and (not (eq? (> (point2d-y (car a-points)) (point2d-y p))
-                     (> (point2d-y (car b-points)) (point2d-y p))))
-           (< (point2d-x p)
-              (+ (/ (* (- (point2d-x (car b-points)) (point2d-x (car a-points)))
-                       (- (point2d-y p) (point2d-y (car a-points))))
-                    (- (point2d-y (car b-points)) (point2d-y (car a-points))))
-                 (point2d-x (car a-points)))))
+     ((and (not (eq? (> (point-y (car a-points)) (point-y p))
+                     (> (point-y (car b-points)) (point-y p))))
+           (< (point-x p)
+              (+ (/ (* (- (point-x (car b-points)) (point-x (car a-points)))
+                       (- (point-y p) (point-y (car a-points))))
+                    (- (point-y (car b-points)) (point-y (car a-points))))
+                 (point-x (car a-points)))))
       (iter (not c) (cdr a-points) (cdr b-points)))
      (else
       (iter c (cdr a-points) (cdr b-points)))))
@@ -269,10 +330,10 @@
 
 (define (polygon:make-random-point-inside point-list)
   (define (try origin delta)
-    (let ((p (make-point2d (+ (point2d-x origin)
-                              (* (point2d-x delta) (random-real)))
-                           (+ (point2d-y origin)
-                              (* (point2d-y delta) (random-real))))))
+    (let ((p (make-point (+ (point-x origin)
+                              (* (point-x delta) (random-real)))
+                           (+ (point-y origin)
+                              (* (point-y delta) (random-real))))))
       (if (polygon:point-inside? point-list p)
           p
         (try origin delta))))
@@ -291,27 +352,27 @@
 ;;; Calculate the distance between two points
 
 (define (distance:point-point a b)
-  (sqrt (+ (square (- (point2d-x a) (point2d-x b)))
-           (square (- (point2d-y a) (point2d-y b))))))
+  (sqrt (+ (square (- (point-x a) (point-x b)))
+           (square (- (point-y a) (point-y b))))))
 
 (define (fx-distance:point-point a b)
   (##flonum.->fixnum
-    (flsqrt (fixnum->flonum (fx+ (fxsquare (fx- (point2d-x a) (point2d-x b)))
-                                 (fxsquare (fx- (point2d-y a) (point2d-y b))))))))
+    (flsqrt (fixnum->flonum (fx+ (fxsquare (fx- (point-x a) (point-x b)))
+                                 (fxsquare (fx- (point-y a) (point-y b))))))))
 
 (define (fl-distance:point-point a b)
-  (flsqrt (fl+ (flsquare (fl- (point2d-x a) (point2d-x b)))
-               (flsquare (fl- (point2d-y a) (point2d-y b))))))
+  (flsqrt (fl+ (flsquare (fl- (point-x a) (point-x b)))
+               (flsquare (fl- (point-y a) (point-y b))))))
 
 ;;; Calculate the distance between point and segment
 
 (define (distance:point-segment p sg)
-  (let* ((p1x (point2d-x (segment:first-point sg)))
-         (p1y (point2d-y (segment:first-point sg)))
-         (p2x (point2d-x (segment:second-point sg)))
-         (p2y (point2d-y (segment:second-point sg)))
-         (px (point2d-x p))
-         (py (point2d-y p))
+  (let* ((p1x (point-x (segment-a sg)))
+         (p1y (point-y (segment-a sg)))
+         (p2x (point-x (segment-b sg)))
+         (p2y (point-y (segment-b sg)))
+         (px (point-x p))
+         (py (point-y p))
          (su (- p2x p1x))
          (sv (- p2y p1y))
          (div (+ (* su su) (* sv sv)))
@@ -330,12 +391,12 @@
       (sqrt (+ (* dx dx) (* dy dy))))))
 
 (define (fx-distance:point-segment p sg)
-  (let* ((p1x (point2d-x (segment:first-point sg)))
-         (p1y (point2d-y (segment:first-point sg)))
-         (p2x (point2d-x (segment:second-point sg)))
-         (p2y (point2d-y (segment:second-point sg)))
-         (px (point2d-x p))
-         (py (point2d-y p))
+  (let* ((p1x (point-x (segment-a sg)))
+         (p1y (point-y (segment-a sg)))
+         (p2x (point-x (segment-b sg)))
+         (p2y (point-y (segment-b sg)))
+         (px (point-x p))
+         (py (point-y p))
          (su (fx- p2x p1x))
          (sv (fx- p2y p1y))
          (div (fx+ (fx* su su) (fx* sv sv)))
@@ -354,12 +415,12 @@
       (##flonum.->fixnum (flsqrt (fixnum->flonum (fx+ (fx* dx dx) (fx* dy dy))))))))
 
 (define (fl-distance:point-segment p sg)
-  (let* ((p1x (point2d-x (segment:first-point sg)))
-         (p1y (point2d-y (segment:first-point sg)))
-         (p2x (point2d-x (segment:second-point sg)))
-         (p2y (point2d-y (segment:second-point sg)))
-         (px (point2d-x p))
-         (py (point2d-y p))
+  (let* ((p1x (point-x (segment-a sg)))
+         (p1y (point-y (segment-a sg)))
+         (p2x (point-x (segment-b sg)))
+         (p2y (point-y (segment-b sg)))
+         (px (point-x p))
+         (py (point-y p))
          (su (fl- p2x p1x))
          (sv (fl- p2y p1y))
          (div (fl+ (fl* su su) (fl* sv sv)))
@@ -386,7 +447,7 @@
    (else
     (min (distance:point-segment
            p
-           (list (car plis) (cadr plis)))
+           (make-segment (car plis) (cadr plis)))
          (distance:point-polysegment
            p
            (cdr plis))))))
@@ -398,7 +459,7 @@
    (else
     (min (fl-distance:point-segment
            p
-           (list (car plis) (cadr plis)))
+           (make-segment (car plis) (cadr plis)))
          (fl-distance:point-polysegment
            p
            (cdr plis))))))
@@ -414,18 +475,18 @@
          (a2 (cadr sg1))
          (b1 (car sg2))
          (b2 (cadr sg2))
-         (ua-t (- (* (- (point2d-x b2) (point2d-x b1))
-                     (- (point2d-y a1) (point2d-y b1)))
-                  (* (- (point2d-y b2) (point2d-y b1))
-                     (- (point2d-x a1) (point2d-x b1)))))
-         (ub-t (- (* (- (point2d-x a2) (point2d-x a1))
-                     (- (point2d-y a1) (point2d-y b1)))
-                  (* (- (point2d-y a2) (point2d-y a1))
-                     (- (point2d-x a1) (point2d-x b1)))))
-         (u-b (- (* (- (point2d-y b2) (point2d-y b1))
-                    (- (point2d-x a2) (point2d-x a1)))
-                 (* (- (point2d-x b2) (point2d-x b1))
-                    (- (point2d-y a2) (point2d-y a1))))))
+         (ua-t (- (* (- (point-x b2) (point-x b1))
+                     (- (point-y a1) (point-y b1)))
+                  (* (- (point-y b2) (point-y b1))
+                     (- (point-x a1) (point-x b1)))))
+         (ub-t (- (* (- (point-x a2) (point-x a1))
+                     (- (point-y a1) (point-y b1)))
+                  (* (- (point-y a2) (point-y a1))
+                     (- (point-x a1) (point-x b1)))))
+         (u-b (- (* (- (point-y b2) (point-y b1))
+                    (- (point-x a2) (point-x a1)))
+                 (* (- (point-x b2) (point-x b1))
+                    (- (point-y a2) (point-y a1))))))
     (if (=~ u-b 0.0)
         (if (or (=~ ua-t 0.0) (=~ ub-t 0.0))
             'coincident
@@ -436,20 +497,20 @@
                  (<= ua 1)
                  (<= 0 ub)
                  (<= ub 1))
-            (make-point2d (* (+ (point2d-x a1) ua)
-                             (- (point2d-x a2) (point2d-x a1)))
-                          (* (+ (point2d-y a1) ua)
-                             (- (point2d-y a2) (point2d-y a1))))
+            (make-point (* (+ (point-x a1) ua)
+                             (- (point-x a2) (point-x a1)))
+                          (* (+ (point-y a1) ua)
+                             (- (point-y a2) (point-y a1))))
           'no-intersection)))))
 
 ;;; Segment-polysegment intersection
 
 (define (intersection:segment-polysegment seg pol)
   (define (append-next intersections pol-rest)
-    (let ((inters (intersection:segment-segment seg (list (car pol-rest) (cadr pol-rest)))))
-      (if (or (null-list? pol-rest) (< (length pol-rest) 3))
+    (let ((inters (intersection:segment-segment seg (make-segment (car pol-rest) (cadr pol-rest)))))
+      (if (or (null? pol-rest) (< (length pol-rest) 3))
           (append intersections (list inters))
-        (if (point2d? inters)
+        (if (point? inters)
             (append-next (append intersections (list inters)) (cdr pol-rest))
           (append-next intersections (cdr pol-rest))))))
   (append-next '() pol))
@@ -471,26 +532,26 @@
   (let ((first (car point-list))
         (rest (cdr point-list)))
     (make-bounding-box
-      (make-point2d (fold (lambda (point x) (min x (point2d-x point)))
-                          (point2d-x first)
+      (make-point (fold (lambda (point x) (min x (point-x point)))
+                          (point-x first)
                           rest)
-                    (fold (lambda (point y) (min y (point2d-y point)))
-                          (point2d-y first)
+                    (fold (lambda (point y) (min y (point-y point)))
+                          (point-y first)
                           rest))
-      (make-point2d (fold (lambda (point x) (max x (point2d-x point)))
-                          (point2d-x first)
+      (make-point (fold (lambda (point x) (max x (point-x point)))
+                          (point-x first)
                           rest)
-                    (fold (lambda (point y) (max y (point2d-y point)))
-                          (point2d-y first)
+                    (fold (lambda (point y) (max y (point-y point)))
+                          (point-y first)
                           rest)))))
 
 ;;; Calculate the diagonal segment connecting the two extremes of the bb
 
 (define (bounding-box:diagonal-segment bb)
-  (list (bounding-box-lefttop bb)
-        (bounding-box-rightbottom bb)))
+  (make-segment (bounding-box-lefttop bb)
+                (bounding-box-rightbottom bb)))
 
 ;;; Bounding box size segment
 
 (define (bounding-box:size-segment bb)
-  (segment:direction (bounding-box:diagonal-segment bb)))
+  (segment->direction (bounding-box:diagonal-segment bb)))
