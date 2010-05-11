@@ -52,12 +52,12 @@
 ;;; add 1
 
 (define (add1 x)
-  (+ x 1))
+  (fx+ x 1))
 
 ;;; substract 1
 
 (define (sub1 x)
-  (- x 1))
+  (fx- x 1))
 
 ;;; Inverse function
 

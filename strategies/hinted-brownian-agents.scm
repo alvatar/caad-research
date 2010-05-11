@@ -9,6 +9,7 @@
 (import (std srfi/1))
 
 (import ../geometry/kernel)
+(import ../geometry/generation)
 (import ../math/algebra)
 
 (import ../analysis)
