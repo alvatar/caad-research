@@ -57,6 +57,12 @@
   (lambda (x)
     (and (not (pair? x)) (not (null? x)))))
 
+;;; notnull?
+
+(define notnull?
+  (lambda (x)
+    (not (null? x))))
+
 ;;; snoc
 
 (define snoc
@@ -116,7 +122,7 @@
           (l (length lis)))
       (cond
        ((= n l)
-        (raise "Full list rotation done without satisfying predicate"))
+        (error "Full list rotation done without satisfying predicate"))
        ((pred x)
           lis-iter)
        (else

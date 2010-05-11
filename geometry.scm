@@ -154,6 +154,19 @@
 ; Point sequences
 ;-------------------------------------------------------------------------------
 
+;;; Is pseq?
+
+(define (pseq? plis)
+  (and (notnull? plis)
+       (every (lambda (p) (point? p))
+              plis)))
+
+;;; Is pseq? (shallow version)
+
+(define (pseq?-shallow plis)
+  (and (notnull? plis)
+       (point? (car plis))))
+
 ;;; Picks the first and the last points of the pseq to build the segment
 
 (define (pseq->segment plis)
@@ -189,9 +202,9 @@
 (define (pseq:close plis)
   (snoc plis (car plis)))
 
-;;; Append two point lists (optimized for second one being shorter)
+;;; Append two point lists, appends always after (optimized for second one being shorter)
 
-(define (pseq:append a b) ;TODO: avoid reversing a??
+(define (pseq:append a b)
   (let ((fa (first a))
         (la (last a))
         (fb (first b))
@@ -201,10 +214,31 @@
       (append-reverse a (cdr b)))
      ((vect2:=? fa lb) ; case: <-----x<<----
       (append-reverse a (cdr (reverse b))))
-     ((vect2:=? la fb) ; case : ----->x---->>
+     ((vect2:=? la fb) ; case: ----->x---->>
       (append a (cdr b)))
      ((vect2:=? la lb) ; case: ----->x<<----
       (append a (cdr (reverse b))))
+     (else
+      (pp a)
+      (pp b)
+      (error "Segments cannot be connected")))))
+
+;;; Join two point lists, appends to either first or last (optimized for second one being shorter)
+
+(define (pseq:join a b)
+  (let ((fa (first a))
+        (la (last a))
+        (fb (first b))
+        (lb (last b)))
+    (cond ; target situation: ----->x---->>
+     ((vect2:=? fa fb) ; case: <-----x---->>
+      (append a (reverse (cdr b))))
+     ((vect2:=? fa lb) ; case: <-----x<<----
+      (append a (reverse (cdr (reverse b)))))
+     ((vect2:=? la fb) ; case: ----->x---->>
+      (append a (cdr b)))
+     ((vect2:=? la lb) ; case: ----->x<<----
+      (append a (reverse (cdr b))))
      (else
       (pp a)
       (pp b)
