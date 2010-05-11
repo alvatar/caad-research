@@ -30,6 +30,23 @@
        (step)
        res))))
 
+;;; Argument checks per module
+;;;
+;;; (define-syntax check-arg
+;;;  (syntax-rules ()
+;;;    ((_ predicate arg proc)
+;;;     (check-arg-per-module "do" predicate arg proc))))
+
+(define-syntax check-arg-per-module
+  (syntax-rules ()
+    ((_ "ignore" predicate arg proc)
+     #f)
+    ((_ "do" predicate arg proc)
+     (if (not (predicate arg))
+         (begin
+           (pp arg)
+           (error "Argument not accepted" proc))))))
+
 ;-------------------------------------------------------------------------------
 ; List procedures
 ;-------------------------------------------------------------------------------

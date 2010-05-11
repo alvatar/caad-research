@@ -13,18 +13,12 @@
 (import math)
 (import utils/misc)
 
-;;; run-time checks macro
+;;; run-time checks
 
-#;(define-syntax check-arg
-  (syntax-rules ()
-    ((check-arg ignore ...) #f)))
 (define-syntax check-arg
   (syntax-rules ()
     ((_ predicate arg proc)
-     (if (not (predicate arg))
-         (begin
-           (pp arg)
-           (error "Unexpected argument type in" proc))))))
+     (check-arg-per-module "do" predicate arg proc))))
 
 ;-------------------------------------------------------------------------------
 ; Point 2d
@@ -90,6 +84,7 @@
 ;;; Segment's direction vector
 
 (define (segment->direction seg)
+  (check-arg segment? seg segment->direction)
   (vect2:-vect2
     (segment-b seg)
     (segment-a seg)))
@@ -97,11 +92,13 @@
 ;;; Segment length
 
 (define (segment:length seg)
+  (check-arg segment? seg segment:length)
   (vect2:magnitude (segment->direction seg)))
 
 ;;; Reverse segment
 
 (define (segment:reverse seg)
+  (check-arg segment? seg segment:reverse)
   (make-segment (segment-b seg)
                 (segment-a seg)))
 
