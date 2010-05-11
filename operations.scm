@@ -142,8 +142,8 @@
                           new-wall-uid))
                   ;; Split touched walls at the splitting point (add 2 new ones)
                   (let ((create-first-splitted-wall (curry create-splitted-wall first-wall first-split-point)))
-                    (if (path:is-end-point?
-                          (wall-list->polysegment (lreferences->lelements graph (cdr fore)))
+                    (if (pseq:is-end-point?
+                          (wall-list->pseq (lreferences->lelements graph (cdr fore)))
                           (archpoint->point (wall-first-point first-wall)))
                         (create-first-splitted-wall
                           first-wall-uid-1-half
@@ -152,8 +152,8 @@
                         first-wall-uid-2-half
                         first-wall-uid-1-half)))
                   (let ((create-second-splitted-wall (curry create-splitted-wall second-wall second-split-point)))
-                    (if (path:is-end-point?
-                          (wall-list->polysegment (lreferences->lelements graph (cdr aft)))
+                    (if (pseq:is-end-point?
+                          (wall-list->pseq (lreferences->lelements graph (cdr aft)))
                           (archpoint->point (wall-first-point second-wall)))
                         (create-second-splitted-wall
                           second-wall-uid-1-half

@@ -23,9 +23,9 @@
   (define (point-in-any-room? p)
     (any (lambda (room) (point-in-room? graph room p))
          (graph-rooms graph)))
-  (let* ((wall-points (wall->polysegment wall))
+  (let* ((wall-points (wall->pseq wall))
          (mid-p (point-from-relative-in-wall wall 0.5))
-         (tangent-p (polysegment:tangent-in-relative wall-points 0.5))
+         (tangent-p (pseq:tangent-in-relative wall-points 0.5))
          (p1 (rotation:point-w/reference mid-p (vect2+
                                      mid-p
                                      (vect2:*scalar tangent-p equal-accuracy))
@@ -56,7 +56,7 @@
             connected-walls
           (iter
             (cdr wall-list)
-            (if (is-end-point? (wall->polysegment (car wall-list)) point)
+            (if (is-end-point? (wall->pseq (car wall-list)) point)
                 (append connected-walls (list (car wall-list)))
               connected-walls))))
       (iter (graph-walls graph) '()))
@@ -104,23 +104,23 @@
 (define-memoized/key-gen graph-bounding-box 
   (lambda (graph) (element-uid graph))
   (lambda (graph)
-    (polysegment:bounding-box (wall-list->polysegment (find-exterior-walls graph)))))
+    (pseq:bounding-box (wall-list->pseq (find-exterior-walls graph)))))
 
-;;; Calculate the polysegment that describes a list of walls
+;;; Calculate the pseq that describes a list of walls
 
-(define (wall-list->polysegment wlis)
+(define (wall-list->pseq wlis)
   (cond
    ((null? (cdr wlis))
-    (wall->polysegment (car wlis)))
+    (wall->pseq (car wlis)))
    (else
-    (polysegment:append
-      (wall->polysegment (car wlis))
-      (wall-list->polysegment (cdr wlis))))))
+    (pseq:append
+      (wall->pseq (car wlis))
+      (wall-list->pseq (cdr wlis))))))
       
-;;; Calculate the polysegment that describes a room
+;;; Calculate the pseq that describes a room
 
 (define (room->point-list graph room)
-  (wall-list->polysegment (room-walls graph room))) ; First point because it's equal to last
+  (wall-list->pseq (room-walls graph room))) ; First point because it's equal to last
 
 ;;; Calculate room area
 

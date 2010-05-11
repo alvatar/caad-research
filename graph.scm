@@ -193,7 +193,7 @@
 
 ;;; Convert a wall into a list of points
 
-(define (wall->polysegment wall)
+(define (wall->pseq wall)
   (define (iter point-list to-process)
     (if (null-list? to-process)
         point-list
@@ -204,10 +204,10 @@
 
 ;;; Convert a list of walls into a list of segments
 
-(define (wall-list->path-list walls)
+(define (wall-list->pseq-list walls)
   (map
     (lambda (w)
-      (wall->polysegment w))
+      (wall->pseq w))
     walls))
 
 ;;; Convert a point list into a wall

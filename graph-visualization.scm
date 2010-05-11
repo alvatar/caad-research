@@ -34,7 +34,7 @@
         (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
         (visualization:paint-set-line-cap backend 'square)
         (visualization:paint-set-line-width backend .25)
-        (visualization:paint-path backend (wall->polysegment wall)))
+        (visualization:paint-path backend (wall->pseq wall)))
       ;; Paint doors in the wall
       (define (paint-doors-in-wall wall)
         (for-each

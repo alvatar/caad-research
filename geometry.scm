@@ -151,18 +151,18 @@
                   (average (point-y a) (point-y b)))))
 
 ;-------------------------------------------------------------------------------
-; Polysegments
+; Point sequences
 ;-------------------------------------------------------------------------------
 
-;;; Picks the first and the last points of the path to build the segment
+;;; Picks the first and the last points of the pseq to build the segment
 
-(define (path->segment plis)
+(define (pseq->segment plis)
   (make-segment (first plis)
                 (last plis)))
 
 ;; Is end point?
 
-(define (path:is-end-point? segment point)
+(define (pseq:is-end-point? segment point)
   (let* ((px (point-x point))
          (py (point-y point))
          (a (first segment))
@@ -178,20 +178,20 @@
           (=~ bx px)
           (=~ by py)))))
 
-;;; Are these paths connected?
+;;; Are these pseq connected?
 
-(define (path:connected-path? p1 p2)
-  (or (path:is-end-point? p2 (first p1))
-      (path:is-end-point? p2 (last p1))))
+(define (pseq:connected-pseq? p1 p2)
+  (or (pseq:is-end-point? p2 (first p1))
+      (pseq:is-end-point? p2 (last p1))))
 
 ;;; Close a point-list (repeats first point in the last position)
 
-(define (polysegment:close plis)
+(define (pseq:close plis)
   (snoc plis (car plis)))
 
 ;;; Append two point lists (optimized for second one being shorter)
 
-(define (polysegment:append a b) ;TODO: avoid reversing a??
+(define (pseq:append a b) ;TODO: avoid reversing a??
   (let ((fa (first a))
         (la (last a))
         (fb (first b))
@@ -210,9 +210,9 @@
       (pp b)
       (error "Segments cannot be connected")))))
 
-;;; Polysegment centroid
+;;; pseq centroid
 
-(define (polysegment:centroid plis)
+(define (pseq:centroid plis)
   (define (iter n sum plis-tail)
     (cond
      ((null? plis-tail)
@@ -228,9 +228,9 @@
    (else
     (iter 0 (make-point 0.0 0.0) plis))))
 
-;;; Polysegment extreme point
+;;; pseq extreme point
 
-(define (polysegment:extreme plis f)
+(define (pseq:extreme plis f)
   (define (iter current plis-tail)
     (cond
      ((null? plis-tail)
@@ -241,40 +241,40 @@
       (error "Argument #1 must be a point list")
     (iter (car plis) (cdr plis))))
 
-;;; Polysegment right-most point
+;;; pseq right-most point
 
-(define (polysegment:extreme-right plis)
-  (polysegment:extreme
+(define (pseq:extreme-right plis)
+  (pseq:extreme
     plis
     (lambda (current next)
       (if (< (point-x current) (point-x next))
           next
         current))))
 
-;;; Polysegment left-most point
+;;; pseq left-most point
 
-(define (polysegment:extreme-left plis)
-  (polysegment:extreme
+(define (pseq:extreme-left plis)
+  (pseq:extreme
     plis
     (lambda (current next)
       (if (> (point-x current) (point-x next))
           next
         current))))
 
-;;; Polysegment top-most point
+;;; pseq top-most point
 
-(define (polysegment:extreme-top plis)
-  (polysegment:extreme
+(define (pseq:extreme-top plis)
+  (pseq:extreme
     plis
     (lambda (current next)
       (if (< (point-y current) (point-y next))
           next
         current))))
 
-;;; Polysegment bottom-most point
+;;; pseq bottom-most point
 
-(define (polysegment:extreme-bottom plis)
-  (polysegment:extreme
+(define (pseq:extreme-bottom plis)
+  (pseq:extreme
     plis
     (lambda (current next)
       (if (> (point-x current) (point-x next))
@@ -283,7 +283,7 @@
 
 ;;; Find a common point of two given point lists
 
-(define (polysegment:common-point? plis1 plis2)
+(define (pseq:common-point? plis1 plis2)
   (find
     (lambda (e)
       (any (lambda (it) (vect2:=? it e)) plis1))
@@ -291,8 +291,8 @@
 
 ;;; Calculate the tangent vector in a point-list given the relative position
 
-(define (polysegment:tangent-in-relative plis rel)
-  (let ((approx (path->segment plis))) ; TODO: handle polysegments properly
+(define (pseq:tangent-in-relative plis rel)
+  (let ((approx (pseq->segment plis))) ; TODO: handle pseqs properly
     (vect2:normalize
       (segment->direction
         (make-segment
@@ -334,7 +334,7 @@
       (if (polygon:point-inside? point-list p)
           p
         (try origin delta))))
-  (let* ((bounding-box (polysegment:bounding-box point-list))
+  (let* ((bounding-box (pseq:bounding-box point-list))
          (bb-left-corner (bounding-box-lefttop bounding-box))
          (bb-right-corner (bounding-box-rightbottom bounding-box)))
     (try
@@ -437,7 +437,7 @@
 
 ;;; Calculate the distance between a point and a point list
 
-(define (distance:point-polysegment p plis)
+(define (distance:point-pseq p plis)
   (cond
    ((or (null? plis) (null? (cdr plis)))
     +inf.0)
@@ -445,11 +445,11 @@
     (min (distance:point-segment
            p
            (make-segment (car plis) (cadr plis)))
-         (distance:point-polysegment
+         (distance:point-pseq
            p
            (cdr plis))))))
 
-(define (fl-distance:point-polysegment p plis)
+(define (fl-distance:point-pseq p plis)
   (cond
    ((or (null? plis) (null? (cdr plis)))
     +inf.0)
@@ -457,7 +457,7 @@
     (min (fl-distance:point-segment
            p
            (make-segment (car plis) (cadr plis)))
-         (fl-distance:point-polysegment
+         (fl-distance:point-pseq
            p
            (cdr plis))))))
 
@@ -500,9 +500,9 @@
                              (- (point-y a2) (point-y a1))))
           'no-intersection)))))
 
-;;; Segment-polysegment intersection
+;;; Segment-pseq intersection
 
-(define (intersection:segment-polysegment seg pol)
+(define (intersection:segment-pseq seg pol)
   (define (append-next intersections pol-rest)
     (let ((inters (intersection:segment-segment seg (make-segment (car pol-rest) (cadr pol-rest)))))
       (if (or (null? pol-rest) (< (length pol-rest) 3))
@@ -512,10 +512,10 @@
           (append-next intersections (cdr pol-rest))))))
   (append-next '() pol))
 
-;;; Segment-polygon (closed polysegment) intersection
+;;; Segment-polygon (closed pseq) intersection
 
 (define (intersection:segment-polygon seg plis)
-  (intersection:segment-polysegment seg (polysegment:close plis)))
+  (intersection:segment-pseq seg (pseq:close plis)))
 
 ;-------------------------------------------------------------------------------
 ; Bounding boxes
@@ -523,9 +523,9 @@
 
 (define-structure bounding-box lefttop rightbottom)
 
-;;; Calculate the bounding point of a polysegment
+;;; Calculate the bounding point of a pseq
 
-(define (polysegment:bounding-box point-list)
+(define (pseq:bounding-box point-list)
   (let ((first (car point-list))
         (rest (cdr point-list)))
     (make-bounding-box

@@ -19,15 +19,15 @@
 ;;; Is the wall described in a reverse order from a given reference?
 
 (define (wall-is-reversed? wall point)
-  (> (distance-point-point (wall->polysegment point) (wall->polysegment (wall-first-point wall)))
-     (distance-point-point (wall->polysegment point) (wall->polysegment (wall-last-point wall)))))
+  (> (distance-point-point (wall->pseq point) (wall->pseq (wall-first-point wall)))
+     (distance-point-point (wall->pseq point) (wall->pseq (wall-last-point wall)))))
 
 ;;; Are these walls connected?
 
 (define (walls-are-connected? wall1 wall2)
-  (path:connected-path?
-    (wall->polysegment wall1)
-    (wall->polysegment wall2)))
+  (pseq:connected-pseq?
+    (wall->pseq wall1)
+    (wall->pseq wall2)))
 
 ;-------------------------------------------------------------------------------
 ; Geometrical calculations
@@ -45,7 +45,7 @@
 ;;; Calculate wall mid point
 
 (define (wall-mid-point wall)
-  (let ((wall-points (wall->polysegment wall)))
+  (let ((wall-points (wall->pseq wall)))
     (mid-point
       (segment-a wall-points)
       (segment-b wall-points))))
@@ -53,13 +53,13 @@
 ;;; Walls common point
 
 (define (walls-common-point wall1 wall2)
-  (aif cp (polysegment:common-point?
-            (wall->polysegment wall1)
-            (wall->polysegment wall2))
+  (aif cp (pseq:common-point?
+            (wall->pseq wall1)
+            (wall->pseq wall2))
        cp
     (begin
-      (pp (wall->polysegment wall1))
-      (pp (wall->polysegment wall2))
+      (pp (wall->pseq wall1))
+      (pp (wall->pseq wall2))
       (error "Given walls don't have any common point"))))
 
 ;-------------------------------------------------------------------------------

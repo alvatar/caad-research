@@ -31,7 +31,7 @@
 
 (define (iteration-step-1 graph world)
   (let*
-    ((limit-polygon (wall-list->polysegment (find-exterior-walls graph)))
+    ((limit-polygon (wall-list->pseq (find-exterior-walls graph)))
      (agents (list
        (make-agent
          'distribution
@@ -81,9 +81,9 @@
           (car (agent-memory a))
           0.01))
       agents))
-  (let* ((wall-path-list (wall-list->path-list (graph-walls graph)))
+  (let* ((wall-pseq-list (wall-list->pseq-list (graph-walls graph)))
          (pipes-center-list (pipes-list->center-positions (graph-pipes graph)))
-         (entry-path (entry->point-list graph (car (graph-entries graph))))
+         (entry-pseq (entry->point-list graph (car (graph-entries graph))))
          (north (graph-north graph)))
     (let loop ((agents (world-agents world)))
       (visualize-world (make-world agents '()) graph)
@@ -108,11 +108,11 @@
                            pos
                            (vect2+
                              (vect2:*scalar
-                               (agent-walls-interaction pos wall-path-list) -1.0)
+                               (agent-walls-interaction pos wall-pseq-list) -1.0)
                              (vect2:*scalar
                                (agent-pipes-interaction pos pipes-center-list) 0.4)
                              (vect2:*scalar
-                               (agent-entry-interaction pos entry-path) 0.6)))))
+                               (agent-entry-interaction pos entry-pseq) 0.6)))))
                      (agent-positions a)
                      (agent-proc a)))
                   ((equal? a-label 'kitchen)
@@ -124,7 +124,7 @@
                            pos
                            (vect2+
                              (vect2:*scalar
-                               (agent-walls-interaction pos wall-path-list) -1.0)
+                               (agent-walls-interaction pos wall-pseq-list) -1.0)
                              (vect2:*scalar
                                (agent-pipes-interaction pos pipes-center-list) 0.3)))))
                      (agent-positions a)
@@ -138,7 +138,7 @@
                            pos
                            (vect2+
                              (vect2:*scalar
-                               (agent-walls-interaction pos wall-path-list) -1.0)
+                               (agent-walls-interaction pos wall-pseq-list) -1.0)
                              (vect2:*scalar (north->south north) 1.4)))))
                      (agent-positions a)
                      (agent-proc a)))
@@ -151,7 +151,7 @@
                            pos
                            (vect2+
                              (vect2:*scalar
-                               (agent-walls-interaction pos wall-path-list) -1.0)
+                               (agent-walls-interaction pos wall-pseq-list) -1.0)
                              (vect2:*scalar (north->north-east north) 1.0)))))
                      (agent-positions a)
                      (agent-proc a)))
@@ -164,7 +164,7 @@
                            pos
                            (vect2+
                              (vect2:*scalar
-                               (agent-walls-interaction pos wall-path-list) -1.0)
+                               (agent-walls-interaction pos wall-pseq-list) -1.0)
                              (vect2:*scalar (north->north-east north) 1.0)))))
                      (agent-positions a)
                      (agent-proc a)))
@@ -177,7 +177,7 @@
                            pos
                            (vect2+
                              (vect2:*scalar
-                               (agent-walls-interaction pos wall-path-list) -1.0)
+                               (agent-walls-interaction pos wall-pseq-list) -1.0)
                              (vect2:*scalar (north->north-east north) 1.0)))))
                      (agent-positions a)
                      (agent-proc a)))
@@ -188,7 +188,7 @@
 ;;; Step 3
 
 (define (iteration-step-3 graph world)
-  (let* ((wall-path-list (wall-list->path-list (graph-walls graph))))
+  (let* ((wall-pseq-list (wall-list->pseq-list (graph-walls graph))))
     (let loop ((counter 0)
                (agents (world-agents world)))
       (visualize-world (make-world agents '()) graph)
@@ -214,7 +214,7 @@
                            pos
                            (vect2+
                              (vect2:*scalar
-                               (agent-walls-interaction pos wall-path-list) -0.5)
+                               (agent-walls-interaction pos wall-pseq-list) -0.5)
                              (vect2:*scalar
                                (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
                              (vect2:*scalar
@@ -238,7 +238,7 @@
                            pos
                            (vect2+
                              (vect2:*scalar
-                               (agent-walls-interaction pos wall-path-list) -0.5)
+                               (agent-walls-interaction pos wall-pseq-list) -0.5)
                              (vect2:*scalar
                                (agent-agent-interaction a (find-agent agents 'distribution)) -1.0)
                              (vect2:*scalar
@@ -262,7 +262,7 @@
                            pos
                            (vect2+
                              (vect2:*scalar
-                               (agent-walls-interaction pos wall-path-list) -0.5)
+                               (agent-walls-interaction pos wall-pseq-list) -0.5)
                              (vect2:*scalar
                                (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
                              (vect2:*scalar
@@ -286,7 +286,7 @@
                            pos
                            (vect2+
                              (vect2:*scalar
-                               (agent-walls-interaction pos wall-path-list) -0.5)
+                               (agent-walls-interaction pos wall-pseq-list) -0.5)
                              (vect2:*scalar
                                (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
                              (vect2:*scalar
@@ -310,7 +310,7 @@
                            pos
                            (vect2+
                              (vect2:*scalar
-                               (agent-walls-interaction pos wall-path-list) -0.5)
+                               (agent-walls-interaction pos wall-pseq-list) -0.5)
                              (vect2:*scalar
                                (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
                              (vect2:*scalar
@@ -334,7 +334,7 @@
                            pos
                            (vect2+
                              (vect2:*scalar
-                               (agent-walls-interaction pos wall-path-list) -0.5)
+                               (agent-walls-interaction pos wall-pseq-list) -0.5)
                              (vect2:*scalar
                                (agent-agent-interaction a (find-agent agents 'kitchen)) -1.0)
                              (vect2:*scalar
@@ -514,29 +514,29 @@
 
 ;;; Agent-walls interaction vector
 
-(define (agent-walls-interaction agent-pos path-list)
+(define (agent-walls-interaction agent-pos pseq-list)
   (fold
     (lambda (p vec)
       (let ((distance-vec (vect2-
                             agent-pos
-                            (segment:mid-point (path->segment p)))))
+                            (segment:mid-point (pseq->segment p)))))
         (vect2+ (vect2:/scalar distance-vec (vect2:magnitude distance-vec))
                 vec)))
     (make-vect2 0.0 0.0)
-    path-list))
+    pseq-list))
 
 ;;; Agent-walls interaction vector (not squared distance)
 
-(define (agent-walls-interaction-simple agent-pos path-list)
+(define (agent-walls-interaction-simple agent-pos pseq-list)
   (fold
     (lambda (p vec)
       (let ((distance-vec (vect2-
                             agent-pos
-                            (segment:mid-point (path->segment p)))))
+                            (segment:mid-point (pseq->segment p)))))
         (vect2+ distance-vec
                 vec)))
     (make-vect2 0.0 0.0)
-    path-list))
+    pseq-list))
 
 ;;; Agent-pipes interaction vector
 
@@ -555,7 +555,7 @@
 
 (define (agent-entry-interaction agent-pos entry)
   (let ((distance-vec (vect2-
-                        (segment:mid-point (path->segment entry))
+                        (segment:mid-point (pseq->segment entry))
                         agent-pos)))
     (vect2:/scalar
       distance-vec

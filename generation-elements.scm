@@ -97,7 +97,7 @@
         (agent-positions a)
         (agent-memory a))
       ;; Paint label
-      (let ((pos (polysegment:extreme-right (agent-positions a))))
+      (let ((pos (pseq:extreme-right (agent-positions a))))
         (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
         (visualization:paint-text backend
                                   (symbol->string (agent-label a))
