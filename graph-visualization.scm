@@ -5,10 +5,11 @@
 ;;; A predesigned band strategy
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(import geometry/kernel)
+(import math/algebra)
+
 (import analysis)
-(import geometry)
 (import graph)
-(import math)
 (import utils/misc)
 (import visualization)
 

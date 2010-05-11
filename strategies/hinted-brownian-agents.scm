@@ -8,14 +8,15 @@
 
 (import (std srfi/1))
 
+(import ../geometry/kernel)
+(import ../math/algebra)
+
 (import ../analysis)
 (import ../context-tree)
 (import ../fields-2d)
-(import ../geometry)
 (import ../generation-elements)
 (import ../graph)
 (import ../graph-visualization)
-(import ../math)
 (import ../operations)
 (import ../output)
 (import ../utils/misc)

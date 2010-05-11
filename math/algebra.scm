@@ -2,13 +2,11 @@
 ;;; Licensed under the GPLv3 license, see LICENSE file for full description.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Mathematical operations
+;;; Algebraic kernel
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;(declare (standard-bindings)(extended-bindings)(block)(not safe))
 (compile-options force-compile: #t)
-
-(import (std srfi/1))
 
 ;-------------------------------------------------------------------------------
 ; Constants
@@ -26,7 +24,8 @@
 ;-------------------------------------------------------------------------------
 
 ;;; Is equal? (with precision) for lists
-
+;;; TODO: implement in terms of tree iteration
+#|
 (define (=~e* a b precision)
   (if (and (list? a) (list? b))
       (every (lambda (e1 e2) (=~e* e1 e2 precision))
@@ -38,6 +37,7 @@
 
 (define (=~* a b precision)
   (=~e* a b equal-accuracy))
+    |#
 
 ;;; Is equal? (with precision) for inexacts
 
@@ -79,15 +79,6 @@
 
 (define (flsquare x)
   (fl* x x))
-
-;-------------------------------------------------------------------------------
-; Data formats
-;-------------------------------------------------------------------------------
-
-;;; 0.0-1.0 range to u8 integer
-
-(define (normalized-inexact->integer value)
-  (modulo (inexact->exact (round (* 255 value))) 255))
 
 ;-------------------------------------------------------------------------------
 ; Vector dimension 2

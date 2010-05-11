@@ -5,10 +5,11 @@
 ;;; Light field
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(import ../math/algebra)
+(import ../geometry/kernel)
+
 (import ../analysis)
-(import ../geometry)
 (import ../graph)
-(import ../math)
 (import ../fields-2d)
 (import ../utils/misc)
 

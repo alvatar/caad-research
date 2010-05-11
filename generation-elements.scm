@@ -7,11 +7,12 @@
 
 (import (std srfi/1))
 
+(import math/algebra)
+(import geometry/kernel)
+
 (import analysis)
-(import math)
 (import fields-2d)
 (import graph)
-(import geometry)
 (import visualization)
 
 ;-------------------------------------------------------------------------------

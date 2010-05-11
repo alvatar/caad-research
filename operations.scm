@@ -7,12 +7,14 @@
 
 (import (std srfi/1))
 (import (std misc/uuid))
+
+(import geometry/kernel)
+(import math/algebra)
+
 (import analysis)
 (import auxiliary-operations)
 (import context-tree)
-(import geometry)
 (import graph)
-(import math)
 (import utils/misc)
 
 (export op:split-room)

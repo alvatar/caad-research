@@ -11,8 +11,8 @@
 (import sdl/sdl)
 (import cairo/cairo)
 
-(import geometry)
-(import math)
+(import geometry/kernel)
+(import math/algebra)
 
 (export maxx)
 (export maxy)

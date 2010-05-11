@@ -5,10 +5,11 @@
 ;;; Structure field
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(import ../geometry/kernel)
+(import ../math/algebra)
+
 (import ../analysis)
-(import ../geometry)
 (import ../graph)
-(import ../math)
 (import ../fields-2d)
 (import ../utils/misc)
 

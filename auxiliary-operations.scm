@@ -7,9 +7,10 @@
 
 (import (std srfi/1))
 
-(import geometry)
+(import geometry/kernel)
+(import math/algebra)
+
 (import graph)
-(import math)
 (import utils/misc)
 
 ;-------------------------------------------------------------------------------

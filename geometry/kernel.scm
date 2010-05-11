@@ -10,7 +10,7 @@
 
 (import (std srfi/1))
 
-(import math)
+(import math/algebra)
 (import utils/misc)
 
 ;;; run-time checks
@@ -58,9 +58,9 @@
 
 (define (rotation:point vec r-angle)
   (make-point (- (* (point-x vec) (cos r-angle))
-                   (* (point-y vec) (sin r-angle)))
-                (+ (* (point-y vec) (cos r-angle))
-                   (* (point-x vec) (sin r-angle)))))
+                 (* (point-y vec) (sin r-angle)))
+              (+ (* (point-y vec) (cos r-angle))
+                 (* (point-x vec) (sin r-angle)))))
 
 ;;; Point rotation
 
@@ -221,7 +221,7 @@
      (else
       (pp a)
       (pp b)
-      (error "Segments cannot be connected")))))
+      (error "Point sequences cannot be connected")))))
 
 ;;; Join two point lists, appends to either first or last (optimized for second one being shorter)
 
@@ -242,7 +242,7 @@
      (else
       (pp a)
       (pp b)
-      (error "Segments cannot be connected")))))
+      (error "Point sequences cannot be connected")))))
 
 ;;; pseq centroid
 
@@ -382,15 +382,6 @@
   (sqrt (+ (square (- (point-x a) (point-x b)))
            (square (- (point-y a) (point-y b))))))
 
-(define (fx-distance:point-point a b)
-  (##flonum.->fixnum
-    (flsqrt (fixnum->flonum (fx+ (fxsquare (fx- (point-x a) (point-x b)))
-                                 (fxsquare (fx- (point-y a) (point-y b))))))))
-
-(define (fl-distance:point-point a b)
-  (flsqrt (fl+ (flsquare (fl- (point-x a) (point-x b)))
-               (flsquare (fl- (point-y a) (point-y b))))))
-
 ;;; Calculate the distance between point and segment
 
 (define (distance:point-segment p sg)
@@ -417,54 +408,6 @@
            (dy (- y py)))
       (sqrt (+ (* dx dx) (* dy dy))))))
 
-(define (fx-distance:point-segment p sg)
-  (let* ((p1x (point-x (segment-a sg)))
-         (p1y (point-y (segment-a sg)))
-         (p2x (point-x (segment-b sg)))
-         (p2y (point-y (segment-b sg)))
-         (px (point-x p))
-         (py (point-y p))
-         (su (fx- p2x p1x))
-         (sv (fx- p2y p1y))
-         (div (fx+ (fx* su su) (fx* sv sv)))
-         (u (/ (fx+ (fx* (fx- px p1x) su)
-                    (fx* (fx- py p1y) sv))
-               div)))
-    (cond
-     ((> u 1)
-      (set! u 1))
-     ((< u 0)
-      (set! u 0)))
-    (let* ((x (fx+ p1x (round (* u su))))
-           (y (fx+ p1y (round (* u sv))))
-           (dx (fx- x px))
-           (dy (fx- y py)))
-      (##flonum.->fixnum (flsqrt (fixnum->flonum (fx+ (fx* dx dx) (fx* dy dy))))))))
-
-(define (fl-distance:point-segment p sg)
-  (let* ((p1x (point-x (segment-a sg)))
-         (p1y (point-y (segment-a sg)))
-         (p2x (point-x (segment-b sg)))
-         (p2y (point-y (segment-b sg)))
-         (px (point-x p))
-         (py (point-y p))
-         (su (fl- p2x p1x))
-         (sv (fl- p2y p1y))
-         (div (fl+ (fl* su su) (fl* sv sv)))
-         (u (fl/ (fl+ (fl* (fl- px p1x) su)
-                      (fl* (fl- py p1y) sv))
-                 div)))
-    (cond
-     ((fl> u 1.0)
-      (set! u 1.0))
-     ((fl< u 0.0)
-      (set! u 0.0)))
-    (let* ((x (fl+ p1x (fl* u su)))
-           (y (fl+ p1y (fl* u sv)))
-           (dx (fl- x px))
-           (dy (fl- y py)))
-      (flsqrt (fl+ (fl* dx dx) (fl* dy dy))))))
-
 ;;; Calculate the distance between a point and a point list
 
 (define (distance:point-pseq p plis)
@@ -476,18 +419,6 @@
            p
            (make-segment (car plis) (cadr plis)))
          (distance:point-pseq
-           p
-           (cdr plis))))))
-
-(define (fl-distance:point-pseq p plis)
-  (cond
-   ((or (null? plis) (null? (cdr plis)))
-    +inf.0)
-   (else
-    (min (fl-distance:point-segment
-           p
-           (make-segment (car plis) (cadr plis)))
-         (fl-distance:point-pseq
            p
            (cdr plis))))))
 
@@ -560,17 +491,17 @@
         (rest (cdr point-list)))
     (make-bounding-box
       (make-point (fold (lambda (point x) (min x (point-x point)))
-                          (point-x first)
-                          rest)
-                    (fold (lambda (point y) (min y (point-y point)))
-                          (point-y first)
-                          rest))
+                        (point-x first)
+                        rest)
+                  (fold (lambda (point y) (min y (point-y point)))
+                        (point-y first)
+                        rest))
       (make-point (fold (lambda (point x) (max x (point-x point)))
-                          (point-x first)
-                          rest)
-                    (fold (lambda (point y) (max y (point-y point)))
-                          (point-y first)
-                          rest)))))
+                        (point-x first)
+                        rest)
+                  (fold (lambda (point y) (max y (point-y point)))
+                        (point-y first)
+                        rest)))))
 
 ;;; Calculate the diagonal segment connecting the two extremes of the bb
 

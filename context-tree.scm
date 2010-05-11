@@ -5,7 +5,7 @@
 ;;; Graph context and subcontexts described as a tree
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import math)
+(import math/algebra)
 
 (define-structure btree node sibling child)
 
