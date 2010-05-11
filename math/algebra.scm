@@ -44,10 +44,15 @@
 (define (=~e a b e)
   (< (abs (- a b)) e))
 
-;;; Is equal? for inexacts
+;;; Is equal? (for inexacts)
 
 (define (=~ a b)
   (=~e a b equal-accuracy))
+
+;;; Is equal to zero? (for inexacts)
+
+(define (~zero? a)
+  (=~e a 0.0 equal-accuracy))
 
 ;;; add 1
 
