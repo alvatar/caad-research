@@ -35,32 +35,32 @@
      (agents (list
        (make-agent
          'distribution
-         (list (polygon:make-random-point-inside limit-polygon))
+         (list (pseq:make-random-point-inside limit-polygon))
          (list (vect2:zero))
          (lambda (world a) a))
        (make-agent
          'kitchen
-         (list (polygon:make-random-point-inside limit-polygon))
+         (list (pseq:make-random-point-inside limit-polygon))
          (list (vect2:zero))
          (lambda (world a) a))
        (make-agent
          'living
-         (list (polygon:make-random-point-inside limit-polygon))
+         (list (pseq:make-random-point-inside limit-polygon))
          (list (vect2:zero))
          (lambda (world a) a))
        (make-agent
          'room1
-         (list (polygon:make-random-point-inside limit-polygon))
+         (list (pseq:make-random-point-inside limit-polygon))
          (list (vect2:zero))
          (lambda (world a) a))
        (make-agent
          'room2
-         (list (polygon:make-random-point-inside limit-polygon))
+         (list (pseq:make-random-point-inside limit-polygon))
          (list (vect2:zero))
          (lambda (world a) a))
        (make-agent
          'room3
-         (list (polygon:make-random-point-inside limit-polygon))
+         (list (pseq:make-random-point-inside limit-polygon))
          (list (vect2:zero))
          (lambda (world a) a)))))
 
@@ -411,7 +411,7 @@
       (lambda (a)
         (every
           (lambda (p)
-            (polygon:point-inside? (room->point-list graph r) p))
+            (pseq:point-inside? (room->point-list graph r) p))
           (agent-positions a))) ; TODO: wrong! if an agent is between two rooms, what to do?
        agents))
 
@@ -419,7 +419,7 @@
     (let ((pol (room->point-list graph r)))
       (fold
         (lambda (a num)
-          (if (polygon:point-inside? pol (agent-head-position a))
+          (if (pseq:point-inside? pol (agent-head-position a))
               (add1 num)
             num))
         0

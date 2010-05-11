@@ -40,7 +40,7 @@
 ;;; Is point in room?
 
 (define (point-in-room? graph room point)
-  (polygon:point-inside? (room->point-list graph room) point))
+  (pseq:point-inside? (room->point-list graph room) point))
 
 ;-------------------------------------------------------------------------------
 ; Finders/selectors

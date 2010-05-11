@@ -299,14 +299,10 @@
           (segment:relative-position->point approx rel)
           (segment-b approx))))))
 
-;-------------------------------------------------------------------------------
-; Polygons
-;-------------------------------------------------------------------------------
-
-;;; Is point in polygon?
+;;; Is point inside the polygon pseq?
 
 ;; http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-(define (polygon:point-inside? point-list p)
+(define (pseq:point-inside? point-list p)
   (define (iter c a-points b-points)
     (cond
      ((null? a-points)
@@ -323,15 +319,15 @@
       (iter c (cdr a-points) (cdr b-points)))))
   (iter #f point-list (cons (last point-list) point-list)))
 
-;;; Return a random point that is inside a given polygon
+;;; Return a random point that is inside a given pseq
 
-(define (polygon:make-random-point-inside point-list)
+(define (pseq:make-random-point-inside point-list)
   (define (try origin delta)
     (let ((p (make-point (+ (point-x origin)
                               (* (point-x delta) (random-real)))
                            (+ (point-y origin)
                               (* (point-y delta) (random-real))))))
-      (if (polygon:point-inside? point-list p)
+      (if (pseq:point-inside? point-list p)
           p
         (try origin delta))))
   (let* ((bounding-box (pseq:bounding-box point-list))
@@ -512,9 +508,9 @@
           (append-next intersections (cdr pol-rest))))))
   (append-next '() pol))
 
-;;; Segment-polygon (closed pseq) intersection
+;;; Segment-pseq (closed pseq) intersection
 
-(define (intersection:segment-polygon seg plis)
+(define (intersection:segment-pseq seg plis)
   (intersection:segment-pseq seg (pseq:close plis)))
 
 ;-------------------------------------------------------------------------------
