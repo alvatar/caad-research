@@ -43,6 +43,11 @@
 
 (define (=~e a b e)
   (< (abs (- a b)) e))
+ 
+  #| TODO: is this better?:
+  (and (>= test-expr (- expected error))
+       (<= test-expr (+ expected error)))
+       |#
 
 ;;; Is equal? (for inexacts)
 
@@ -57,12 +62,12 @@
 ;;; add 1
 
 (define (add1 x)
-  (fx+ x 1))
+  (+ x 1))
 
 ;;; substract 1
 
 (define (sub1 x)
-  (fx- x 1))
+  (- x 1))
 
 ;;; Inverse function
 
@@ -78,12 +83,6 @@
 
 (define (square x)
   (* x x))
-
-(define (fxsquare x)
-  (fx* x x))
-
-(define (flsquare x)
-  (fl* x x))
 
 ;-------------------------------------------------------------------------------
 ; Vector dimension 2

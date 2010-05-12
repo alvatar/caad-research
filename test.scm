@@ -5,19 +5,10 @@
 ;;; Procedure testing (prototype)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import geometry)
+(import testing)
+(import geometry/kernel)
 
-(define (check res)
-  (if res
-      (display "-- ok --\n")
-    (raise "Test didn't pass")))
-    
-(check (list=~ (segment-polygon-intersection
-                 (list (make-point 1.0 1.0) (make-point 2.0 2.0))
-                 (list (make-point 1.0 2.0) (make-point 1.5 3.0) (make-point 2.0 1.0)))
-               '((1.8 1.8) (1.5 1.5))
-               0.000001))
-
+#|
 (check (equal?
          (point-in-polygon?
            (list (make-point 0.0 0.0) (make-point 2.0 0.0) (make-point 2.0 2.0) (make-point 0.0 2.0)) ; Inner
@@ -35,3 +26,18 @@
            (list (make-point 0.0 0.0) (make-point 2.0 0.0) (make-point 2.0 2.0) (make-point 0.0 2.0)) ; Outer
            (make-point 1.0 3.0))
          #f))
+|#
+
+(test-begin "arrays")
+
+(test-assert (number? 1))
+
+(test-equal "shape" #t #t)
+
+(test-equal "s" #t #f)
+
+(test-equal "make-array" 'a (car '(a b)))
+
+;(test-error #t (vector-ref '#(1 2) 9))
+
+(test-end "arrays")
