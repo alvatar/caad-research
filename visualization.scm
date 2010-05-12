@@ -7,9 +7,9 @@
 
 (import (std srfi/1))
 (import (std srfi/95))
-(import opengl/gl)
-(import sdl/sdl)
-(import cairo/cairo)
+(import ffi/gl)
+(import ffi/sdl)
+(import ffi/cairo)
 
 (import geometry/kernel)
 (import math/algebra)

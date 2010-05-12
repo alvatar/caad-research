@@ -20,7 +20,7 @@
 ;; CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ;; SOFTWARE.
 
-(import 34)
+(import ./34)
 
 (define-syntax %test-export
   (syntax-rules ()

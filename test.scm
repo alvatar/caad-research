@@ -5,7 +5,7 @@
 ;;; Procedure testing (prototype)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import testing)
+(import srfi/64)
 (import geometry/kernel)
 
 #|
@@ -34,7 +34,9 @@
 
 (test-equal "shape" #t #t)
 
-(test-equal "s" #t #f)
+(test-equal "False false" #t #f)
+
+(test-equal #t #f)
 
 (test-equal "make-array" 'a (car '(a b)))
 
