@@ -7,11 +7,12 @@
 
 (import (std srfi/1))
 
+(import core/list)
+(import core/syntax)
 (import geometry/kernel)
 (import math/algebra)
 
 (import graph)
-(import utils/misc)
 
 ;-------------------------------------------------------------------------------
 ; Predicates

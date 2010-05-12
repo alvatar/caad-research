@@ -11,9 +11,10 @@
 
 (import web/parse/ssax-sxml/sxml-tools/sxpath)
 
+(import core/syntax)
 (import geometry/kernel)
 (import math/algebra)
-(import utils/misc)
+
 (import visualization)
 
 ;-------------------------------------------------------------------------------

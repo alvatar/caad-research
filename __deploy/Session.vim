@@ -21,11 +21,11 @@ nmap <silent> \c <Plug>Traditionalj
 vmap ]% ]%m'gv``
 vmap a% [%v]%
 nmap gx <Plug>NetrwBrowseX
-nnoremap <F3> :vimgrep // **
-noremap <F9> :call RunProgram()
-noremap <F10> :call CleanProgram()
-noremap <F11> :call Compile(1)
 nnoremap <F12> :call BuildCTagsAndCSCopeDatabase("d")
+noremap <F11> :call Compile(1)
+noremap <F10> :call CleanProgram()
+noremap <F9> :call RunProgram()
+nnoremap <F3> :vimgrep // **
 nnoremap <silent> <Plug>NetrwBrowseX :call netrw#NetrwBrowseX(expand("<cWORD>"),0)
 noremap <Plug>VisualFirstLine :call EnhancedCommentify('', 'first',   line("'<"), line("'>"))
 noremap <Plug>VisualTraditional :call EnhancedCommentify('', 'guess',   line("'<"), line("'>"))
@@ -159,7 +159,6 @@ badd +8 /data/projects/ensanche-core/filters.scm
 badd +10 /data/projects/ensanche-core/output.scm
 badd +12 /data/projects/ensanche-core/analysis.scm
 badd +1 /data/projects/ensanche-core/validators.scm
-badd +2 /data/projects/ensanche-core/utils/misc.scm
 badd +57 /data/projects/ensanche-core/generation.scm
 badd +11 /data/projects/ensanche-core/generation-elements.scm
 badd +9 /data/projects/ensanche-core/fields/light.scm
@@ -173,13 +172,15 @@ badd +15 /data/projects/ensanche-core/selection.scm
 badd +11 /data/projects/ensanche-core/strategies/hinted-brownian-agents.scm
 badd +8 /data/projects/ensanche-core/context-tree.scm
 badd +12 /data/projects/ensanche-core/auxiliary-operations.scm
-badd +61 /data/projects/ensanche-core/geometry/kernel.scm
-badd +45 /data/projects/ensanche-core/geometry/fx-kernel.scm
-badd +9 /data/projects/ensanche-core/geometry/fl-kernel.scm
-badd +1 /data/projects/ensanche-core/math/algebra.scm
+badd +24 /data/projects/ensanche-core/geometry/kernel.scm
+badd +81 /data/projects/ensanche-core/math/algebra.scm
 badd +12 /data/projects/ensanche-core/ds/data-conversions.scm
+badd +5 /data/projects/ensanche-core/utils/debug.scm
+badd +2 /data/projects/ensanche-core/utils/functional.scm
+badd +1 /data/projects/ensanche-core/utils/list.scm
+badd +1 /data/projects/ensanche-core/utils/syntax.scm
 silent! argdel *
-edit /data/projects/ensanche-core/geometry/kernel.scm
+edit /data/projects/ensanche-core/math/algebra.scm
 set splitbelow splitright
 wincmd _ | wincmd |
 vsplit
@@ -192,113 +193,6 @@ set winheight=1 winwidth=1
 exe 'vert 1resize ' . ((&columns * 139 + 139) / 279)
 exe 'vert 2resize ' . ((&columns * 139 + 139) / 279)
 argglobal
-setlocal keymap=
-setlocal noarabic
-setlocal autoindent
-setlocal balloonexpr=
-setlocal nobinary
-setlocal bufhidden=
-setlocal buflisted
-setlocal buftype=
-setlocal nocindent
-setlocal cinkeys=0{,0},0),:,0#,!^F,o,O,e
-setlocal cinoptions=
-setlocal cinwords=if,else,while,do,for,switch
-setlocal comments=
-setlocal commentstring=/*%s*/
-setlocal complete=.,w,b,u,t,i
-setlocal completefunc=
-setlocal nocopyindent
-setlocal nocursorcolumn
-set cursorline
-setlocal cursorline
-setlocal define=^\\s*(def\\k*
-setlocal dictionary=
-setlocal nodiff
-setlocal equalprg=
-setlocal errorformat=
-setlocal expandtab
-if &filetype != 'scheme'
-setlocal filetype=scheme
-endif
-setlocal foldcolumn=0
-set nofoldenable
-setlocal nofoldenable
-setlocal foldexpr=0
-setlocal foldignore=#
-setlocal foldlevel=0
-setlocal foldmarker={{{,}}}
-set foldmethod=syntax
-setlocal foldmethod=syntax
-setlocal foldminlines=1
-setlocal foldnestmax=20
-setlocal foldtext=foldtext()
-setlocal formatexpr=
-setlocal formatoptions=nroql2
-setlocal formatlistpat=^\\s*\\d\\+[\\]:.)}\\t\ ]\\s*
-setlocal grepprg=
-setlocal iminsert=0
-setlocal imsearch=0
-setlocal include=
-setlocal includeexpr=
-setlocal indentexpr=
-setlocal indentkeys=0{,0},:,0#,!^F,o,O,e
-setlocal noinfercase
-setlocal iskeyword=33,35-39,42-58,60-90,94,95,97-122,126,_
-setlocal keywordprg=
-setlocal nolinebreak
-setlocal lisp
-setlocal nolist
-setlocal makeprg=
-setlocal matchpairs=(:),{:},[:]
-setlocal modeline
-setlocal modifiable
-setlocal nrformats=octal,hex
-set number
-setlocal number
-setlocal numberwidth=4
-setlocal omnifunc=
-setlocal path=
-setlocal nopreserveindent
-setlocal nopreviewwindow
-setlocal quoteescape=\\
-setlocal noreadonly
-setlocal norightleft
-setlocal rightleftcmd=search
-setlocal noscrollbind
-setlocal shiftwidth=2
-setlocal noshortname
-setlocal nosmartindent
-setlocal softtabstop=0
-setlocal nospell
-setlocal spellcapcheck=[.?!]\\_[\\])'\"\	\ ]\\+
-setlocal spellfile=
-setlocal spelllang=es,en
-setlocal statusline=
-setlocal suffixesadd=
-setlocal swapfile
-setlocal synmaxcol=3000
-if &syntax != 'scheme'
-setlocal syntax=scheme
-endif
-setlocal tabstop=2
-setlocal tags=
-setlocal textwidth=0
-setlocal thesaurus=
-setlocal nowinfixheight
-setlocal nowinfixwidth
-setlocal wrap
-setlocal wrapmargin=0
-let s:l = 24 - ((23 * winheight(0) + 46) / 92)
-if s:l < 1 | let s:l = 1 | endif
-exe s:l
-normal! zt
-24
-normal! 0
-lcd /data/projects/ensanche-core/__deploy
-wincmd w
-argglobal
-edit /data/projects/ensanche-core/math/algebra.scm
 setlocal keymap=
 setlocal noarabic
 setlocal autoindent
@@ -396,11 +290,118 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 83 - ((36 * winheight(0) + 46) / 92)
+let s:l = 1 - ((0 * winheight(0) + 46) / 92)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-83
+1
+normal! 0
+lcd /data/projects/ensanche-core/__deploy
+wincmd w
+argglobal
+edit /data/projects/ensanche-core/geometry/kernel.scm
+setlocal keymap=
+setlocal noarabic
+setlocal autoindent
+setlocal balloonexpr=
+setlocal nobinary
+setlocal bufhidden=
+setlocal buflisted
+setlocal buftype=
+setlocal nocindent
+setlocal cinkeys=0{,0},0),:,0#,!^F,o,O,e
+setlocal cinoptions=
+setlocal cinwords=if,else,while,do,for,switch
+setlocal comments=
+setlocal commentstring=/*%s*/
+setlocal complete=.,w,b,u,t,i
+setlocal completefunc=
+setlocal nocopyindent
+setlocal nocursorcolumn
+set cursorline
+setlocal cursorline
+setlocal define=^\\s*(def\\k*
+setlocal dictionary=
+setlocal nodiff
+setlocal equalprg=
+setlocal errorformat=
+setlocal expandtab
+if &filetype != 'scheme'
+setlocal filetype=scheme
+endif
+setlocal foldcolumn=0
+set nofoldenable
+setlocal nofoldenable
+setlocal foldexpr=0
+setlocal foldignore=#
+setlocal foldlevel=0
+setlocal foldmarker={{{,}}}
+set foldmethod=syntax
+setlocal foldmethod=syntax
+setlocal foldminlines=1
+setlocal foldnestmax=20
+setlocal foldtext=foldtext()
+setlocal formatexpr=
+setlocal formatoptions=nroql2
+setlocal formatlistpat=^\\s*\\d\\+[\\]:.)}\\t\ ]\\s*
+setlocal grepprg=
+setlocal iminsert=0
+setlocal imsearch=0
+setlocal include=
+setlocal includeexpr=
+setlocal indentexpr=
+setlocal indentkeys=0{,0},:,0#,!^F,o,O,e
+setlocal noinfercase
+setlocal iskeyword=33,35-39,42-58,60-90,94,95,97-122,126,_
+setlocal keywordprg=
+setlocal nolinebreak
+setlocal lisp
+setlocal nolist
+setlocal makeprg=
+setlocal matchpairs=(:),{:},[:]
+setlocal modeline
+setlocal modifiable
+setlocal nrformats=octal,hex
+set number
+setlocal number
+setlocal numberwidth=4
+setlocal omnifunc=
+setlocal path=
+setlocal nopreserveindent
+setlocal nopreviewwindow
+setlocal quoteescape=\\
+setlocal noreadonly
+setlocal norightleft
+setlocal rightleftcmd=search
+setlocal noscrollbind
+setlocal shiftwidth=2
+setlocal noshortname
+setlocal nosmartindent
+setlocal softtabstop=0
+setlocal nospell
+setlocal spellcapcheck=[.?!]\\_[\\])'\"\	\ ]\\+
+setlocal spellfile=
+setlocal spelllang=es,en
+setlocal statusline=
+setlocal suffixesadd=
+setlocal swapfile
+setlocal synmaxcol=3000
+if &syntax != 'scheme'
+setlocal syntax=scheme
+endif
+setlocal tabstop=2
+setlocal tags=
+setlocal textwidth=0
+setlocal thesaurus=
+setlocal nowinfixheight
+setlocal nowinfixwidth
+setlocal wrap
+setlocal wrapmargin=0
+let s:l = 11 - ((10 * winheight(0) + 46) / 92)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+11
 normal! 0
 lcd /data/projects/ensanche-core/__deploy
 wincmd w

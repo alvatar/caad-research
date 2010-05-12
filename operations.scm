@@ -8,6 +8,8 @@
 (import (std srfi/1))
 (import (std misc/uuid))
 
+(import core/functional)
+(import core/list)
 (import geometry/kernel)
 (import math/algebra)
 
@@ -15,7 +17,6 @@
 (import auxiliary-operations)
 (import context-tree)
 (import graph)
-(import utils/misc)
 
 (export op:split-room)
 (export op:merge-rooms)

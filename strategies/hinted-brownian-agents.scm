@@ -8,6 +8,7 @@
 
 (import (std srfi/1))
 
+(import ../core/syntax)
 (import ../geometry/kernel)
 (import ../geometry/generation)
 (import ../math/algebra)
@@ -20,7 +21,6 @@
 (import ../graph-visualization)
 (import ../operations)
 (import ../output)
-(import ../utils/misc)
 (import ../visualization)
 
 (export hinted-brownian-agents)
