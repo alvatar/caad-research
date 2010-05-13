@@ -5,6 +5,11 @@
 ;;; Functional programming utilities
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(export U Y compose
+        define-associative
+        curry define-curried lambda-curried uncurry
+        define-memoized define-memoized/key-gen)
+
 ;-------------------------------------------------------------------------------
 ; Functional operators
 ;-------------------------------------------------------------------------------
@@ -28,6 +33,30 @@
     (lambda args
       (call-with-values (lambda () (apply fn args)) chain)))
   (reduce make-chain values fns))
+
+;-------------------------------------------------------------------------------
+; Associative functions
+;-------------------------------------------------------------------------------
+
+;;; Defines a function and its associated associative function (that will take
+;;; any number of arguments and apply it to the result of the two previous ones)
+
+(define-syntax define-associative-aux
+  (syntax-rules ()
+    ((_ name f)
+     (define-syntax name
+       (syntax-rules ()
+         ((_ arg1 arg2)
+          (f arg1 arg2))
+         ((_ arg1 arg2 . rest)
+          (name (f arg1 arg2) . rest)))))))
+
+(define-syntax define-associative
+  (syntax-rules ()
+    ((_ name (f arg1 arg2) body)
+     (begin
+       (define (f arg1 arg2) body)
+       (define-associative-aux name f)))))
 
 ;-------------------------------------------------------------------------------
 ; Currying / uncurrying

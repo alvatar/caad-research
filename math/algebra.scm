@@ -8,6 +8,8 @@
 ;(declare (standard-bindings)(extended-bindings)(block)(not safe))
 (compile-options force-compile: #t)
 
+(import ../core/functional)
+
 ;-------------------------------------------------------------------------------
 ; Constants
 ;-------------------------------------------------------------------------------
@@ -91,54 +93,27 @@
 
 ;;; Vector addition
 
-(define (vect2:+vect2 v1 v2)
+(define-associative vect2+ (vect2:+vect2 v1 v2)
   (make-vect2 (+ (vect2-x v1)
                  (vect2-x v2))
               (+ (vect2-y v1)
                  (vect2-y v2))))
 
-(define-syntax vect2+
-  (syntax-rules ()
-    ((_ vec1)
-     vec1)
-    ((_ vec1 vec2)
-     (vect2:+vect2 vec1 vec2))
-    ((_ vec1 vec2 rest ...)
-     (vect2+ (vect2:+vect2 vec1 vec2) rest ...))))
-
 ;;; Vector substraction
 
-(define (vect2:-vect2 v1 v2)
+(define-associative vect2- (vect2:-vect2 v1 v2)
   (make-vect2 (- (vect2-x v1)
                  (vect2-x v2))
               (- (vect2-y v1)
                  (vect2-y v2))))
 
-(define-syntax vect2-
-  (syntax-rules ()
-    ((_ vec1)
-     (vect2:symmetric vec1))
-    ((_ vec1 vec2)
-     (vect2:-vect2 vec1 vec2))
-    ((_ vec1 vec2 rest ...)
-     (vect2- (vect2:-vect2 vec1 vec2) rest ...))))
-
 ;;; Vector dot product
 
-(define (vect2:*vect2 v1 v2)
+(define-associative vect2* (vect2:*vect2 v1 v2)
   (make-vect2 (* (vect2-x v1)
                  (vect2-x v2))
               (* (vect2-y v1)
                  (vect2-y v2))))
-
-(define-syntax vect2*
-  (syntax-rules ()
-    ((_ vec1)
-     vec1)
-    ((_ vec1 vec2)
-     (vect2:*vect2 vec1 vec2))
-    ((_ vec1 vec2 rest ...)
-     (vect2* (vect2:*vect2 vec1 vec2) rest ...))))
 
 ;;; Vector * scalar
 
