@@ -42,12 +42,9 @@
 ;;; Is equal? (with precision) for inexacts
 
 (define (=~e a b e)
-  (< (abs (- a b)) e))
- 
-  #| TODO: is this better?:
-  (and (>= test-expr (- expected error))
-       (<= test-expr (+ expected error)))
-       |#
+  ;(< (abs (- a b)) e)) -> Faster in interpreted code
+  (and (>= a (- b e))
+       (<= a (+ b e))))
 
 ;;; Is equal? (for inexacts)
 

@@ -44,3 +44,16 @@
          (begin
            (pp arg)
            (error "Argument not accepted" proc))))))
+
+;;; run-time checks
+
+#;(define-syntax activate-module-checks ; FIXME: Currently explodes blackhole, but should work
+  (syntax-rules ()
+    ((_)
+     (define-syntax check-arg
+        (syntax-rules ()
+          ((_ predicate arg proc)
+           (if (not (predicate arg))
+             (begin
+               (pp arg)
+               (error "Argument not accepted" proc)))))))))

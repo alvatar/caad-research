@@ -69,6 +69,18 @@
                 (equal? elem wall))
               (find-walls-with-point (archpoint->point (wall-last-point wall)))))))
 
+;;; Find longest wall in room
+
+(define (find-longest-wall-in-room graph room)
+  (let ((walls (room-walls room)))
+    (fold
+      (lambda (w maxw)
+        (aif m (< maxw (wall->pseq m)) (wall->pseq w)
+             m
+             w))
+      (car walls)
+      (cdr walls))))
+
 ;;; Find common wall
 
 (define (find-common-room-walls rooms)

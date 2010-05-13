@@ -64,6 +64,14 @@
       (pp (wall->pseq wall2))
       (error "Given walls don't have any common point"))))
 
+;;; Room - line intersection
+;;; returns two values: the inersected walls and the points
+
+(define (room-line-intersection graph room line)
+  (values
+    '()
+    '()))
+
 ;-------------------------------------------------------------------------------
 ; Low-level manipulation of the graph
 ;-------------------------------------------------------------------------------
@@ -96,8 +104,8 @@
 ;;; Try to merge into one wall if the two given are parallel
 
 (define (try-to-merge-if-parallel-walls wall-list new-uid)
-  (let ((wall-a-points (wall->point-list (car wall-list))) ; TODO: try to generalize
-        (wall-b-points (wall->point-list (cadr wall-list))))
+  (let ((wall-a-points (wall->pseq (car wall-list))) ; TODO: try to generalize
+        (wall-b-points (wall->pseq (cadr wall-list))))
     (if (parallel? wall-a-points wall-b-points)
         (let ((first-point (if (segment:is-end-point? wall-b-points (car wall-a-points))
                                (cadr wall-a-points)

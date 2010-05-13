@@ -440,8 +440,28 @@
                (room-line-intersection
                  graph
                  in-room
-                 (make-infiniteline/origin-angle <point-inside-inner-polygon> <angle-perpendicular-to-longest-wall>))
-                 |#
+                 (point+direction->line (vect2+
+                                          (vect2:random)
+                                          (pseq:centroid (room->point-list graph room))) ; TODO: limit random bias
+                                        (direction:perpendicular
+                                          (segment->direction
+                                            (pseq->segment
+                                              (wall->pseq
+                                                (find-longest-wall-in-room graph room))))))
+        (make-context-tree `[,graph
+                              ()
+                              (,in-room
+                                ()
+                                (,(car walls)
+                                 (,(cadr walls)
+                                  ()
+                                  (,(cadr points)
+                                    ()
+                                    ()))
+                                 (,(car points)
+                                   ()
+                                   ())))]))))
+                                   |#
         (make-context-tree `[,graph
                               ()
                               (,in-room
