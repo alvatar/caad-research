@@ -40,6 +40,14 @@
     ((_ var expr body ...)
      (let ((var expr)) body ...))))
 
+;;; Letcc macro (hoping and skipping)
+
+(define-syntax letcc
+  (syntax-rules ()
+    ((_ c . body)
+     (call-with-current-continuation
+       (lambda (c) . body)))))
+    
 ;;; Do a fixed number of times
 
 (define-syntax dotimes
