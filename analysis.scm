@@ -41,7 +41,7 @@
 ;;; Is point in room?
 
 (define (point-in-room? graph room point)
-  (pseq:point-inside? (room->point-list graph room) point))
+  (pseq:point-inside? (room->pseq graph room) point))
 
 ;-------------------------------------------------------------------------------
 ; Finders/selectors
@@ -53,7 +53,7 @@
   (let ((wall (find-element/uid graph uid)))
     (define (find-walls-with-point point)
       (define (iter wall-list connected-walls)
-        (if (null-list? wall-list)
+        (if (null? wall-list)
             connected-walls
           (iter
             (cdr wall-list)
@@ -132,8 +132,18 @@
       
 ;;; Calculate the pseq that describes a room
 
-(define (room->point-list graph room)
+(define (room->pseq graph room)
   (wall-list->pseq (room-walls graph room))) ; First point because it's equal to last
+
+;-------------------------------------------------------------------------------
+; Geometrical operations
+;-------------------------------------------------------------------------------
+
+;;; Intersection of room and line returns a list of intersected walls and
+;;; intersection points
+
+(define (room-line-intersection graph room line)
+  (values '() '()))
 
 ;;; Calculate room area
 

@@ -8,6 +8,7 @@
 
 (import (std srfi/1))
 
+(import ../core/debug)
 (import ../core/syntax)
 (import ../geometry/kernel)
 (import ../geometry/generation)
@@ -85,7 +86,7 @@
       agents))
   (let* ((wall-pseq-list (wall-list->pseq-list (graph-walls graph)))
          (pipes-center-list (pipes-list->center-positions (graph-pipes graph)))
-         (entry-pseq (entry->point-list graph (car (graph-entries graph))))
+         (entry-pseq (entry->pseq graph (car (graph-entries graph))))
          (north (graph-north graph)))
     (let loop ((agents (world-agents world)))
       (visualize-world (make-world agents '()) graph)
@@ -413,12 +414,12 @@
       (lambda (a)
         (every
           (lambda (p)
-            (pseq:point-inside? (room->point-list graph r) p))
+            (pseq:point-inside? (room->pseq graph r) p))
           (agent-positions a))) ; TODO: wrong! if an agent is between two rooms, what to do?
        agents))
 
   (define (num-agents-in-room r)
-    (let ((pol (room->point-list graph r)))
+    (let ((pol (room->pseq graph r)))
       (fold
         (lambda (a num)
           (if (pseq:point-inside? pol (agent-head-position a))
@@ -433,24 +434,24 @@
         (> (num-agents-in-room r) 1))
       (graph-rooms graph)))
 
-  (define (make-partition-in-graph in-room)
+  (define (make-partition-in-graph room)
     (op:split-room
-      #|
+               #|
       (receive (walls points)
                (room-line-intersection
                  graph
-                 in-room
-                 (point+direction->line (vect2+
+                 room
+                 (ps (point+direction->line (vect2+
                                           (vect2:random)
-                                          (pseq:centroid (room->point-list graph room))) ; TODO: limit random bias
+                                          (pseq:centroid (room->pseq graph room))) ; TODO: limit random bias
                                         (direction:perpendicular
                                           (segment->direction
                                             (pseq->segment
                                               (wall->pseq
-                                                (find-longest-wall-in-room graph room))))))
+                                                (find-longest-wall-in-room graph room))))))))
         (make-context-tree `[,graph
                               ()
-                              (,in-room
+                              (,room
                                 ()
                                 (,(car walls)
                                  (,(cadr walls)
@@ -461,13 +462,13 @@
                                  (,(car points)
                                    ()
                                    ())))]))))
-                                   |#
+|#
         (make-context-tree `[,graph
                               ()
-                              (,in-room
+                              (,room
                                 ()
-                                (,(room-wall graph in-room 1);(car walls)
-                                 (,(room-wall graph in-room 3);(cadr walls)
+                                (,(room-wall graph room 1);(car walls)
+                                 (,(room-wall graph room 3);(cadr walls)
                                   ()
                                   (,(random-real);(cadr points)
                                     ()

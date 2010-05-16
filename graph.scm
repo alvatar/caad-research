@@ -159,8 +159,8 @@
 
 ;;; Get point n from point list
 
-(define (archpoint-n n point-list)
-  (cdr (list-ref point-list n)))
+(define (archpoint-n n pseq)
+  (cdr (list-ref pseq n)))
 
 ;;; Extract the basic list of point coordinates
 
@@ -195,11 +195,11 @@
 ;;; Convert a wall into a list of points
 
 (define (wall->pseq wall)
-  (define (iter point-list to-process)
-    (if (null-list? to-process)
-        point-list
+  (define (iter pseq to-process)
+    (if (null? to-process)
+        pseq
       (iter
-        (cons (archpoint->point (cdar to-process)) point-list)
+        (cons (archpoint->point (cdar to-process)) pseq)
         (cdr to-process))))
   (iter '() (wall-points wall)))
 
@@ -213,7 +213,7 @@
 
 ;;; Convert a point list into a wall
 
-(define (point-list->wall p-list uuid)
+(define (pseq->wall p-list uuid)
   (let* ((pa (car p-list))
          (pb (cadr p-list)))
     `(wall (@ (uid ,uuid))
@@ -243,7 +243,7 @@
 
 ;;; Calculate wall element (door, wall...) points a list
 
-(define (wall-element->point-list element wall)
+(define (wall-element->pseq element wall)
   (let ((from (wall-element-relative-points 'from element))
         (to (wall-element-relative-points 'to element)))
     (if (= (length (wall-points wall)) 2)
@@ -262,21 +262,21 @@
 
 ;;; Calculate all wall elements point lists of the same type
 
-(define (all-wall-element-points->point-list type wall)
+(define (all-wall-element-points->pseq type wall)
   (map
     (lambda (e)
-      (wall-element->point-list e wall))
+      (wall-element->pseq e wall))
   ((sxpath `(,type)) wall)))
 
 ;;; Calculate all wall elements point lists of the same type of all walls
 
-(define (all-wall-element-points-all-walls->point-list type graph)
+(define (all-wall-element-points-all-walls->pseq type graph)
   (define (iter lis walls)
     (cond
      ((null? walls)
       lis)
      (else
-      (iter (append lis (all-wall-element-points->point-list type (car walls))) (cdr walls)))))
+      (iter (append lis (all-wall-element-points->pseq type (car walls))) (cdr walls)))))
   (iter '() (graph-walls graph)))
 
 ;-------------------------------------------------------------------------------
@@ -332,13 +332,13 @@
 
 ;;; Get the entry point as a list of points corresponding to the door
 
-(define (entry->point-list graph entry)
+(define (entry->pseq graph entry)
   (let* ((doorNumber (string->number (car ((sxpath '(@ doorNumber *text*)) entry))))
          (wall (reference->element graph ((sxpath '(*)) entry)))
          (doors (wall-doors wall)))
     (if (> doorNumber (length doors))
-        (error "entry->point-list: entry is assigned door number that doesn't exist in the referenced wall"))
-    (wall-element->point-list
+        (error "entry->pseq entry is assigned door number that doesn't exist in the referenced wall"))
+    (wall-element->pseq
       (list-ref doors doorNumber)
       wall)))
 
@@ -348,7 +348,7 @@
 
 ;;; Get the structural as a list of points
 
-(define (structural->point-list structural graph)
+(define (structural->pseq structural graph)
   (let* ((center (archpoint->point ((sxpath '(center @ *)) structural)))
          (dimensions ((sxpath '(dim @ *)) structural))
          (a (string->number (cadadr dimensions)))

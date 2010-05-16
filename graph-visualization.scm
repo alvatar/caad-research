@@ -44,10 +44,10 @@
             (visualization:paint-set-line-cap backend 'butt)
             (visualization:paint-set-color backend 1.0 1.0 1.0 1.0)
             (visualization:paint-set-line-width backend 0.25)
-            (visualization:paint-path backend (wall-element->point-list door wall))
+            (visualization:paint-path backend (wall-element->pseq door wall))
             (visualization:paint-set-color backend 1.0 0.1 0.1 1.0)
             (visualization:paint-set-line-width backend 0.15)
-            (visualization:paint-path backend (wall-element->point-list door wall)))
+            (visualization:paint-path backend (wall-element->pseq door wall)))
           (wall-doors wall)))
       ;; Paint windows in the wall
       (define (paint-windows-in-wall wall)
@@ -57,11 +57,11 @@
         (for-each
           (lambda
             (window)
-            (visualization:paint-path backend (wall-element->point-list window wall)))
+            (visualization:paint-path backend (wall-element->pseq window wall)))
           (wall-windows wall)))
       ;; Paint structural
       (define (paint-structural structural)
-        (let ((structural-points (structural->point-list structural graph)))
+        (let ((structural-points (structural->pseq structural graph)))
         (visualization:paint-set-line-width backend 0.02)
         (visualization:paint-set-color backend 0.2 0.2 0.2 1.0)
         (visualization:paint-polygon backend structural-points)
@@ -70,10 +70,10 @@
       ;; Paint room
       (define (paint-room room)
         (visualization:paint-set-color backend 0.0 0.0 0.3 0.3)
-        (visualization:paint-polygon backend (room->point-list graph room)))
+        (visualization:paint-polygon backend (room->pseq graph room)))
       ;; Paint entry
       (define (paint-entry entry)
-        (let ((door-mid-point (segment:mid-point (entry->point-list graph entry))))
+        (let ((door-mid-point (segment:mid-point (entry->pseq graph entry))))
           (visualization:paint-set-color backend 1.0 0.45 0.45 0.4)
           (visualization:paint-circle-fill backend
                                            (vect2-x door-mid-point)

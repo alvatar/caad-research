@@ -138,7 +138,7 @@
                               (list `(wall (@ (uid ,new-wall-uid))))
                               (list `(wall (@ (uid ,first-wall-uid-2-half)))))))
                   ;; Splitting wall
-                  (list (point-list->wall
+                  (list (pseq->wall
                           (list
                             (point-from-relative-in-wall first-wall first-split-point)
                             (point-from-relative-in-wall second-wall second-split-point))
