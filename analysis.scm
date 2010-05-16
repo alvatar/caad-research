@@ -88,7 +88,7 @@
         (walls-room-b (room-wall-refs (cadr rooms))))
     (define (iter lis1)
       (let ((first (car lis1)))
-        (if (null-list? lis1)
+        (if (null? lis1)
             (error "No common wall found")
           (if (any (lambda (elem) (equal? elem first)) walls-room-b)
               (element-uid first)
@@ -143,8 +143,16 @@
 ;;; intersection points
 
 (define (room-line-intersection graph room line)
-  (values '() '()))
-
+  (let* ((walls (room-walls graph room))
+         (intersections (map
+                         (lambda (w) (intersection:line-segment
+                                 line
+                                 (pseq->segment (wall->pseq w))))
+                         walls)))
+    (unzip2
+     (filter (p) (point? (car p)))
+     (zip intersections walls))))
+   
 ;;; Calculate room area
 
 (define (room-area room)
@@ -159,4 +167,4 @@
 ;;; Calculate north-east from north direction
 
 (define (north->north-east vec)
-  (rotation:point vec (/ pi 4.0)))
+  (rotation:point vec pi/4))

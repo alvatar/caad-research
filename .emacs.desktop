@@ -1,0 +1,94 @@
+;; -*- mode: emacs-lisp; coding: emacs-mule; -*-
+;; --------------------------------------------------------------------------
+;; Desktop File for Emacs
+;; --------------------------------------------------------------------------
+;; Created Sun May 16 21:44:47 2010
+;; Desktop file format version 206
+;; Emacs version 23.1.1
+
+;; Global section:
+(setq desktop-missing-file-warning nil)
+(setq tags-file-name nil)
+(setq tags-table-list nil)
+(setq search-ring nil)
+(setq regexp-search-ring nil)
+(setq register-alist nil)
+
+;; Buffer section -- buffers listed in same order as in buffer list:
+(desktop-create-buffer 206
+  "/data/projects/ensanche-core/geometry/kernel.scm"
+  "kernel.scm"
+  'scheme-mode
+  '(linum-mode)
+  15149
+  '(nil nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-file-coding-system . utf-8-unix)))
+
+(desktop-create-buffer 206
+  "/data/projects/ensanche-core/strategies/hinted-brownian-agents.scm"
+  "hinted-brownian-agents.scm"
+  'scheme-mode
+  '(linum-mode)
+  18263
+  '(18236 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-file-coding-system . utf-8-unix)))
+
+(desktop-create-buffer 206
+  "/data/projects/ensanche-core/analysis.scm"
+  "analysis.scm"
+  'scheme-mode
+  '(linum-mode auto-complete-mode)
+  5316
+  '(3414 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-file-coding-system . utf-8-unix)))
+
+(desktop-create-buffer 206
+  "/data/projects/ensanche-core/math/algebra.scm"
+  "algebra.scm"
+  'scheme-mode
+  '(linum-mode)
+  2128
+  '(779 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-file-coding-system . utf-8-unix)))
+
+(desktop-create-buffer 206
+  nil
+  "ensanche-core"
+  'dired-mode
+  '(linum-mode)
+  234
+  '(nil nil)
+  t
+  '("/data/projects/ensanche-core/")
+  nil)
+
+(desktop-create-buffer 206
+  nil
+  "projects"
+  'dired-mode
+  '(linum-mode)
+  333
+  '(nil nil)
+  t
+  '("/data/projects/")
+  nil)
+
+(desktop-create-buffer 206
+  "/home/alvaro/.emacs"
+  ".emacs"
+  'emacs-lisp-mode
+  '(linum-mode auto-complete-mode)
+  3839
+  '(nil nil)
+  nil
+  nil
+  '((buffer-file-coding-system . undecided-unix)))
+

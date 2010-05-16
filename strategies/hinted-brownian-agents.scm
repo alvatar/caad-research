@@ -436,19 +436,18 @@
 
   (define (make-partition-in-graph room)
     (op:split-room
-               #|
       (receive (walls points)
                (room-line-intersection
                  graph
                  room
-                 (ps (point+direction->line (vect2+
+                 (point+direction->line (vect2+
                                           (vect2:random)
                                           (pseq:centroid (room->pseq graph room))) ; TODO: limit random bias
                                         (direction:perpendicular
                                           (segment->direction
                                             (pseq->segment
                                               (wall->pseq
-                                                (find-longest-wall-in-room graph room))))))))
+                                                (find-longest-wall-in-room graph room)))))))
         (make-context-tree `[,graph
                               ()
                               (,room
@@ -462,7 +461,7 @@
                                  (,(car points)
                                    ()
                                    ())))]))))
-|#
+               #|
         (make-context-tree `[,graph
                               ()
                               (,room
@@ -476,6 +475,7 @@
                                  (,(random-real);(car points)
                                    ()
                                    ())))])))
+|#
 
   (define (check-graph graph)
     graph) ; TODO: NEXT!

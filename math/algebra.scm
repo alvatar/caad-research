@@ -18,6 +18,8 @@
 (define pi2 6.28318531)
 (define pi/2 1.57079633)
 (define pi/-2 -1.57079633)
+(define pi/4 0.785398163)
+(define pi3/4 2.35619449)
 
 (define equal-accuracy 0.000001)
 
@@ -88,7 +90,6 @@
 ;-------------------------------------------------------------------------------
 
 ;;; vect2 type
-
 (define-structure vect2 x y)
 
 ;;; Vector addition
