@@ -8,6 +8,7 @@
 (import (std srfi/1))
 
 (import core/functional)
+(import core/syntax)
 (import geometry/kernel)
 (import math/algebra)
 
@@ -72,12 +73,13 @@
 ;;; Find longest wall in room
 
 (define (find-longest-wall-in-room graph room)
-  (let ((walls (room-walls room)))
+  (let ((walls (room-walls graph room)))
     (fold
       (lambda (w maxw)
-        (aif m (< maxw (wall->pseq m)) (wall->pseq w)
-             m
-             w))
+        (if (< (pseq:lenght (wall->pseq maxw))
+               (pseq:lenght (wall->pseq m)))
+             w
+             maxw))
       (car walls)
       (cdr walls))))
 
