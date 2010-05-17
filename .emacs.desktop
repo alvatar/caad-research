@@ -2,7 +2,7 @@
 ;; --------------------------------------------------------------------------
 ;; Desktop File for Emacs
 ;; --------------------------------------------------------------------------
-;; Created Mon May 17 18:19:42 2010
+;; Created Mon May 17 23:09:01 2010
 ;; Desktop file format version 206
 ;; Emacs version 23.1.1
 
@@ -12,16 +12,16 @@
 (setq tags-table-list nil)
 (setq search-ring '("find" "find-" "predicates" "-"))
 (setq regexp-search-ring nil)
-(setq register-alist nil)
+(setq register-alist (list (desktop-list* 1 (let ((mk (make-marker))) (add-hook 'desktop-delay-hook (list 'lambda '() (list 'set-marker mk 6032 (get-buffer "kernel.scm")))) mk))))
 
 ;; Buffer section -- buffers listed in same order as in buffer list:
 (desktop-create-buffer 206
   "/data/projects/ensanche-core/geometry/kernel.scm"
   "kernel.scm"
   'scheme-mode
-  '(linum-mode auto-complete-mode)
-  17442
-  '(1 nil)
+  '(linum-mode auto-complete-mode reveal-mode)
+  6366
+  '(6008 nil)
   nil
   nil
   '((indent-tabs-mode) (buffer-file-coding-system . utf-8-unix)))
@@ -30,7 +30,7 @@
   "/data/projects/ensanche-core/strategies/hinted-brownian-agents.scm"
   "hinted-brownian-agents.scm"
   'scheme-mode
-  '(linum-mode)
+  '(linum-mode reveal-mode)
   17991
   '(18236 nil)
   nil
@@ -41,7 +41,7 @@
   "/data/projects/ensanche-core/analysis.scm"
   "analysis.scm"
   'scheme-mode
-  '(linum-mode)
+  '(linum-mode reveal-mode)
   2938
   '(389 nil)
   nil
