@@ -436,7 +436,7 @@
 
   (define (make-partition-in-graph room)
     (op:split-room
-      (receive (walls points)
+      (receive (points walls)
                (room-line-intersection
                  graph
                  room
@@ -448,6 +448,8 @@
                                             (pseq->segment
                                               (wall->pseq
                                                 (find-longest-wall-in-room graph room)))))))
+			   (pp walls)
+			   (pp points)
         (make-context-tree `[,graph
                               ()
                               (,room
@@ -461,21 +463,19 @@
                                  (,(car points)
                                    ()
                                    ())))]))))
-               #|
-        (make-context-tree `[,graph
-                              ()
-                              (,room
-                                ()
-                                (,(room-wall graph room 1);(car walls)
-                                 (,(room-wall graph room 3);(cadr walls)
-                                  ()
-                                  (,(random-real);(cadr points)
-                                    ()
-                                    ()))
-                                 (,(random-real);(car points)
-                                   ()
-                                   ())))])))
-|#
+        ;; (make-context-tree `[,graph
+        ;;                       ()
+        ;;                       (,room
+        ;;                         ()
+        ;;                         (,(room-wall graph room 1);(car walls)
+        ;;                          (,(room-wall graph room 3);(cadr walls)
+        ;;                           ()
+        ;;                           (,(random-real);(cadr points)
+        ;;                             ()
+        ;;                             ()))
+        ;;                          (,(random-real);(car points)
+        ;;                            ()
+        ;;                            ())))])))
 
   (define (check-graph graph)
     graph) ; TODO: NEXT!

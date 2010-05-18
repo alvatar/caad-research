@@ -76,8 +76,8 @@
   (let ((walls (room-walls graph room)))
     (fold
       (lambda (w maxw)
-        (if (< (pseq:lenght (wall->pseq maxw))
-               (pseq:lenght (wall->pseq m)))
+        (if (< (pseq:length (wall->pseq maxw))
+               (pseq:length (wall->pseq w)))
              w
              maxw))
       (car walls)
@@ -147,13 +147,19 @@
 (define (room-line-intersection graph room line)
   (let* ((walls (room-walls graph room))
          (intersections (map
-                         (lambda (w) (intersection:line-segment
-                                 line
-                                 (pseq->segment (wall->pseq w))))
+                         (lambda (w)
+                           (intersection:line-segment
+                            line
+                            (pseq->segment (wall->pseq w))))
                          walls)))
     (unzip2
-     (filter (p) (point? (car p)))
-     (zip intersections walls))))
+     (filter-map (lambda (p)
+                   (and
+                    (point? (car p))
+                    (segment:point->relative-position
+                     (pseq->segment (wall->pseq (cadr p)))
+                     (car p))))
+		 (zip intersections walls)))))
    
 ;;; Calculate room area
 
