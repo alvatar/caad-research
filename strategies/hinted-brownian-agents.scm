@@ -443,13 +443,16 @@
                  (point+direction->line (vect2+
                                           (vect2:random)
                                           (pseq:centroid (room->pseq graph room))) ; TODO: limit random bias
-                                        (direction:perpendicular
+                                        (p (direction:perpendicular
                                           (segment->direction
-                                            (pseq->segment
-                                              (wall->pseq
-                                                (find-longest-wall-in-room graph room)))))))
-			   (pp walls)
-			   (pp points)
+                                           (pseq->segment
+                                            (wall->pseq
+                                             (find-longest-wall-in-room graph room))))))))
+(pp (wall-list->pseq-list walls))
+(pp points)
+               (if (or (not (= 2 (length walls)))
+                       (not (= 2 (length points))))
+                   (error "NO BIEN"))
         (make-context-tree `[,graph
                               ()
                               (,room
@@ -457,10 +460,10 @@
                                 (,(car walls)
                                  (,(cadr walls)
                                   ()
-                                  (,(cadr points)
+                                  (,(car points)
                                     ()
                                     ()))
-                                 (,(car points)
+                                 (,(cadr points)
                                    ()
                                    ())))]))))
         ;; (make-context-tree `[,graph
@@ -488,6 +491,7 @@
   (display "\n---------------------------\nSTEP\n")
   ;(step)
   ;; Iterate with new graph looking for rooms with more than one agent
+(step)
   (aif next-room (find-next-room-to-partition)
     (aif new-graph (check-graph (make-partition-in-graph next-room))
       (graph-regeneration-from-agents new-graph agents)

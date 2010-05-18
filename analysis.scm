@@ -156,9 +156,10 @@
      (filter-map (lambda (p)
                    (and
                     (point? (car p))
-                    (segment:point->relative-position
-                     (pseq->segment (wall->pseq (cadr p)))
-                     (car p))))
+                    (list (segment:point->relative-position
+                           (pseq->segment (wall->pseq (cadr p)))
+                           (car p))
+                          (cadr p))))
 		 (zip intersections walls)))))
    
 ;;; Calculate room area
