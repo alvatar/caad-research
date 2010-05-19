@@ -152,6 +152,8 @@
                             line
                             (pseq->segment (wall->pseq w))))
                          walls)))
+    (pp walls)
+    (pp intersections)
     (unzip2
      (filter-map (lambda (p)
                    (and

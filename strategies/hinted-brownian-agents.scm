@@ -433,6 +433,22 @@
       (lambda (r)
         (> (num-agents-in-room r) 1))
       (graph-rooms graph)))
+  
+  (define (line->segment line)
+    (let ((any-origin (make-point 0.0 (/ (- (line-c line)) (line-b line))))
+          (dirmult (vect2:*scalar (line->direction line) 10)))
+      (make-segment (vect2- any-origin dirmult) (vect2+ any-origin dirmult)))) 
+  (define (d line)
+    (visualization:do-later
+     'debug-aids
+     (lambda (backend vis-env)
+       (visualization:paint-set-color backend 1.0 0.0 0.0 1.0)
+       (visualization:paint-set-line-cap backend 'square)
+       (visualization:paint-set-line-width backend .1)
+       (visualization:paint-path backend (segment->pseq (line->segment line)))))
+    (visualization:layer-depth-set! 'debug-aids 81)
+    (visualization:do-now)
+    line)
 
   (define (make-partition-in-graph room)
     (op:split-room
@@ -440,14 +456,14 @@
                (room-line-intersection
                  graph
                  room
-                 (point+direction->line (vect2+
-                                          (vect2:random)
-                                          (pseq:centroid (room->pseq graph room))) ; TODO: limit random bias
-                                        (p (direction:perpendicular
-                                          (segment->direction
-                                           (pseq->segment
-                                            (wall->pseq
-                                             (find-longest-wall-in-room graph room))))))))
+                 (d (point+direction->line (vect2+
+                                            (vect2:random)
+                                            (pseq:centroid (room->pseq graph room))) ; TODO: limit random bias
+                                           (direction:perpendicular
+                                            (segment->direction
+                                             (pseq->segment
+                                              (wall->pseq
+                                               (find-longest-wall-in-room graph room))))))))
 (pp (wall-list->pseq-list walls))
 (pp points)
                (if (or (not (= 2 (length walls)))
@@ -460,10 +476,10 @@
                                 (,(car walls)
                                  (,(cadr walls)
                                   ()
-                                  (,(car points)
+                                  (,(cadr points)
                                     ()
                                     ()))
-                                 (,(cadr points)
+                                 (,(car points)
                                    ()
                                    ())))]))))
         ;; (make-context-tree `[,graph
@@ -484,11 +500,12 @@
     graph) ; TODO: NEXT!
 
   ;(pp graph)
-  (visualization:forget-all)
   (visualize-graph graph)
   (visualize-world (make-world agents '()) graph)
   (visualization:do-now)
   (display "\n---------------------------\nSTEP\n")
+  (visualization:forget-all)
+
   ;(step)
   ;; Iterate with new graph looking for rooms with more than one agent
 (step)
