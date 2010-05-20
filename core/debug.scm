@@ -28,32 +28,27 @@
        (step)
        res))))
 
-;;; Argument checks per module
-;;;
-;;; (define-syntax check-arg
-;;;  (syntax-rules ()
-;;;    ((_ predicate arg proc)
-;;;     (check-arg-per-module "do" predicate arg proc))))
+;;; Do a test so it can be activated or deactivated
 
-(define-syntax check-arg-per-module
+(define-syntax assert-aux
   (syntax-rules ()
-    ((_ "ignore" predicate arg proc)
+    ((_ "ignore" test proc)
      #f)
-    ((_ "do" predicate arg proc)
-     (if (not (predicate arg))
+    ((_ "do" test proc)
+     (if (not test)
          (begin
-           (pp arg)
-           (error "Argument not accepted" proc))))))
+           (display "todo: line inspection\n")
+           (error "Assert failed!" proc))))))
 
 ;;; run-time checks
 
-#;(define-syntax activate-module-checks ; FIXME: Currently explodes blackhole, but should work
+(define-syntax activate-asserts ; FIXME: Currently explodes blackhole, but should work
   (syntax-rules ()
     ((_)
-     (define-syntax check-arg
+     (define-syntax assert
         (syntax-rules ()
-          ((_ predicate arg proc)
-           (if (not (predicate arg))
+          ((_ test proc)
+           (if (not test)
              (begin
-               (pp arg)
-               (error "Argument not accepted" proc)))))))))
+               (display "todo: line inspection\n")
+               (error "Assert failed!" proc)))))))))
