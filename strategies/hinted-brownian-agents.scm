@@ -468,14 +468,13 @@
                graph
                room
                (d (point+direction->line (vect2+
-                                             ;(vect2:random)
-											 (vect2:zero)
-                                             (pseq:centroid (room->pseq graph room))) ; TODO: limit random bias
-                                            (direction:perpendicular
-                                             (segment->direction
-                                              (pseq->segment
-                                               (wall->pseq
-                                                (find-longest-wall-in-room graph room))))))))
+                                          (vect2:random)
+                                          (pseq:centroid (room->pseq graph room))) ; TODO: limit random bias
+                                         (direction:perpendicular
+                                          (segment->direction
+                                           (pseq->segment
+                                            (wall->pseq
+                                             (find-longest-wall-in-room graph room))))))))
               ;(pp graph)
               ;(pp (wall-list->pseq-list walls))
               ;(pp points)
