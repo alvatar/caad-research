@@ -435,9 +435,20 @@
       (graph-rooms graph)))
   
   (define (line->segment line)
-    (let ((any-origin (make-point 0.0 (/ (- (line-c line)) (line-b line))))
-          (dirmult (vect2:*scalar (line->direction line) 10)))
-      (make-segment (vect2- any-origin dirmult) (vect2+ any-origin dirmult)))) 
+    (cond
+     ((~zero? (line-a line))
+      (make-segment
+       (make-point -100.0 (/ (- (line-c line)) (line-b line)))
+       (make-point 100.0 (/ (- (line-c line)) (line-b line)))))
+     ((~zero? (line-b line))
+      (make-segment
+       (make-point (/ (- (line-c line)) (line-a line)) -100.0)
+       (make-point (/ (- (line-c line)) (line-a line)) 100.0)))
+     (else
+      (let ((any-origin (make-point 0.0 (/ (- (line-c line)) (line-b line))))
+            (dirmult (vect2:*scalar (line->direction line) 100.0)))
+        (make-segment (vect2- any-origin dirmult) (vect2+ any-origin dirmult))))))
+
   (define (d line)
     (visualization:do-later
      'debug-aids
@@ -447,41 +458,43 @@
        (visualization:paint-set-line-width backend .1)
        (visualization:paint-path backend (segment->pseq (line->segment line)))))
     (visualization:layer-depth-set! 'debug-aids 81)
-    (visualization:do-now)
+    ;(visualization:do-now)
     line)
 
   (define (make-partition-in-graph room)
     (op:split-room
-      (receive (points walls)
-               (room-line-intersection
-                 graph
-                 room
-                 (d (point+direction->line (vect2+
-                                            (vect2:random)
-                                            (pseq:centroid (room->pseq graph room))) ; TODO: limit random bias
-                                           (direction:perpendicular
-                                            (segment->direction
-                                             (pseq->segment
-                                              (wall->pseq
-                                               (find-longest-wall-in-room graph room))))))))
-(pp (wall-list->pseq-list walls))
-(pp points)
-               (if (or (not (= 2 (length walls)))
-                       (not (= 2 (length points))))
-                   (error "NO BIEN"))
-        (make-context-tree `[,graph
-                              ()
-                              (,room
-                                ()
-                                (,(car walls)
-                                 (,(cadr walls)
-                                  ()
-                                  (,(cadr points)
-                                    ()
-                                    ()))
-                                 (,(car points)
+     (receive (points walls)
+              (room-line-intersection
+               graph
+               room
+               (d (point+direction->line (vect2+
+                                             ;(vect2:random)
+											 (vect2:zero)
+                                             (pseq:centroid (room->pseq graph room))) ; TODO: limit random bias
+                                            (direction:perpendicular
+                                             (segment->direction
+                                              (pseq->segment
+                                               (wall->pseq
+                                                (find-longest-wall-in-room graph room))))))))
+              ;(pp graph)
+              ;(pp (wall-list->pseq-list walls))
+              ;(pp points)
+              ;(if (or (not (= 2 (length walls)))
+                      ;(not (= 2 (length points))))
+                  ;(error "NO BIEN"))
+              (make-context-tree `[,graph
                                    ()
-                                   ())))]))))
+                                   (,room
+                                    ()
+                                    (,(car walls)
+                                     (,(cadr walls)
+                                      ()
+                                      (,(cadr points)
+                                       ()
+                                       ()))
+                                     (,(car points)
+                                      ()
+                                      ())))]))))
         ;; (make-context-tree `[,graph
         ;;                       ()
         ;;                       (,room
@@ -508,7 +521,6 @@
 
   ;(step)
   ;; Iterate with new graph looking for rooms with more than one agent
-(step)
   (aif next-room (find-next-room-to-partition)
     (aif new-graph (check-graph (make-partition-in-graph next-room))
       (graph-regeneration-from-agents new-graph agents)
