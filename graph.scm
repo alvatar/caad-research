@@ -98,6 +98,11 @@
       (error "element-uid: Element is null")
     (cadar ((sxpath '(@ uid)) elem))))
 
+;;; Make a list of uids contained in this subgraph
+
+(define (make-uid-list subgraph)
+  ((sxpath '(wall @ uid *text*)) subgraph))
+
 ;;; Find the element with that specific uid
 
 (define (find-element/uid graph uid)
@@ -115,12 +120,8 @@
 
 ;;; Get the elements from a reference list
 
-(define (lreferences->lelements graph ref-lis)
-  (define (iter elem-lis ref-lis)
-    (if (null? ref-lis)
-        elem-lis
-      (iter (append elem-lis (list (reference->element graph (car ref-lis)))) (cdr ref-lis))))
-  (iter '() ref-lis)) ; TODO: cons! no append!
+(define (lreferences->lelements graph rlis)
+  (map (lambda (r) (reference->element graph r)) rlis))
 
 ;;; Make a reference from an UID
 
@@ -135,10 +136,7 @@
 ;;; Make a reference list from an element list
 
 (define (lelements->lreferences element-list)
-  (map
-    (lambda (e)
-      (element->reference e))
-    element-list))
+  (map (lambda (e) (element->reference e)) element-list))
 
 ;-------------------------------------------------------------------------------
 ; Points
@@ -147,15 +145,7 @@
 ;;; Get coordinate from point
 
 (define (archpoint-coord coordinate point)
-  (define (find-coordinate point)
-    (cond
-     ((null? point)
-      (error "You sent me a null point"))
-     ((equal? (caar point) coordinate)
-      (string->number (cadar point)))
-     (else
-      (find-coordinate (cdr point)))))
-  (find-coordinate point))
+  (string->number (cadr (find (lambda (p) (equal? (car p) coordinate)) point))))
 
 ;;; Get point n from point list
 
@@ -195,21 +185,12 @@
 ;;; Convert a wall into a list of points
 
 (define (wall->pseq wall)
-  (define (iter pseq to-process)
-    (if (null? to-process)
-        pseq
-      (iter
-        (cons (archpoint->point (cdar to-process)) pseq)
-        (cdr to-process))))
-  (iter '() (wall-points wall)))
+  (map (lambda (p) (archpoint->point (cdr p))) (wall-points wall)))
 
 ;;; Convert a list of walls into a list of segments
 
 (define (wall-list->pseq-list walls)
-  (map
-    (lambda (w)
-      (wall->pseq w))
-    walls))
+  (map (lambda (w) (wall->pseq w)) walls))
 
 ;;; Convert a point list into a wall
 
@@ -263,21 +244,12 @@
 ;;; Calculate all wall elements point lists of the same type
 
 (define (all-wall-element-points->pseq type wall)
-  (map
-    (lambda (e)
-      (wall-element->pseq e wall))
-  ((sxpath `(,type)) wall)))
+  (map (lambda (e) (wall-element->pseq e wall)) ((sxpath `(,type)) wall)))
 
 ;;; Calculate all wall elements point lists of the same type of all walls
 
 (define (all-wall-element-points-all-walls->pseq type graph)
-  (define (iter lis walls)
-    (cond
-     ((null? walls)
-      lis)
-     (else
-      (iter (append lis (all-wall-element-points->pseq type (car walls))) (cdr walls)))))
-  (iter '() (graph-walls graph)))
+  (map (lambda (w) (all-wall-element-points->pseq type w)) (graph-walls graph)))
 
 ;-------------------------------------------------------------------------------
 ; Room
@@ -294,20 +266,8 @@
   (cddr room))
 
 ;;; Get list of walls that belong to a room, fully described
-
 (define (room-walls graph room)
-  (define (make-uid-list)
-    ((sxpath '(wall @ uid *text*)) room))
-  (define (collect-walls wall-lis uid-lis)
-    (if (null-list? uid-lis)
-        wall-lis
-      (collect-walls
-        (append wall-lis
-                (list
-                  (find-element/uid graph (car uid-lis))))
-        (cdr uid-lis))))
-  (let ((uids (make-uid-list)))
-    (collect-walls '() uids)))
+  (map (lambda (r) (find-element/uid graph r)) (make-uid-list room)))
 
 ;-------------------------------------------------------------------------------
 ; Pipes
@@ -320,11 +280,8 @@
 
 ;;; Get all centers of a pipe list
 
-(define (pipes-list->center-positions pipes-list) ; TODO: Maybe macrolize?
-  (map
-    (lambda (p)
-      (pipe->center-position p))
-    pipes-list))
+(define (pipes-list->center-positions pipes-list)
+  (map (lambda (p) (pipe->center-position p)) pipes-list))
 
 ;-------------------------------------------------------------------------------
 ; Entry

@@ -1,3 +1,9 @@
+(import ../analysis)
+(import ../geometry/kernel)
+(import ../core/debug)
+(import ../math/algebra)
+(import ../graph)
+
 (define graph
 '(architecture
  (@ (uid "43CD6949-15FD-401C-BB95-D1D691254283"))
@@ -44,13 +50,6 @@
        (wall (@ (uid "8A179250-2725-4E56-9E83-ED5B859E1ED7")))
        (wall (@ (uid "77296B36-50AD-4CEF-9CF2-37B4D440B736")))
        (wall (@ (uid "2F1077C0-2D27-4EDF-8FA7-6135446F20AC")))))
-
-
-(import ../analysis)
-(import ../geometry/kernel)
-(import ../core/debug)
-(import ../math/algebra)
-(import ../graph)
 
 (receive (points walls)
          (room-line-intersection
