@@ -7,11 +7,11 @@
 
 (import (std srfi/1))
 
-(import math/algebra)
+(import math/exact-algebra)
 (import geometry/kernel)
 
 (import analysis)
-(import fields-2d)
+;(import fields-2d)
 (import graph)
 (import visualization)
 
@@ -114,11 +114,9 @@
   (let* ((bb (graph-bounding-box graph))
          (size-vec (bounding-box:size-segment bb)))
     (visualization:forget-layers '(agents fields))
-    #|
-    (for-each
-      (lambda (f) (visualize-field f size-vec))
-      (world-fields world))
-      |#
+    ;; (for-each
+    ;;   (lambda (f) (visualize-field f size-vec))
+    ;;   (world-fields world))
     (for-each
       visualize-agent
       (world-agents world))))

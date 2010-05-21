@@ -10,7 +10,7 @@
 (import core/list)
 (import core/syntax)
 (import geometry/kernel)
-(import math/algebra)
+(import math/exact-algebra)
 
 (import graph)
 
@@ -163,24 +163,22 @@
 
 ;;; Sort walls in a room, so they are connected
 
-#|
-(define (room-sort-walls graph room) ; TODO: check if the last and the first are really connected
-;;;;; IS THIS RIGHT? ISn't sort-walls-connected better?
-  (let ((walls (room-wall-refs room)))
-    (define (iter sorted remaining)
-      (define (find-next first wall-list) ; (it sorts backwards)
-        (cond
-         ((null-list? wall-list)
-          (display first)(newline)
-          (error "room-sort-walls: This wall cannot be connected to any other one"))
-         ((walls-are-connected? (reference->element graph first) (reference->element graph (car wall-list)))
-          (car wall-list))
-         (else
-          (find-next first (cdr wall-list)))))
-      (if (null-list? remaining)
-          sorted
-        (let ((next (find-next (car sorted) remaining)))
-          (iter (cons next sorted) (remove (lambda (e) (equal? e next)) remaining))))) ; (it sorts backwards)
-    `(,(append `(room (@ (uid ,(element-uid room))))
-                         (iter (list (car walls)) (cdr walls))))))
-                         |#
+;; (define (room-sort-walls graph room) ; TODO: check if the last and the first are really connected
+;; ;;;;; IS THIS RIGHT? ISn't sort-walls-connected better?
+;;   (let ((walls (room-wall-refs room)))
+;;     (define (iter sorted remaining)
+;;       (define (find-next first wall-list) ; (it sorts backwards)
+;;         (cond
+;;          ((null-list? wall-list)
+;;           (display first)(newline)
+;;           (error "room-sort-walls: This wall cannot be connected to any other one"))
+;;          ((walls-are-connected? (reference->element graph first) (reference->element graph (car wall-list)))
+;;           (car wall-list))
+;;          (else
+;;           (find-next first (cdr wall-list)))))
+;;       (if (null-list? remaining)
+;;           sorted
+;;         (let ((next (find-next (car sorted) remaining)))
+;;           (iter (cons next sorted) (remove (lambda (e) (equal? e next)) remaining))))) ; (it sorts backwards)
+;;     `(,(append `(room (@ (uid ,(element-uid room))))
+;;                          (iter (list (car walls)) (cdr walls))))))

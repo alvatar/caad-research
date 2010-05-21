@@ -84,7 +84,7 @@
 
 ;;; Are these vectors equal? (with epsilon)
 
-(define (vect2:= v1 v2 e)
+(define (vect2:= v1 v2)
   (and (= (vect2-x v1)
           (vect2-x v2))
        (= (vect2-y v1)

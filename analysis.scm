@@ -10,7 +10,8 @@
 (import core/functional)
 (import core/syntax)
 (import geometry/kernel)
-(import math/algebra)
+(import math/exact-algebra)
+(import math/inexact-algebra)
 
 (import auxiliary-operations)
 (import graph)

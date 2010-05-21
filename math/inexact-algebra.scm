@@ -100,7 +100,7 @@
 ;;; Normalize vector
 
 (define (vect2:~normalize vec)
-  (let ((div (vect2:magnitude vec)))
+  (let ((div (vect2:~magnitude vec)))
     (make-vect2 (/ (vect2-x vec) div)
                 (/ (vect2-y vec) div))))
 

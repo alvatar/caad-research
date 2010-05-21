@@ -12,10 +12,11 @@
 (import ../core/syntax)
 (import ../geometry/kernel)
 (import ../geometry/generation)
-(import ../math/algebra)
+(import ../math/exact-algebra)
+(import ../math/inexact-algebra) ; TODO: Could be removed!
 
 (import ../analysis)
-(import ../fields-2d)
+;(import ../fields-2d)
 (import ../generation-elements)
 (import ../graph)
 (import ../graph-visualization)
@@ -78,7 +79,7 @@
   (define (stop? agents)
     (every
       (lambda (a)
-        (vect2:=?e
+        (vect2:=e
           (car (agent-positions a))
           (car (agent-memory a))
           0.01))
@@ -390,23 +391,23 @@
 ;-------------------------------------------------------------------------------
 
 (define (graph-regeneration-from-agents graph agents)
-  #;(define (choose-agent-a lis)
-    (list-ref lis (random-integer (length lis))))
-  #;(define (choose-agent-b agent-a lis)
-    (fold
-      (lambda (a current)
-        (let ((distance-current (<distance> agent-a a)))
-          (if (< distance-current (car current))
-              (list distance-current a)
-            current)))
-      (car lis)
-      (cdr lis)))
-  #;(define (make-partition-in-graph-with-references in-room agent-a agent-b)
-    (op-split
-      graph
-      <context>
-      <constraints>
-        (<calculate-point-between-agents> agent-a agent-b)))
+  ;; (define (choose-agent-a lis)
+  ;;   (list-ref lis (random-integer (length lis))))
+  ;; (define (choose-agent-b agent-a lis)
+  ;;   (fold
+  ;;     (lambda (a current)
+  ;;       (let ((distance-current (<distance> agent-a a)))
+  ;;         (if (< distance-current (car current))
+  ;;             (list distance-current a)
+  ;;           current)))
+  ;;     (car lis)
+  ;;     (cdr lis)))
+  ;; (define (make-partition-in-graph-with-references in-room agent-a agent-b)
+  ;;   (op-split
+  ;;     graph
+  ;;     <context>
+  ;;     <constraints>
+  ;;       (<calculate-point-between-agents> agent-a agent-b)))
 
   (define (agents-in-room r)
     (filter
@@ -535,7 +536,7 @@
   (let* ((pos1 (car (agent-positions agent1)))
          (pos2 (car (agent-positions agent2)))
          (vec (vect2- pos2 pos1)))
-    (if (vect2:=?e pos1 pos2 0.1)
+    (if (vect2:=e pos1 pos2 0.1)
         (vect2:*scalar (vect2:random) 0.2)
       (vect2:/scalar vec (vect2:squaremagnitude vec)))))
 

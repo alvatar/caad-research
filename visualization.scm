@@ -12,7 +12,8 @@
 (import ffi/cairo)
 
 (import geometry/kernel)
-(import math/algebra)
+(import math/exact-algebra)
+(import math/inexact-algebra)
 
 (export maxx)
 (export maxy)

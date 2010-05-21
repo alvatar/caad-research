@@ -13,7 +13,8 @@
 
 (import core/syntax)
 (import geometry/kernel)
-(import math/algebra)
+(import math/exact-algebra)
+(import math/inexact-algebra)
 
 (import visualization)
 
@@ -85,7 +86,7 @@
 ;;; Get the north direction
 
 (define (graph-north graph)
-  (vect2:normalize (make-vect2 1.0 1.0)))
+  (make-vect2 1.0 1.0))
 
 ;-------------------------------------------------------------------------------
 ; Element references and UID

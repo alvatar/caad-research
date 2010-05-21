@@ -7,7 +7,7 @@
 
 (import core/list)
 (import geometry/kernel)
-(import math/algebra)
+(import math/exact-algebra)
 
 (import analysis)
 (import graph)
