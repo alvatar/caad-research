@@ -15,7 +15,6 @@
 
 (import analysis)
 (import auxiliary-operations)
-(import context-tree)
 (import graph)
 
 (export op:split-room)

@@ -15,7 +15,6 @@
 (import ../math/algebra)
 
 (import ../analysis)
-(import ../context-tree)
 (import ../fields-2d)
 (import ../generation-elements)
 (import ../graph)
