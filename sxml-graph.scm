@@ -15,7 +15,6 @@
 (import geometry/kernel)
 (import math/exact-algebra)
 (import math/inexact-algebra)
-(import sxml-graph)
 
 (import visualization)
 
@@ -24,9 +23,11 @@
 ;-------------------------------------------------------------------------------
 
 (define wall-thickness 0.1)
+(define graph-space-size-x maxx)
+(define graph-space-size-y maxy)
 
 ;-------------------------------------------------------------------------------
-; Selectors
+; General
 ;-------------------------------------------------------------------------------
 
 ;;; Subgraph type
@@ -317,55 +318,3 @@
       (make-vect2 (+ (vect2-x center) a/2) (- (vect2-y center) b/2))
       (make-vect2 (+ (vect2-x center) a/2) (+ (vect2-y center) b/2))
       (make-vect2 (- (vect2-x center) a/2) (+ (vect2-y center) b/2)))))
-
-;-------------------------------------------------------------------------------
-; Sxml-grap / graph conversion
-;-------------------------------------------------------------------------------
-
-(define-structure graph uid architecture)
-
-(define-structure structural uid points)
-
-(define-structure entry wall-uid door-number)
-
-(define-structure pipe position)
-
-(define-structure wall uid points windows doors)
-
-(define-structure window from to)
-
-(define-structure door from to)
-
-(define-structure room walls)
-
-(define (entry-wall-uid entry)
-  (element-uid ((sxpath '(*)) entry)))
-
-(define (entry-door-num entry)
-  (string->number (car ((sxpath '(@ doorNumber *text*)) entry))))
-
-;(wall (reference->element graph ((sxpath '(*)) entry)))
-
-(define (sxml-graph->graph sxmlgraph)
-  (map
-   (lambda (e)
-     (let ((type (car e)))
-       (cond
-        ((equal? type 'structural)
-         (make-structural (element-uid e)
-                          (structural->pseq sxmlgraph e)))
-        ((equal? type 'entry)
-         (make-entry (entry-wall-uid e)
-                     (entry-door-num e)))
-        ((equal? type 'pipe)
-         (display "pipe\n"))
-        ((equal? type 'wall)
-         (display "wall\n"))
-        ((equal? type 'room)
-         (display "room\n")))))
-   (graph-contents sxmlgraph)))
-
-(define (graph->sxml-graph graph)
-  graph)
-
-(sxml-graph->graph (xml->sxml-graph (input)))

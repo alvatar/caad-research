@@ -26,10 +26,7 @@
 
 ;;; Create graph from XML
 
-(define (generate-graph-from-xml xml-string)
-  (let* ((sxml (xml-string->sxml xml-string))
-         (architecture
-          (car
-           ((sxpath '(ensanche floorPlan architecture)) sxml))))
-    architecture))
-
+(define (xml->sxml-graph xml-string)
+  (let ((sxml (xml-string->sxml xml-string)))
+    (car
+     ((sxpath '(ensanche floorPlan architecture)) sxml))))

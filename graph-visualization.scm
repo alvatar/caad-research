@@ -61,7 +61,7 @@
           (wall-windows wall)))
       ;; Paint structural
       (define (paint-structural structural)
-        (let ((structural-points (structural->pseq structural graph)))
+        (let ((structural-points (structural->pseq graph structural)))
         (visualization:paint-set-line-width backend 0.02)
         (visualization:paint-set-color backend 0.2 0.2 0.2 1.0)
         (visualization:paint-polygon backend structural-points)

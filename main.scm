@@ -16,7 +16,7 @@
 
 (define (main)
   (random-source-randomize! default-random-source) ; Randomizes seed
-  (let ((graph (generate-graph-from-xml (input))))
+  (let ((graph (sxml-graph->graph (xml->sxml-graph (input)))))
     (visualize-graph graph)
     (visualization:do-now)
     (let ((output-graphs
