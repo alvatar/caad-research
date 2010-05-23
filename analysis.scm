@@ -25,18 +25,20 @@
 (define (exterior-wall? wall graph)
   (define (point-in-any-room? p)
     (any (lambda (room) (point-in-room? graph room p))
-         (graph-rooms graph)))
-  (let* ((wall-points (wall->pseq wall))
-         (mid-p (point-from-relative-in-wall wall 0.5))
+         (graph:find-rooms graph)))
+  (let* ((wall-points (wall-pseq wall))
+         (mid-p (pseq:relative-position->point wall-points 0.5))
          (tangent-p (pseq:tangent-in-relative wall-points 0.5))
-         (p1 (rotation:point-w/reference mid-p (vect2+
-                                     mid-p
-                                     (vect2:*scalar tangent-p equal-accuracy))
-                                   pi/2))
-         (p2 (rotation:point-w/reference mid-p (vect2+
-                                     mid-p
-                                     (vect2:*scalar tangent-p equal-accuracy))
-                                   pi/-2)))
+         (p1 (rotation:point-w/reference mid-p
+                                         (vect2+
+                                          mid-p
+                                          (vect2:*scalar tangent-p equal-accuracy))
+                                         pi/2))
+         (p2 (rotation:point-w/reference mid-p
+                                         (vect2+
+                                          mid-p
+                                          (vect2:*scalar tangent-p equal-accuracy))
+                                         pi/-2)))
     (not (and (point-in-any-room? p1)
               (point-in-any-room? p2)))))
 
@@ -49,11 +51,8 @@
 ; Finders/selectors
 ;-------------------------------------------------------------------------------
 
-;;; Find walls connected to a given one
-
-(define (find-walls-connected/uid graph uid)
-  (let ((wall (find-element/uid graph uid)))
-    (define (find-walls-with-point point)
+;;; TODO
+    (define (find-walls/point graph point)
       (define (iter wall-list connected-walls)
         (if (null? wall-list)
             connected-walls
@@ -62,19 +61,24 @@
             (if (is-end-point? (wall->pseq (car wall-list)) point)
                 (append connected-walls (list (car wall-list)))
               connected-walls))))
-      (iter (graph-walls graph) '()))
+      (iter (graph:find-walls graph) '()))
+
+;;; Find walls connected to a given one
+
+(define (find-walls-connected/uid graph uid)
+  (let ((wall (find-wall/uid graph uid)))
     (list
       (remove (lambda (elem)
                 (equal? elem wall))
-              (find-walls-with-point (archpoint->point (wall-first-point wall))))
+              (find-walls/point (archpoint->point (wall-first-point wall))))
       (remove (lambda (elem)
                 (equal? elem wall))
-              (find-walls-with-point (archpoint->point (wall-last-point wall)))))))
+              (find-walls/point (archpoint->point (wall-last-point wall)))))))
 
 ;;; Find longest wall in room
 
 (define (find-longest-wall-in-room graph room)
-  (let ((walls (room-walls graph room)))
+  (let ((walls (find-room-walls graph room)))
     (fold
       (lambda (w maxw)
         (if (< (pseq:length (wall->pseq maxw))
@@ -109,7 +113,7 @@
       (iter (cons (car rest-walls) exterior-walls) (cdr rest-walls)))
      (else
       (iter exterior-walls (cdr rest-walls)))))
-  (sort-wall-list-connected graph (iter '() (graph-walls graph))))
+  (sort-wall-list-connected graph (iter '() (graph:find-walls graph))))
 
 ;-------------------------------------------------------------------------------
 ; Geometrical properties
@@ -118,25 +122,30 @@
 ;;; Calculate bounding box
 
 (define-memoized/key-gen graph-bounding-box 
-  (lambda (graph) (element-uid graph))
+  (lambda (graph) (graph-uid graph))
   (lambda (graph)
     (pseq:bounding-box (wall-list->pseq (find-exterior-walls graph)))))
 
-;;; Calculate the pseq that describes a list of walls
+;;; External polygon
 
+(define (analysis:graph-limits graph)
+  (wall-list->pseq (find-exterior-walls graph)))
+
+;;; Calculate the pseq that describes a list of walls
+;;; TODO: reduce?
 (define (wall-list->pseq wlis)
   (cond
    ((null? (cdr wlis))
-    (wall->pseq (car wlis)))
+    (wall-pseq (car wlis)))
    (else
     (pseq:append
-      (wall->pseq (car wlis))
+      (wall-pseq (car wlis))
       (wall-list->pseq (cdr wlis))))))
       
 ;;; Calculate the pseq that describes a room
 
 (define (room->pseq graph room)
-  (wall-list->pseq (room-walls graph room))) ; First point because it's equal to last
+  (wall-list->pseq (find-room-walls graph room))) ; First point because it's equal to last
 
 ;-------------------------------------------------------------------------------
 ; Geometrical operations
@@ -146,7 +155,7 @@
 ;;; intersection points
 
 (define (room-line-intersection graph room line)
-  (let* ((walls (room-walls graph room))
+  (let* ((walls (find-room-walls graph room))
          (intersections (map
                          (lambda (w)
                            (intersection:line-segment

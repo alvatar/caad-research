@@ -205,13 +205,13 @@
       (error "Trying to paint a path with a null list of points"))
   (cairo-new-path cairo)
   (cairo-move-to cairo
-                 (vect2-x (car points))
-                 (vect2-y (car points)))
+                 (exact->inexact (vect2-x (car points)))
+                 (exact->inexact (vect2-y (car points))))
   (for-each
     (lambda (point)
       (cairo-line-to cairo
-                     (vect2-x point)
-                     (vect2-y point)))
+                     (exact->inexact (vect2-x point))
+                     (exact->inexact (vect2-y point))))
     (cdr points))
   (cairo-stroke cairo))
 
@@ -222,13 +222,13 @@
       (error "Trying to paint a polygon with a null list of points"))
   (cairo-new-path cairo)
   (cairo-move-to cairo
-                 (vect2-x (car points))
-                 (vect2-y (car points)))
+                 (exact->inexact (vect2-x (car points)))
+                 (exact->inexact (vect2-y (car points))))
   (for-each
     (lambda (point)
       (cairo-line-to cairo
-                     (vect2-x point)
-                     (vect2-y point)))
+                     (exact->inexact (vect2-x point))
+                     (exact->inexact (vect2-y point))))
     (cdr points))
   (cairo-close-path cairo)
   (cairo-fill cairo))
@@ -240,18 +240,18 @@
 
 ;;; Paint a fill circle given a point and a radius
 
-(define (visualization:paint-circle-fill cairo x y r)
+(define (visualization:paint-circle-fill cairo x y r) ;; TODO INEXACT
   (cairo-new-path cairo)
-  (cairo-move-to cairo x y)
-  (cairo-arc cairo x y r 0.0 pi2)
+  (cairo-move-to cairo (exact->inexact x) (exact->inexact y))
+  (cairo-arc cairo (exact->inexact x) (exact->inexact y) (exact->inexact r) 0.0 pi2)
   (cairo-fill cairo))
 
 ;;; Paint a circle border given a point and a radius
 
-(define (visualization:paint-circle-border cairo x y r)
+(define (visualization:paint-circle-border cairo x y r) ;; TODO INEXACT 
   (cairo-new-path cairo)
-  (cairo-move-to cairo x y)
-  (cairo-arc cairo x y r 0.0 pi2)
+  (cairo-move-to cairo (exact->inexact x) (exact->inexact y))
+  (cairo-arc cairo (exact->inexact x) (exact->inexact y) (exact->inexact r) 0.0 pi2)
   (cairo-stroke cairo))
 
 ;;; Set line cap
@@ -280,7 +280,7 @@
 (define (visualization:paint-text cairo text font size x y)
   (cairo-set-font-size cairo size)
   (cairo-select-font-face cairo font CAIRO_FONT_SLANT_NORMAL CAIRO_FONT_WEIGHT_BOLD)
-  (cairo-move-to cairo x y)
+  (cairo-move-to cairo (exact->inexact x) (exact->inexact y))
   (cairo-show-text cairo text))
 
 ;;; Create image surface
@@ -302,13 +302,13 @@
 ;;; Translate world
 
 (define (visualization:translate cairo vec)
-  (cairo-translate cairo (vect2-x vec) (vect2-y vec))
+  (cairo-translate cairo (exact->inexact (vect2-x vec)) (exact->inexact (vect2-y vec)))
   (visualization:environment-translation-set! visualization-environment vec))
 
 ;;; Scale world
 
 (define (visualization:scale cairo vec)
-  (cairo-scale cairo (vect2-x vec) (vect2-y vec))
+  (cairo-scale cairo (exact->inexact (vect2-x vec)) (exact->inexact (vect2-y vec)))
   (visualization:environment-scale-set! visualization-environment vec))
 
 ;;; Reset transformations

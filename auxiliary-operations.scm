@@ -1,4 +1,4 @@
-;;; Copyright (c) 2010 by Álvaro Castro-Castilla, All Rights Reserved.
+>;;; Copyright (c) 2010 by Álvaro Castro-Castilla, All Rights Reserved.
 ;;; Licensed under the GPLv3 license, see LICENSE file for full description.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -18,80 +18,55 @@
 ; Predicates
 ;-------------------------------------------------------------------------------
 
-;;; Is the wall described in a reverse order from a given reference?
-
-(define (wall-is-reversed? wall point)
-  (> (distance-point-point (wall->pseq point) (wall->pseq (wall-first-point wall)))
-     (distance-point-point (wall->pseq point) (wall->pseq (wall-last-point wall)))))
-
 ;;; Are these walls connected?
 
 (define (walls-are-connected? wall1 wall2)
   (pseq:connected-pseq?
-    (wall->pseq wall1)
-    (wall->pseq wall2)))
+    (wall-pseq wall1)
+    (wall-pseq wall2)))
 
 ;-------------------------------------------------------------------------------
 ; Geometrical calculations
 ;-------------------------------------------------------------------------------
 
-;;; Calculate point given wall and percentage
-
-(define (point-from-relative-in-wall wall percentage) ; TODO: generalize to polywalls
-  (segment:relative-position->point
-    (make-segment
-      (archpoint->point (wall-point-n wall 1))
-      (archpoint->point (wall-point-n wall 2)))
-    percentage))
-
-;;; Calculate wall mid point
-
-(define (wall-mid-point wall)
-  (let ((wall-points (wall->pseq wall)))
-    (mid-point
-      (segment-a wall-points)
-      (segment-b wall-points))))
-
 ;;; Walls common point
 
 (define (walls-common-point wall1 wall2)
   (aif cp (pseq:common-point?
-            (wall->pseq wall1)
-            (wall->pseq wall2))
+            (wall-pseq wall1)
+            (wall-pseq wall2))
        cp
     (begin
-      (pp (wall->pseq wall1))
-      (pp (wall->pseq wall2))
+      (pp (wall-pseq wall1))
+      (pp (wall-pseq wall2))
       (error "Given walls don't have any common point"))))
-
-;;; Room - line intersection
-;;; returns two values: the inersected walls and the points
-
-(define (room-line-intersection graph room line)
-  (values
-    '()
-    '()))
 
 ;-------------------------------------------------------------------------------
 ; Low-level manipulation of the graph
 ;-------------------------------------------------------------------------------
 
+(define (create-splitted-wall wall split-point-relative uuid1 uuid2)
+  (let ((split-point (pseq:relative-position->point (wall-pseq wall) split-point-relative))
+        (first-point (first (wall-pseq wall)))
+        (second-point (last (wall-pseq wall)))) ;; TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! NOT GOOD
+  '()))
+
 ;;; Create 2 walls splitting one in a point
 
-(define (create-splitted-wall wall split-point-relative uuid1 uuid2)
-  (let ((split-point (point-from-relative-in-wall wall split-point-relative))
-        (first-point (wall-first-point wall))
-        (second-point (wall-last-point wall)))
-  `((wall (@ (uid ,uuid1))
-         (pt (@ (y ,(number->string (archpoint-coord 'y first-point)))
-                (x ,(number->string (archpoint-coord 'x first-point)))))
-         (pt (@ (y ,(number->string (vect2-y split-point)))
-                (x ,(number->string (vect2-x split-point))))))
-   (wall (@ (uid ,uuid2))
-         (pt (@ (y ,(number->string (vect2-y split-point)))
-                (x ,(number->string (vect2-x split-point)))))
-         (pt (@ (y ,(number->string (archpoint-coord 'y second-point)))
-                (x ,(number->string (archpoint-coord 'x second-point)))))))))
+;; (define (create-splitted-wall wall split-point-relative uuid1 uuid2)
+;;   (let ((split-point (pseq:relative-position->point (wall-pseq wall) split-point-relative))
+;;         (first-point (wall-first-point wall))
+;;         (second-point (wall-last-point wall)))
+;;   `((wall (@ (uid ,uuid1))
+;;          (pt (@ (y ,(number->string (archpoint-coord 'y first-point)))
+;;                 (x ,(number->string (archpoint-coord 'x first-point)))))
+;;          (pt (@ (y ,(number->string (vect2-y split-point)))
+;;                 (x ,(number->string (vect2-x split-point))))))
+;;    (wall (@ (uid ,uuid2))
+;;          (pt (@ (y ,(number->string (vect2-y split-point)))
+;;                 (x ,(number->string (vect2-x split-point)))))
+;;          (pt (@ (y ,(number->string (archpoint-coord 'y second-point)))
+;;                 (x ,(number->string (archpoint-coord 'x second-point)))))))))
 
 ;;; Update refs to doors in rooms
 
@@ -142,7 +117,7 @@
       (cond
        ((null? wall-list)
         #f)
-       ((walls-are-connected? (reference->element graph first) (reference->element graph (car wall-list)))
+       ((walls-are-connected? first (car wall-list))
         (car wall-list))
        (else
         (find-next first (cdr wall-list)))))

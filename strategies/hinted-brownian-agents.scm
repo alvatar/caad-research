@@ -16,7 +16,6 @@
 (import ../math/inexact-algebra) ; TODO: Could be removed!
 
 (import ../analysis)
-;(import ../fields-2d)
 (import ../generation-elements)
 (import ../graph)
 (import ../graph-visualization)
@@ -34,7 +33,7 @@
 
 (define (iteration-step-1 graph world)
   (let*
-    ((limit-polygon (wall-list->pseq (find-exterior-walls graph)))
+    ((limit-polygon (analysis:graph-limits graph))
      (agents (list
        (make-agent
          'distribution
@@ -84,9 +83,9 @@
           (car (agent-memory a))
           0.01))
       agents))
-  (let* ((wall-pseq-list (wall-list->pseq-list (graph-walls graph)))
-         (pipes-center-list (pipes-list->center-positions (graph-pipes graph)))
-         (entry-pseq (entry->pseq graph (car (graph-entries graph))))
+  (let* ((wall-pseq-list (map (lambda (w) (wall-pseq w)) (graph:find-walls graph)))
+         (pipes-center-list (map (lambda (p) (pipe-position p)) (graph:find-pipes graph)))
+         (entry-pseq (entry-pseq (car (graph:find-entries graph))))
          (north (graph-north graph)))
     (let loop ((agents (world-agents world)))
       (visualize-world (make-world agents '()) graph)

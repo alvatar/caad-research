@@ -11,6 +11,7 @@
 
 (import graph-visualization)
 (import input)
+(import graph)
 (import output)
 (import visualization)
 
@@ -19,6 +20,9 @@
   (let ((graph (sxml-graph->graph (xml->sxml-graph (input)))))
     (visualize-graph graph)
     (visualization:do-now)
+    (visualization:forget-all)
+    (visualize-graph graph)
+    (visualization:do-now) ; TODO: this is ugly
     (let ((output-graphs
             (evolution-cycle evolver generator selector graph)))
       (for-each

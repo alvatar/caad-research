@@ -61,12 +61,12 @@
 
 ;;; Are these vectors equal?
 
-(define (vect2:~=? v1 v2)
-  (vect2:=?e v1 v2 equal-accuracy))
+(define (vect2:~= v1 v2)
+  (vect2:~=e v1 v2 equal-accuracy))
 
 ;;; Are these vectors equal? (with epsilon)
 
-(define (vect2:~=?e v1 v2 e)
+(define (vect2:~=e v1 v2 e)
   (and (=~e (vect2-x v1)
             (vect2-x v2)
             e)

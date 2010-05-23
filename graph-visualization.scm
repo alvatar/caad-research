@@ -35,19 +35,20 @@
         (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
         (visualization:paint-set-line-cap backend 'square)
         (visualization:paint-set-line-width backend .25)
-        (visualization:paint-path backend (wall->pseq wall)))
+        (visualization:paint-path backend (wall-pseq wall))
+        (paint-windows-in-wall wall)
+        (paint-doors-in-wall wall))
       ;; Paint doors in the wall
       (define (paint-doors-in-wall wall)
         (for-each
-          (lambda
-            (door)
+         (lambda (door)
             (visualization:paint-set-line-cap backend 'butt)
             (visualization:paint-set-color backend 1.0 1.0 1.0 1.0)
             (visualization:paint-set-line-width backend 0.25)
-            (visualization:paint-path backend (wall-element->pseq door wall))
+            (visualization:paint-path backend (door-pseq door))
             (visualization:paint-set-color backend 1.0 0.1 0.1 1.0)
             (visualization:paint-set-line-width backend 0.15)
-            (visualization:paint-path backend (wall-element->pseq door wall)))
+            (visualization:paint-path backend (door-pseq door)))
           (wall-doors wall)))
       ;; Paint windows in the wall
       (define (paint-windows-in-wall wall)
@@ -55,25 +56,24 @@
         (visualization:paint-set-line-cap backend 'butt)
         (visualization:paint-set-line-width backend 0.1)
         (for-each
-          (lambda
-            (window)
-            (visualization:paint-path backend (wall-element->pseq window wall)))
+          (lambda (window)
+            (visualization:paint-path backend (window-pseq window)))
           (wall-windows wall)))
       ;; Paint structural
       (define (paint-structural structural)
-        (let ((structural-points (structural->pseq graph structural)))
+        (let ((pts (structural-pseq structural)))
         (visualization:paint-set-line-width backend 0.02)
         (visualization:paint-set-color backend 0.2 0.2 0.2 1.0)
-        (visualization:paint-polygon backend structural-points)
+        (visualization:paint-polygon backend pts)
         (visualization:paint-set-color backend 0.0 0.0 0.0 1.0)
-        (visualization:paint-path backend (snoc structural-points (car structural-points)))))
+        (visualization:paint-path backend pts)))
       ;; Paint room
       (define (paint-room room)
         (visualization:paint-set-color backend 0.0 0.0 0.3 0.3)
         (visualization:paint-polygon backend (room->pseq graph room)))
       ;; Paint entry
       (define (paint-entry entry)
-        (let ((door-mid-point (segment:mid-point (entry->pseq graph entry))))
+        (let ((door-mid-point (segment:mid-point (entry-pseq entry))))
           (visualization:paint-set-color backend 1.0 0.45 0.45 0.4)
           (visualization:paint-circle-fill backend
                                            (vect2-x door-mid-point)
@@ -81,7 +81,7 @@
                                            0.4)))
       ;; Paint pipe
       (define (paint-pipe pipe)
-        (let ((pos (pipe->center-position pipe)))
+        (let ((pos (pipe-position pipe)))
           (visualization:paint-set-line-width backend 0.02)
           (visualization:paint-set-color backend 1.0 1.0 1.0 1.0)
           (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.2)
@@ -96,23 +96,18 @@
           (if (null? elem)
               (raise "Malformed SXML")
             (cond
-              ((equal? (car elem) 'wall)
-               (paint-wall
-                 elem)
-               (paint-windows-in-wall 
-                 elem)
-               (paint-doors-in-wall 
-                 elem))
-              ((equal? (car elem) 'structural)
+              ((wall? elem)
+               (paint-wall elem))
+              ((structural? elem)
                (paint-structural elem))
-              ((equal? (car elem) 'room)
+              ((room? elem)
                (paint-room elem))
-              ((equal? (car elem) 'entry)
+              ((entry? elem)
                ;(paint-entry elem))
                '())
-              ((equal? (car elem) 'pipe)
+              ((pipe? elem)
                (paint-pipe elem)))))
-        (graph-contents graph))))
+        (graph-architecture graph))))
   (visualization:layer-depth-set! 'graph 80)
 
   (visualization:do-later

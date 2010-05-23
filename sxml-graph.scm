@@ -14,7 +14,6 @@
 (import core/syntax)
 (import geometry/kernel)
 (import math/exact-algebra)
-(import math/inexact-algebra)
 
 (import visualization)
 
@@ -32,61 +31,61 @@
 
 ;;; Subgraph type
 
-(define (graph-type graph)
-  (car graph))
+(define (sxml:element-type g)
+  (car g))
 
 ;;; Is this a graph
 
-(define (graph? graph)
+(define (sxml:graph? graph)
   (equal? (graph-type graph) 'architecture))
 
 ;;; Get everything inside the graph as-is
 
-(define (graph-contents graph)
+(define (sxml:contents graph)
   ;((sxpath '(*)) graph))
-  (if (null-list? graph)
+  (if (null? graph)
       (error "You sent me a null graph. What should I do with this?")
     (cddr graph)))
 
 ;;; Get all parts of a graph that are of a specific type
 
-(define (graph-parts graph type)
+(define (sxml:parts graph type)
   ((sxpath `(,@type)) graph))
 
 ;;; Get all parts of a graph
 
-(define (graph-all-parts graph)
+(define (sxml:all-parts graph)
   ((sxpath '(*)) graph))
 
 ;;; Get all walls in the graph
 
-(define (graph-walls graph)
+(define (sxml:walls graph)
   ((sxpath '(wall)) graph))
 
 ;;; Get rooms in the graph
 
-(define (graph-rooms graph)
+(define (sxml:rooms graph)
   ((sxpath '(room)) graph))
 
 ;;; Get the pipes in the graph
 
-(define (graph-pipes graph)
+(define (sxml:pipes graph)
   ((sxpath '(pipe)) graph))
 
 ;;; Get the entrances
 
-(define (graph-entries graph)
+(define (sxml:entries graph)
   ((sxpath '(entry)) graph))
 
 ;;; Get all the structural elements in the graph
 
-(define (graph-structurals graph)
+(define (sxml:structurals graph)
   ((sxpath '(structural)) graph))
 
 ;;; Get the north direction
 
-(define (graph-north graph)
-  (make-vect2 1.0 1.0))
+(define (sxml:-north graph)
+  (make-vect2 1 1))
 
 ;-------------------------------------------------------------------------------
 ; Element references and UID
@@ -94,50 +93,50 @@
 
 ;;; Get element's uid
 
-(define (element-uid elem)
+(define (sxml:element-uid elem)
   (if (null? elem)
       (error "element-uid: Element is null")
     (cadar ((sxpath '(@ uid)) elem))))
 
 ;;; Make a list of uids contained in this subgraph
-
-(define (make-uid-list subgraph)
+;;; TODO: wall??
+(define (sxml:make-uid-list subgraph)
   ((sxpath '(wall @ uid *text*)) subgraph))
 
 ;;; Find the element with that specific uid
 
-(define (find-element/uid graph uid)
+(define (sxml:find-element/uid graph uid)
   (aif element (find
                  (lambda (e) (equal? uid (element-uid e)))
-                 (graph-walls graph)) ; TODO: generalize!!
+                 (sxml:graph-walls graph)) ; TODO: generalize!!
     element
     (begin (display "UID: ")(display uid)(newline)
            (error "Element with such UID not found"))))
 
 ;;; Get the element from a reference element (consisting only of its uid)
 
-(define (reference->element graph ref)
-  (find-element/uid graph (element-uid ref)))
+(define (sxml:reference->element graph ref)
+  (sxml:find-element/uid graph (element-uid ref)))
 
 ;;; Get the elements from a reference list
 
-(define (lreferences->lelements graph rlis)
-  (map (lambda (r) (reference->element graph r)) rlis))
+(define (sxml:lreferences->lelements graph rlis)
+  (map (lambda (r) (sxml:reference->element graph r)) rlis))
 
 ;;; Make a reference from an UID
 
-(define (uid->reference type element-uid)
+(define (sxml:uid->reference type element-uid)
   `(,type (@ (uid ,element-uid))))
 
 ;;; Make a reference from an element
 
-(define (element->reference element)
+(define (sxml:element->reference element)
   `(,(car element) (@ (uid ,(element-uid element)))))
 
 ;;; Make a reference list from an element list
 
-(define (lelements->lreferences element-list)
-  (map (lambda (e) (element->reference e)) element-list))
+(define (sxml:lelements->lreferences element-list)
+  (map (lambda (e) (sxml:element->reference e)) element-list))
 
 ;-------------------------------------------------------------------------------
 ; Points
@@ -145,19 +144,21 @@
 
 ;;; Get coordinate from point
 
-(define (archpoint-coord coordinate point)
-  (string->number (cadr (find (lambda (p) (equal? (car p) coordinate)) point))))
+(define (sxml:archpoint-coord coordinate point)
+  (inexact->exact
+   (string->number
+    (cadr (find (lambda (p) (equal? (car p) coordinate)) point)))))
 
 ;;; Get point n from point list
 
-(define (archpoint-n n pseq)
+(define (sxml:archpoint-n n pseq)
   (cdr (list-ref pseq n)))
 
 ;;; Extract the basic list of point coordinates
 
-(define (archpoint->point point)
-  (make-vect2 (archpoint-coord 'x point)
-              (archpoint-coord 'y point)))
+(define (sxml:archpoint->point point)
+  (make-vect2 (sxml:archpoint-coord 'x point)
+              (sxml:archpoint-coord 'y point)))
 
 ;-------------------------------------------------------------------------------
 ; Wall
@@ -165,44 +166,44 @@
 
 ;;; Get all wall points
 
-(define (wall-points wall)
+(define (sxml:wall-points wall)
   ((sxpath '(pt @)) wall))
 
 ;;; Get wall point n
 
-(define (wall-point-n wall n)
+(define (sxml:wall-point-n wall n)
   ((sxpath `((pt ,n) @ *)) wall))
 
 ;;; Get first wall point
 
-(define (wall-first-point wall)
+(define (sxml:wall-first-point wall)
   ((sxpath '((pt 1) @ *)) wall))
 
 ;;; Get last wall point
 
-(define (wall-last-point wall)
+(define (sxml:wall-last-point wall)
   ((sxpath '((pt 2) @ *)) wall))
 
 ;;; Convert a wall into a list of points
 
-(define (wall->pseq wall)
-  (map (lambda (p) (archpoint->point (cdr p))) (wall-points wall)))
+(define (sxml:wall->pseq wall)
+  (map (lambda (p) (sxml:archpoint->point (cdr p))) (sxml:wall-points wall)))
 
 ;;; Convert a list of walls into a list of segments
 
-(define (wall-list->pseq-list walls)
-  (map (lambda (w) (wall->pseq w)) walls))
+(define (sxml:wall-list->pseq-list walls)
+  (map (lambda (w) (sxml:wall->pseq w)) walls))
 
 ;;; Convert a point list into a wall
 
-(define (pseq->wall p-list uuid)
+(define (sxml:pseq->wall p-list uuid)
   (let* ((pa (car p-list))
          (pb (cadr p-list)))
     `(wall (@ (uid ,uuid))
-           (pt (@ (y ,(number->string (vect2-y pa)))
-                  (x ,(number->string (vect2-x pa)))))
-           (pt (@ (y ,(number->string (vect2-y pb)))
-                  (x ,(number->string (vect2-x pb))))))))
+           (pt (@ (y ,(inexact->exact (number->string (vect2-y pa))))
+                  (x ,(inexact->exact (number->string (vect2-x pa))))))
+           (pt (@ (y ,(inexact->exact (number->string (vect2-y pb))))
+                  (x ,(inexact->exact (number->string (vect2-x pb)))))))))
 
 ;-------------------------------------------------------------------------------
 ; Wall inner elements
@@ -210,29 +211,31 @@
 
 ;;; Get windows in wall
 
-(define (wall-windows wall)
+(define (sxml:wall-windows wall)
   ((sxpath '(window)) wall))
 
 ;;; Get doors in wall
 
-(define (wall-doors wall)
+(define (sxml:wall-doors wall)
   ((sxpath '(door)) wall))
 
 ;;; Get wall elements' relative points
 
-(define (wall-element-relative-points label element)
-  (string->number (car ((sxpath `(@ ,label *text*)) element))))
+(define (sxml:wall-element-relative-points label element)
+  (inexact->exact
+   (string->number
+    (car ((sxpath `(@ ,label *text*)) element)))))
 
 ;;; Calculate wall element (door, wall...) points a list
 
-(define (wall-element->pseq element wall)
-  (let ((from (wall-element-relative-points 'from element))
-        (to (wall-element-relative-points 'to element)))
-    (if (= (length (wall-points wall)) 2)
-        (let* ((Ax (archpoint-coord 'x (wall-point-n wall 1)))
-               (Ay (archpoint-coord 'y (wall-point-n wall 1)))
-               (ABx (- (archpoint-coord 'x (wall-point-n wall 2)) Ax))
-               (ABy (- (archpoint-coord 'y (wall-point-n wall 2)) Ay)))
+(define (sxml:wall-element->pseq element wall)
+  (let ((from (sxml:wall-element-relative-points 'from element))
+        (to (sxml:wall-element-relative-points 'to element)))
+    (if (= (length (sxml:wall-points wall)) 2)
+        (let* ((Ax (sxml:archpoint-coord 'x (sxml:wall-point-n wall 1)))
+               (Ay (sxml:archpoint-coord 'y (sxml:wall-point-n wall 1)))
+               (ABx (- (sxml:archpoint-coord 'x (sxml:wall-point-n wall 2)) Ax))
+               (ABy (- (sxml:archpoint-coord 'y (sxml:wall-point-n wall 2)) Ay)))
           (list (make-vect2 (+ Ax (* ABx from)) (+ Ay (* ABy from)))
                 (make-vect2 (+ Ax (* ABx to)) (+ Ay (* ABy to)))))
         (error "Error - wall element has more than 2 relative points\n"))))
@@ -244,13 +247,13 @@
 
 ;;; Calculate all wall elements point lists of the same type
 
-(define (all-wall-element-points->pseq type wall)
-  (map (lambda (e) (wall-element->pseq e wall)) ((sxpath `(,type)) wall)))
+(define (sxml:all-wall-element-points->pseq type wall)
+  (map (lambda (e) (sxml:wall-element->pseq e wall)) ((sxpath `(,type)) wall)))
 
 ;;; Calculate all wall elements point lists of the same type of all walls
 
-(define (all-wall-element-points-all-walls->pseq type graph)
-  (map (lambda (w) (all-wall-element-points->pseq type w)) (graph-walls graph)))
+(define (sxml:all-wall-element-points-all-walls->pseq type graph)
+  (map (lambda (w) (sxml:all-wall-element-points->pseq type w)) (sxml:graph-walls graph)))
 
 ;-------------------------------------------------------------------------------
 ; Room
@@ -258,17 +261,17 @@
 
 ;;; Get a wall in the room by index
 
-(define (room-wall graph room n)
-  (find-element/uid graph (cadr (list-ref ((sxpath '(wall @ uid)) room) n))))
+(define (sxml:room-wall graph room n)
+  (sxml:find-element/uid graph (cadr (list-ref ((sxpath '(wall @ uid)) room) n))))
 
 ;;; Get list of wall references in the room
 
-(define (room-wall-refs room)
+(define (sxml:room-wall-refs room)
   (cddr room))
 
 ;;; Get list of walls that belong to a room, fully described
-(define (room-walls graph room)
-  (map (lambda (r) (find-element/uid graph r)) (make-uid-list room)))
+(define (sxml:room-walls graph room)
+  (map (lambda (r) (sxml:find-element/uid graph r)) (make-uid-list room)))
 
 ;-------------------------------------------------------------------------------
 ; Pipes
@@ -276,13 +279,13 @@
 
 ;;; Get the pipe's position
 
-(define (pipe->center-position pipe)
-  (archpoint->point ((sxpath '(@ *)) pipe)))
+(define (sxml:pipe->center-position pipe)
+  (sxml:archpoint->point ((sxpath '(@ *)) pipe)))
 
 ;;; Get all centers of a pipe list
 
-(define (pipes-list->center-positions pipes-list)
-  (map (lambda (p) (pipe->center-position p)) pipes-list))
+(define (sxml:pipes-list->center-positions pipes-list)
+  (map (lambda (p) (sxml:pipe->center-position p)) pipes-list))
 
 ;-------------------------------------------------------------------------------
 ; Entry
@@ -290,15 +293,26 @@
 
 ;;; Get the entry point as a list of points corresponding to the door
 
-(define (entry->pseq graph entry)
-  (let* ((doorNumber (string->number (car ((sxpath '(@ doorNumber *text*)) entry))))
-         (wall (reference->element graph ((sxpath '(*)) entry)))
-         (doors (wall-doors wall)))
+(define (sxml:entry->pseq graph entry)
+  (let* ((doorNumber (sxml:entry-door-num entry))
+         (wall (sxml:entry-wall-uid entry))
+         (doors (sxml:wall-doors wall)))
     (if (> doorNumber (length doors))
         (error "entry->pseq entry is assigned door number that doesn't exist in the referenced wall"))
-    (wall-element->pseq
+    (sxml:wall-element->pseq
       (list-ref doors doorNumber)
       wall)))
+
+;;; Get the wall uid where the entry is
+
+(define (sxml:entry-wall-uid entry)
+  (sxml:element-uid ((sxpath '(*)) entry)))
+
+;;; Get the door number in the wall where the entry is
+
+(define (sxml:entry-door-num entry)
+  (inexact->exact
+   (string->number (car ((sxpath '(@ doorNumber *text*)) entry)))))
 
 ;-------------------------------------------------------------------------------
 ; Structure
@@ -306,11 +320,11 @@
 
 ;;; Get the structural as a list of points
 
-(define (structural->pseq graph structural)
-  (let* ((center (archpoint->point ((sxpath '(center @ *)) structural)))
+(define (sxml:structural->pseq graph structural)
+  (let* ((center (sxml:archpoint->point ((sxpath '(center @ *)) structural)))
          (dimensions ((sxpath '(dim @ *)) structural))
-         (a (string->number (cadadr dimensions)))
-         (b (string->number (cadar dimensions)))
+         (a (inexact->exact (string->number (cadadr dimensions))))
+         (b (inexact->exact (string->number (cadar dimensions))))
          (a/2 (/ a 2))
          (b/2 (/ b 2)))
     (list
