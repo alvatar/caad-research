@@ -466,7 +466,8 @@
                graph
                room
                (d (point+direction->line (vect2+
-                                          (vect2:random)
+                                        ;(vect2:random)
+                                          (make-vect2 0 0)
                                           (pseq:centroid (room->pseq graph room))) ; TODO: limit random bias
                                          (direction:perpendicular
                                           (segment->direction
@@ -475,8 +476,6 @@
                                              (find-longest-wall-in-room graph room))))))))
               ;(pp graph)
               ;(pp (wall-list->pseq-list walls))
-              (pp points)
-              (pp walls)
               (if (or (not (= 2 (length walls)))
                       (not (= 2 (length points))))
                   (error "NO BIEN"))

@@ -161,9 +161,8 @@
                          (lambda (w)
                            (intersection:line-segment
                             line
-                            (ps (pseq->segment (wall-pseq w)))))
+                            (pseq->segment (wall-pseq w))))
                          walls)))
-    (ps intersections)
     (unzip2
      (filter-map (lambda (p)
                    (and
