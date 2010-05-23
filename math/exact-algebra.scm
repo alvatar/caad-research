@@ -95,6 +95,12 @@
 (define (vect2:zero)
   (make-vect2 0 0))
 
+;;; Random exact vector (range -1 -> 1)
+
+(define (vect2:random)
+  (make-vect2 (+ -1 (* (inexact->exact (random-real)) 2))
+              (+ -1 (* (inexact->exact (random-real)) 2))))
+
 ;;; Calculate squared vector length
 
 (define (vect2:squaremagnitude vec)

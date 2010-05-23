@@ -81,8 +81,8 @@
   (let ((walls (find-room-walls graph room)))
     (fold
       (lambda (w maxw)
-        (if (< (pseq:length (wall->pseq maxw))
-               (pseq:length (wall->pseq w)))
+        (if (< (pseq:~length (wall-pseq maxw))
+               (pseq:~length (wall-pseq w)))
              w
              maxw))
       (car walls)
@@ -160,7 +160,7 @@
                          (lambda (w)
                            (intersection:line-segment
                             line
-                            (pseq->segment (wall->pseq w))))
+                            (pseq->segment (wall-pseq w))))
                          walls)))
     (pp walls)
     (pp intersections)
@@ -169,7 +169,7 @@
                    (and
                     (point? (car p))
                     (list (segment:point->relative-position
-                           (pseq->segment (wall->pseq (cadr p)))
+                           (pseq->segment (wall-pseq (cadr p)))
                            (car p))
                           (cadr p))))
 		 (zip intersections walls)))))

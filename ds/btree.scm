@@ -5,6 +5,8 @@
 ;;; Basic B-tree (unevolved)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(import ../math/exact-algebra)
+
 (define-structure btree node sibling child)
 
 ;;; Create a b-tree from a list of three elements

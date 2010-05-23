@@ -8,6 +8,7 @@
 (import (std srfi/1))
 (import (std misc/uuid))
 
+(import context)
 (import core/functional)
 (import core/list)
 (import geometry/kernel)

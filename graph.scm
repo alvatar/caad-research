@@ -85,7 +85,7 @@
           (make-structural (sxml:element-uid e)
                            (sxml:structural->pseq sxmlgraph e)))
          ((equal? type 'entry)
-          (make-entry '(sxml:entry->pseq sxmlgraph e)
+          (make-entry (sxml:entry->pseq sxmlgraph e)
                       (sxml:entry-wall-uid e)
                       (sxml:entry-door-num e)))
          ((equal? type 'pipe)

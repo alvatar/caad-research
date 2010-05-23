@@ -12,6 +12,7 @@
 (import web/parse/ssax-sxml/sxml-tools/sxpath)
 
 (import core/syntax)
+(import core/debug)
 (import geometry/kernel)
 (import math/exact-algebra)
 
@@ -84,7 +85,7 @@
 
 ;;; Get the north direction
 
-(define (sxml:-north graph)
+(define (sxml:north graph)
   (make-vect2 1 1))
 
 ;-------------------------------------------------------------------------------
@@ -103,20 +104,10 @@
 (define (sxml:make-uid-list subgraph)
   ((sxpath '(wall @ uid *text*)) subgraph))
 
-;;; Find the element with that specific uid
-
-(define (sxml:find-element/uid graph uid)
-  (aif element (find
-                 (lambda (e) (equal? uid (element-uid e)))
-                 (sxml:graph-walls graph)) ; TODO: generalize!!
-    element
-    (begin (display "UID: ")(display uid)(newline)
-           (error "Element with such UID not found"))))
-
 ;;; Get the element from a reference element (consisting only of its uid)
 
 (define (sxml:reference->element graph ref)
-  (sxml:find-element/uid graph (element-uid ref)))
+  (sxml:find-wall/uid graph (sxml:element-uid ref)))
 
 ;;; Get the elements from a reference list
 
@@ -126,12 +117,12 @@
 ;;; Make a reference from an UID
 
 (define (sxml:uid->reference type element-uid)
-  `(,type (@ (uid ,element-uid))))
+  `(,type (@ (uid ,sxml:element-uid))))
 
 ;;; Make a reference from an element
 
 (define (sxml:element->reference element)
-  `(,(car element) (@ (uid ,(element-uid element)))))
+  `(,(car element) (@ (uid ,(sxml:element-uid element)))))
 
 ;;; Make a reference list from an element list
 
@@ -205,6 +196,16 @@
            (pt (@ (y ,(inexact->exact (number->string (vect2-y pb))))
                   (x ,(inexact->exact (number->string (vect2-x pb)))))))))
 
+;;; Find the element with that specific uid
+
+(define (sxml:find-wall/uid graph uid)
+  (aif element (find
+                (lambda (e) (equal? uid (sxml:element-uid e)))
+                (sxml:walls graph))
+       element
+       (begin (display "UID: ")(display uid)(newline)
+              (error "Element with such UID not found"))))
+
 ;-------------------------------------------------------------------------------
 ; Wall inner elements
 ;-------------------------------------------------------------------------------
@@ -262,7 +263,7 @@
 ;;; Get a wall in the room by index
 
 (define (sxml:room-wall graph room n)
-  (sxml:find-element/uid graph (cadr (list-ref ((sxpath '(wall @ uid)) room) n))))
+  (sxml:find-wall/uid graph (cadr (list-ref ((sxpath '(wall @ uid)) room) n))))
 
 ;;; Get list of wall references in the room
 
@@ -271,7 +272,7 @@
 
 ;;; Get list of walls that belong to a room, fully described
 (define (sxml:room-walls graph room)
-  (map (lambda (r) (sxml:find-element/uid graph r)) (make-uid-list room)))
+  (map (lambda (r) (sxml:find-wall/uid graph r)) (make-uid-list room)))
 
 ;-------------------------------------------------------------------------------
 ; Pipes
@@ -295,13 +296,13 @@
 
 (define (sxml:entry->pseq graph entry)
   (let* ((doorNumber (sxml:entry-door-num entry))
-         (wall (sxml:entry-wall-uid entry))
+         (wall (sxml:find-wall/uid graph (sxml:entry-wall-uid entry)))
          (doors (sxml:wall-doors wall)))
     (if (> doorNumber (length doors))
         (error "entry->pseq entry is assigned door number that doesn't exist in the referenced wall"))
     (sxml:wall-element->pseq
-      (list-ref doors doorNumber)
-      wall)))
+     (list-ref doors doorNumber)
+     wall)))
 
 ;;; Get the wall uid where the entry is
 
@@ -328,7 +329,7 @@
          (a/2 (/ a 2))
          (b/2 (/ b 2)))
     (list
-      (make-vect2 (- (vect2-x center) a/2) (- (vect2-y center) b/2))
-      (make-vect2 (+ (vect2-x center) a/2) (- (vect2-y center) b/2))
-      (make-vect2 (+ (vect2-x center) a/2) (+ (vect2-y center) b/2))
-      (make-vect2 (- (vect2-x center) a/2) (+ (vect2-y center) b/2)))))
+     (make-vect2 (- (vect2-x center) a/2) (- (vect2-y center) b/2))
+     (make-vect2 (+ (vect2-x center) a/2) (- (vect2-y center) b/2))
+     (make-vect2 (+ (vect2-x center) a/2) (+ (vect2-y center) b/2))
+     (make-vect2 (- (vect2-x center) a/2) (+ (vect2-y center) b/2)))))
