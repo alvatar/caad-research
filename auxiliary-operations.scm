@@ -48,8 +48,16 @@
 (define (create-splitted-wall wall split-point-relative uuid1 uuid2)
   (let ((split-point (pseq:relative-position->point (wall-pseq wall) split-point-relative))
         (first-point (first (wall-pseq wall)))
-        (second-point (last (wall-pseq wall)))) ;; TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! NOT GOOD
-  '()))
+        (second-point (last (wall-pseq wall))))
+    (list ; TODO: make as values and use properly!!!
+     (make-wall uuid1
+                (list first-point split-point)
+                '()
+                '())
+     (make-wall uuid2
+                (list split-point second-point)
+                '()
+                '()))))
 
 ;;; Create 2 walls splitting one in a point
 
@@ -71,10 +79,15 @@
 ;;; Update refs to doors in rooms
 
 (define (update-wall-refs-in-rooms graph uid new-uids)
-  (msubst*
-    (map (lambda (u) (uid->reference 'wall u)) new-uids)
-    `(wall (@ (uid ,uid)))
-    graph))
+  (map (lambda (e)
+         (if (room? e)
+             (make-room
+              (room-uid e)
+              (append
+               (filter (lambda (w) (not (equal? w uid))) (room-walls e))
+               new-uids))
+             e))
+       graph))
 
 ;;; Try to merge into one wall if the two given are parallel
 
@@ -96,12 +109,12 @@
 ;;; Break in two lists from where a wall was found
 ;;; Warning! This assumes that rooms contain topologically connected walls
 
-(define (room-break graph room first-wall-ref second-wall-ref)
-  ; TODO: check if walls are ordered
-  (break (lambda (wall) (equal? second-wall-ref wall))
+(define (room-break graph room first-wall-uid second-wall-uid)
+                                        ; TODO: check if walls are ordered
+  (break (lambda (wall) (equal? second-wall-uid wall))
          (rotate-until-first
-           (lambda (wall) (equal? first-wall-ref wall))
-           (room-wall-refs room))))
+          (lambda (wall) (equal? first-wall-uid wall))
+          (room-walls room))))
 
 ;;; Fix order of walls in a room
 

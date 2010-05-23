@@ -7,6 +7,7 @@
 
 (import (std srfi/1))
 
+(import core/debug)
 (import core/functional)
 (import core/syntax)
 (import geometry/kernel)
@@ -160,10 +161,9 @@
                          (lambda (w)
                            (intersection:line-segment
                             line
-                            (pseq->segment (wall-pseq w))))
+                            (ps (pseq->segment (wall-pseq w)))))
                          walls)))
-    (pp walls)
-    (pp intersections)
+    (ps intersections)
     (unzip2
      (filter-map (lambda (p)
                    (and

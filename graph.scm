@@ -23,7 +23,7 @@
 ; Types
 ;-------------------------------------------------------------------------------
 
-(define-structure graph uid architecture north)
+(define-structure graph uid environment architecture)
 
 (define-structure wall uid pseq windows doors)
 
@@ -77,6 +77,7 @@
 (define (sxml-graph->graph sxmlgraph)
   (make-graph
    (sxml:element-uid sxmlgraph)
+   (list (make-direction #e1 #e1))
    (map
     (lambda (e)
       (let ((type (sxml:element-type e)))
@@ -108,8 +109,7 @@
          ((equal? type 'room)
           (make-room (sxml:element-uid e)
                      (map (lambda (w) (sxml:element-uid w)) (sxml:room-wall-refs e)))))))
-    (sxml:contents sxmlgraph))
-   (make-direction #e1 #e1)))
+    (sxml:contents sxmlgraph))))
 
 (define (graph->sxml-graph graph)
   graph)

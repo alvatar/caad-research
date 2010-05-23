@@ -380,8 +380,8 @@
 
 (define hinted-brownian-agents
   (list iteration-step-1 ; TODO: name them and generalize-externalize when possible
-        iteration-step-2
-        iteration-step-3
+        ;iteration-step-2
+        ;iteration-step-3
         iteration-step-4))
 
 ;-------------------------------------------------------------------------------
@@ -475,10 +475,11 @@
                                              (find-longest-wall-in-room graph room))))))))
               ;(pp graph)
               ;(pp (wall-list->pseq-list walls))
-              ;(pp points)
-              ;(if (or (not (= 2 (length walls)))
-                      ;(not (= 2 (length points))))
-                  ;(error "NO BIEN"))
+              (pp points)
+              (pp walls)
+              (if (or (not (= 2 (length walls)))
+                      (not (= 2 (length points))))
+                  (error "NO BIEN"))
               (make-context-tree `[,graph
                                    ()
                                    (,room
@@ -509,7 +510,7 @@
   (define (check-graph graph)
     graph) ; TODO: NEXT!
 
-  ;(pp graph)
+  (pp graph)
   (visualize-graph graph)
   (visualize-world (make-world agents '()) graph)
   (visualization:do-now)

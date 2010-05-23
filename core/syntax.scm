@@ -33,13 +33,6 @@
     ((_ condition form . forms)
      (if condition (begin form . forms) #f))))
 
-;;; Bind only one variable
-
-(define-syntax let1
-  (syntax-rules ()
-    ((_ var expr body ...)
-     (let ((var expr)) body ...))))
-
 ;;; Letcc macro (hoping and skipping)
 
 (define-syntax letcc
