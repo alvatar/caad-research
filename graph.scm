@@ -23,21 +23,21 @@
 ; Types
 ;-------------------------------------------------------------------------------
 
-(define-structure graph uid environment architecture)
+(define-type graph uid environment architecture)
 
-(define-structure wall uid pseq windows doors)
+(define-type wall uid pseq windows doors)
 
-(define-structure window pseq from to)
+(define-type window pseq from to)
 
-(define-structure door pseq from to)
+(define-type door pseq from to)
     
-(define-structure room uid walls)
+(define-type room uid walls)
 
-(define-structure structural uid pseq)
+(define-type structural uid pseq)
 
-(define-structure entry pseq wall-uid door-number)
+(define-type entry pseq wall-uid door-number)
 
-(define-structure pipe position)
+(define-type pipe position)
 
 ;-------------------------------------------------------------------------------
 ; Selectors

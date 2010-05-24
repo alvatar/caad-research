@@ -34,6 +34,10 @@
    (else
     (cons (map* f (car l)) (map* f (cdr l))))))
 
+;;; Map applying the function only to the elements satisfying predicate
+
+(define (map-if pred func l) (map (lambda (e) (if (pred e) (func e) e)) l))
+
 ;;; Recursive substitution in a list
 
 (define (subst* new old l)
