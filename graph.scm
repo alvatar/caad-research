@@ -61,13 +61,13 @@
 (define (graph:find-wall/uid graph uid)
   (aif element (find
                 (lambda (e) (equal? uid (wall-uid e)))
-                (graph:find-walls graph))
+                (graph:find-walls graph)) ; TODO: could be optimized
        element
        (begin (display "UID: ")(display uid)(newline)
               (error "Wall with such UID not found"))))
 
 ;;; TODO: memoize?
-(define (find-room-walls graph room)
+(define (graph:find-room-walls graph room)
   (map (lambda (r) (graph:find-wall/uid graph r)) (room-walls room)))
 
 ;-------------------------------------------------------------------------------

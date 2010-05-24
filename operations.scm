@@ -85,7 +85,12 @@
 ;;            element-list))
 ;;     graph))
 (define (op:remove-multiple graph le)
-  graph)
+  (make-graph
+   (graph-uid graph)
+   (graph-environment graph)
+   (remove (lambda (e)
+             (any (lambda (e2) (equal? e2 e)) le))
+           (graph-architecture graph))))
 
 ;;; Move
 
@@ -148,35 +153,35 @@
                            '()
                            '())
                          ;; Split touched walls at the splitting point (add 2 new ones)
-                         ;; (let ((create-first-splitted-wall (curry create-splitted-wall first-wall first-split-point)))
-                         ;;   (if (pseq:is-end-point?
-                         ;;        (wall-list->pseq (map (lambda (u) (graph:find-wall/uid graph u)) (cdr fore)))
-                         ;;        (first (wall-pseq first-wall)))
-                         ;;       (create-first-splitted-wall first-wall-uid-1-half first-wall-uid-2-half)
-                         ;;       (create-first-splitted-wall first-wall-uid-2-half first-wall-uid-1-half)))
-                         ;; (let ((create-second-splitted-wall (curry create-splitted-wall second-wall second-split-point)))
-                         ;;   (if (pseq:is-end-point?
-                         ;;        (wall-list->pseq (map (lambda (u) (graph:find-wall/uid graph u)) (cdr aft)))
-                         ;;        (first (wall-pseq second-wall)))
-                         ;;       (create-second-splitted-wall second-wall-uid-1-half second-wall-uid-2-half)
-                         ;;       (create-second-splitted-wall second-wall-uid-2-half second-wall-uid-1-half)))
-                         ))))
-graph/new-elements
-                 ;; (op:fix-room-topology
-                 ;;  ;; Remove touched walls
-                 ;;  (op:remove-multiple
-                 ;;   ;; Update references of rooms to old walls
-                 ;;   (update-wall-refs-in-rooms
-                 ;;    (update-wall-refs-in-rooms
-                 ;;     graph/new-elements
-                 ;;     (element-uid first-wall)
-                 ;;     (list first-wall-uid-1-half
-                 ;;           first-wall-uid-2-half))
-                 ;;    (element-uid second-wall)
-                 ;;    (list  second-wall-uid-1-half
-                 ;;           second-wall-uid-2-half))
-                 ;;   (list first-wall
-                 ;;         second-wall)))
+                         ,@(let ((create-first-splitted-wall (curry create-splitted-wall first-wall first-split-point)))
+                             (if (pseq:is-end-point?
+                                  (wall-list->pseq (map (lambda (u) (graph:find-wall/uid graph u)) (cdr fore)))
+                                  (first (wall-pseq first-wall)))
+                                 (create-first-splitted-wall first-wall-uid-1-half first-wall-uid-2-half)
+                                 (create-first-splitted-wall first-wall-uid-2-half first-wall-uid-1-half)))
+                         ,@(let ((create-second-splitted-wall (curry create-splitted-wall second-wall second-split-point)))
+                             (if (pseq:is-end-point?
+                                  (wall-list->pseq (map (lambda (u) (graph:find-wall/uid graph u)) (cdr aft)))
+                                  (first (wall-pseq second-wall)))
+                                 (create-second-splitted-wall second-wall-uid-1-half second-wall-uid-2-half)
+                                 (create-second-splitted-wall second-wall-uid-2-half second-wall-uid-1-half)))))))
+                 (op:fix-room-topology
+                  ;; Remove touched walls
+                 (op:remove-multiple
+                   ;; Update references of rooms to old walls
+                   (update-wall-refs-in-rooms
+                    (update-wall-refs-in-rooms
+                     graph/new-elements
+                     (wall-uid first-wall)
+                     (list first-wall-uid-1-half
+                           first-wall-uid-2-half))
+                    (wall-uid second-wall)
+                    (list  second-wall-uid-1-half
+                           second-wall-uid-2-half))
+                   (list first-wall
+                         second-wall)
+                   )
+                  )
                  )))))
 
 ;;; Merge two rooms
@@ -284,17 +289,15 @@ graph/new-elements
 
 ;;; Fix room topology
 
-;; (define (op:fix-room-topology graph)
-;;   (fold
-;;     (lambda (r graph)
-;;       (msubst*
-;;         (sort-room-walls graph r)
-;;         r
-;;         graph))
-;;     graph
-;;     (graph-rooms graph)))
 (define (op:fix-room-topology graph)
-  graph)
+  (make-graph
+   (graph-uid graph)
+   (graph-environment graph)
+   (map (lambda (e)
+          (if (room? e)
+              (sort-room-walls graph e)
+              e))
+        (graph-architecture graph))))
 
 ;;; Fix everything (TODO)
 

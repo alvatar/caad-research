@@ -1,4 +1,4 @@
->;;; Copyright (c) 2010 by Álvaro Castro-Castilla, All Rights Reserved.
+;;; Copyright (c) 2010 by Álvaro Castro-Castilla, All Rights Reserved.
 ;;; Licensed under the GPLv3 license, see LICENSE file for full description.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -9,6 +9,7 @@
 
 (import core/list)
 (import core/syntax)
+(import core/debug)
 (import geometry/kernel)
 (import math/exact-algebra)
 
@@ -76,18 +77,20 @@
 ;;          (pt (@ (y ,(number->string (archpoint-coord 'y second-point)))
 ;;                 (x ,(number->string (archpoint-coord 'x second-point)))))))))
 
-;;; Update refs to doors in rooms
+;;; Update refs to walls in rooms
 
 (define (update-wall-refs-in-rooms graph uid new-uids)
-  (map (lambda (e)
-         (if (room? e)
-             (make-room
-              (room-uid e)
-              (append
-               (filter (lambda (w) (not (equal? w uid))) (room-walls e))
-               new-uids))
-             e))
-       graph))
+  (make-graph
+   (graph-uid graph)
+   (graph-environment graph)
+
+   (map (lambda (e)
+          (if (room? e)
+              (make-room
+               (room-uid e)
+               (msubst* new-uids uid (room-walls e))) ; TODO: Improve, no msubst*!
+              e))
+        (graph-architecture graph))))
 
 ;;; Try to merge into one wall if the two given are parallel
 
@@ -118,9 +121,14 @@
 
 ;;; Fix order of walls in a room
 
+;; (define (sort-room-walls graph room)
+;;   `((room (@ (uid ,(element-uid room)))
+;;           ,@(lelements->lreferences (sort-wall-list-connected graph (room-walls graph room))))))
 (define (sort-room-walls graph room)
-  `((room (@ (uid ,(element-uid room)))
-          ,@(lelements->lreferences (sort-wall-list-connected graph (room-walls graph room))))))
+  (make-room (room-uid room)
+             (map (lambda (w)
+                    (wall-uid w))
+                  (sort-wall-list-connected graph (graph:find-room-walls graph room)))))
 
 ;;; Sort walls in a wall list so they are connected properly
 

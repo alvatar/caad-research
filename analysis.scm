@@ -79,7 +79,7 @@
 ;;; Find longest wall in room
 
 (define (find-longest-wall-in-room graph room)
-  (let ((walls (find-room-walls graph room)))
+  (let ((walls (graph:find-room-walls graph room)))
     (fold
       (lambda (w maxw)
         (if (< (pseq:~length (wall-pseq maxw))
@@ -146,7 +146,7 @@
 ;;; Calculate the pseq that describes a room
 
 (define (room->pseq graph room)
-  (wall-list->pseq (find-room-walls graph room))) ; First point because it's equal to last
+  (wall-list->pseq (graph:find-room-walls graph room)))
 
 ;-------------------------------------------------------------------------------
 ; Geometrical operations
@@ -156,7 +156,7 @@
 ;;; intersection points
 
 (define (room-line-intersection graph room line)
-  (let* ((walls (find-room-walls graph room))
+  (let* ((walls (graph:find-room-walls graph room))
          (intersections (map
                          (lambda (w)
                            (intersection:line-segment

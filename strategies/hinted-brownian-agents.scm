@@ -87,7 +87,7 @@
   (let* ((wall-pseq-list (map (lambda (w) (wall-pseq w)) (graph:find-walls graph)))
          (pipes-center-list (map (lambda (p) (pipe-position p)) (graph:find-pipes graph)))
          (entry-points (entry-pseq (car (graph:find-entries graph))))
-         (north (graph-north graph)))
+         (north (car (graph-environment graph))))
     (let loop ((agents (world-agents world)))
       (visualize-world (make-world agents '()) graph)
       (visualization:do-now)
@@ -380,8 +380,8 @@
 
 (define hinted-brownian-agents
   (list iteration-step-1 ; TODO: name them and generalize-externalize when possible
-        ;iteration-step-2
-        ;iteration-step-3
+        iteration-step-2
+        iteration-step-3
         iteration-step-4))
 
 ;-------------------------------------------------------------------------------
@@ -466,8 +466,8 @@
                graph
                room
                (d (point+direction->line (vect2+
-                                        ;(vect2:random)
-                                          (make-vect2 0 0)
+                                          (vect2:random)
+;                                          (make-vect2 0 0)
                                           (pseq:centroid (room->pseq graph room))) ; TODO: limit random bias
                                          (direction:perpendicular
                                           (segment->direction
@@ -510,12 +510,12 @@
     graph) ; TODO: NEXT!
 
   (pp graph)
+  ;(for-each (lambda (e) (if (or (room? e) (wall? e)) (pp e))) (graph-architecture graph))
   (visualize-graph graph)
   (visualize-world (make-world agents '()) graph)
   (visualization:do-now)
   (display "\n---------------------------\nSTEP\n")
   (visualization:forget-all)
-
   ;(step)
   ;; Iterate with new graph looking for rooms with more than one agent
   (aif next-room (find-next-room-to-partition)
