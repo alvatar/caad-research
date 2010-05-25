@@ -47,40 +47,28 @@
 ;;; satisfy each predicate. It can contain an else clause
 
 (define-syntax map-cond
-  (syntax-rules ()
-
-    #;((_ ((p f) ...) lis)
-     (map-cond "make-cond" var ((p f) ...) lis))
-    
-    ((_ ((p f) ...) l . lt)              ; init make-vars
+  (syntax-rules (else)    
+    ((_ ((p f) ...) l . lt) ; init make-vars
      (map-cond "make-vars" () ((p f) ...) () (l . lt)))
-
     ((_ "make-vars" (vars ...) ((p f) ...) (l ...) (lh . lls)) ; recur make-vars
      (map-cond "make-vars" (vars ... x) ((p f) ...) (l ... lh) lls))
-    
     ((_ "make-vars" (vars ...) ((p f) ...) (l ...) ()) ; finalize make-vars
      (map-cond "make-cond" (vars ...) ((p f) ...) (l ...)))
 
-    #;((_ "make-vars" ((p f) ...) lis)
-     (map-cond "make-vars" vars ((p f) ...) lis))
-
-#;    ((_ ((p f) ...) def lis)
-     (map-cond "make-cond" v def ((p f) ...) lis))
-
-    ((_ "make-cond" vars ((p f) ...) (l ...)) ; build cond with default else
-     (map (lambda vars (cond ((p . vars) (f . vars)) ... (else (list . vars)))) l ...))
-
-  #;  ((_ "make-cond" a def ((p f) ...) lis)
-     (map (lambda (a) (cond ((p a) (f a)) ... (else (def a)))) lis))
+    ((_ "make-cond" ?vars ((?p ?f) . ?ct) (l ...)) ; init make-cond
+     (map-cond "make-cond" ?vars ?ct (((?p . ?vars) (?f . ?vars))) (l ...)))    
+    ((_ "make-cond" ?vars ((else ?f) . ?ct) (?conds ...) (l ...)) ; catch given 'else'
+     (map-cond "make-cond-else" ?vars ?f (?conds ...) (l ...)))
+    ((_ "make-cond" ?vars ((?p ?f) . ?ct) (?conds ...) (l ...)) ; recur
+     (map-cond "make-cond" ?vars ?ct (?conds ... ((?p . ?vars) (?f . ?vars))) (l ...)))
+    ((_ "make-cond" ?vars () (?conds ...) (l ...)) ; finalize with default 'else'
+     (map (lambda ?vars (cond ?conds ... (else (list . ?vars)))) l ...))
+    
+    ((_ "make-cond-else" ?vars ?ef (?conds ...) (l ...)) ; finalize with given else
+     (map (lambda ?vars (cond ?conds ... (else (?ef . ?vars)))) l ...))
   
-    ((_ ((any ...) ...) lis)
+    ((_ ((any ...) ...) lis) ; detect wrong syntax
      (error "Syntax error: wrong number of arguments in condition"))))
-
-(expand-macro
- (map-cond (((lambda (a b) (number? a)) (lambda (p b) (+ 90 p)))
-            ((lambda (a b) (number? b)) (lambda (a b) 'do)))
-            (list 'r 0 1 2 4 'vag)
-            (list 'b 5 6 7 8 'vig)))
 
 ;;; Recursive substitution in a list
 
