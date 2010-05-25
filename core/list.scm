@@ -48,26 +48,26 @@
 
 (define-syntax map-cond
   (syntax-rules (else)    
-    ((_ ((p f) ...) l . lt) ; init make-vars
-     (map-cond "make-vars" () ((p f) ...) () (l . lt)))
-    ((_ "make-vars" (vars ...) ((p f) ...) (l ...) (lh . lls)) ; recur make-vars
-     (map-cond "make-vars" (vars ... x) ((p f) ...) (l ... lh) lls))
-    ((_ "make-vars" (vars ...) ((p f) ...) (l ...) ()) ; finalize make-vars
-     (map-cond "make-cond" (vars ...) ((p f) ...) (l ...)))
+    ((_ ((?p ?f) ...) ?l . ?lt) ; init make-vars
+     (map-cond "make-vars" () ((?p ?f) ...) () (?l . ?lt)))
+    ((_ "make-vars" (?vars ...) ((?p ?f) ...) (?l ...) (?lh . ?lls)) ; recur make-vars
+     (map-cond "make-vars" (?vars ... x) ((?p ?f) ...) (?l ... ?lh) ?lls))
+    ((_ "make-vars" (?vars ...) ((?p ?f) ...) (?l ...) ()) ; finalize make-vars
+     (map-cond "make-cond" (?vars ...) ((?p ?f) ...) (?l ...)))
 
-    ((_ "make-cond" ?vars ((?p ?f) . ?ct) (l ...)) ; init make-cond
-     (map-cond "make-cond" ?vars ?ct (((?p . ?vars) (?f . ?vars))) (l ...)))    
-    ((_ "make-cond" ?vars ((else ?f) . ?ct) (?conds ...) (l ...)) ; catch given 'else'
-     (map-cond "make-cond-else" ?vars ?f (?conds ...) (l ...)))
-    ((_ "make-cond" ?vars ((?p ?f) . ?ct) (?conds ...) (l ...)) ; recur
-     (map-cond "make-cond" ?vars ?ct (?conds ... ((?p . ?vars) (?f . ?vars))) (l ...)))
-    ((_ "make-cond" ?vars () (?conds ...) (l ...)) ; finalize with default 'else'
-     (map (lambda ?vars (cond ?conds ... (else (list . ?vars)))) l ...))
+    ((_ "make-cond" ?vars ((?p ?f) . ?ct) (?l ...)) ; init make-cond
+     (map-cond "make-cond" ?vars ?ct (((?p . ?vars) (?f . ?vars))) (?l ...)))    
+    ((_ "make-cond" ?vars ((else ?f) . ?ct) (?conds ...) (?l ...)) ; catch given 'else'
+     (map-cond "make-cond-else" ?vars ?f (?conds ...) (?l ...)))
+    ((_ "make-cond" ?vars ((?p ?f) . ?ct) (?conds ...) (?l ...)) ; recur
+     (map-cond "make-cond" ?vars ?ct (?conds ... ((?p . ?vars) (?f . ?vars))) (?l ...)))
+    ((_ "make-cond" ?vars () (?conds ...) (?l ...)) ; finalize with default 'else'
+     (map (lambda ?vars (cond ?conds ... (else (list . ?vars)))) ?l ...))
     
-    ((_ "make-cond-else" ?vars ?ef (?conds ...) (l ...)) ; finalize with given else
-     (map (lambda ?vars (cond ?conds ... (else (?ef . ?vars)))) l ...))
+    ((_ "make-cond-else" ?vars ?ef (?conds ...) (?l ...)) ; finalize with given else
+     (map (lambda ?vars (cond ?conds ... (else (?ef . ?vars)))) ?l ...))
   
-    ((_ ((any ...) ...) lis) ; detect wrong syntax
+    ((_ ((any ...) ...) thing) ; detect wrong syntax
      (error "Syntax error: wrong number of arguments in condition"))))
 
 ;;; Recursive substitution in a list
