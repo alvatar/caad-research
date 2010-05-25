@@ -53,16 +53,16 @@
 ;-------------------------------------------------------------------------------
 
 ;;; TODO
-    (define (find-walls/point graph point)
-      (define (iter wall-list connected-walls)
-        (if (null? wall-list)
-            connected-walls
-          (iter
-            (cdr wall-list)
-            (if (is-end-point? (wall->pseq (car wall-list)) point)
-                (append connected-walls (list (car wall-list)))
-              connected-walls))))
-      (iter (graph:find-walls graph) '()))
+;; (define (find-walls/point graph point)
+;;   (define (iter wall-list connected-walls)
+;;     (if (null? wall-list)
+;;         connected-walls
+;;         (iter
+;;          (cdr wall-list)
+;;          (if (is-end-point? (wall->pseq (car wall-list)) point)
+;;              (append connected-walls (list (car wall-list)))
+;;              connected-walls))))
+;;   (iter (graph:find-walls graph) '()))
 
 ;;; Find walls connected to a given one
 

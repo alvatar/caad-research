@@ -36,7 +36,51 @@
 
 ;;; Map applying the function only to the elements satisfying predicate
 
-(define (map-if pred func l) (map (lambda (e) (if (pred e) (func e) e)) l))
+(define-syntax map-if
+  (syntax-rules ()
+    ((_ p f l)
+     (map (lambda (e) (if (p e) (f e) e)) l))
+    ((_ p ft ff l)
+     (map (lambda (e) (if (p e) (ft e) (ff e))) l))))
+		 
+;;; Map and cond combined: maps applying a function to the elements that
+;;; satisfy each predicate. It can contain an else clause
+
+(define-syntax map-cond
+  (syntax-rules ()
+
+    #;((_ ((p f) ...) lis)
+     (map-cond "make-cond" var ((p f) ...) lis))
+    
+    ((_ ((p f) ...) l . lt)              ; init make-vars
+     (map-cond "make-vars" () ((p f) ...) () (l . lt)))
+
+    ((_ "make-vars" (vars ...) ((p f) ...) (l ...) (lh . lls)) ; recur make-vars
+     (map-cond "make-vars" (vars ... x) ((p f) ...) (l ... lh) lls))
+    
+    ((_ "make-vars" (vars ...) ((p f) ...) (l ...) ()) ; finalize make-vars
+     (map-cond "make-cond" (vars ...) ((p f) ...) (l ...)))
+
+    #;((_ "make-vars" ((p f) ...) lis)
+     (map-cond "make-vars" vars ((p f) ...) lis))
+
+#;    ((_ ((p f) ...) def lis)
+     (map-cond "make-cond" v def ((p f) ...) lis))
+
+    ((_ "make-cond" vars ((p f) ...) (l ...)) ; build cond with default else
+     (map (lambda vars (cond ((p . vars) (f . vars)) ... (else (list . vars)))) l ...))
+
+  #;  ((_ "make-cond" a def ((p f) ...) lis)
+     (map (lambda (a) (cond ((p a) (f a)) ... (else (def a)))) lis))
+  
+    ((_ ((any ...) ...) lis)
+     (error "Syntax error: wrong number of arguments in condition"))))
+
+(expand-macro
+ (map-cond (((lambda (a b) (number? a)) (lambda (p b) (+ 90 p)))
+            ((lambda (a b) (number? b)) (lambda (a b) 'do)))
+            (list 'r 0 1 2 4 'vag)
+            (list 'b 5 6 7 8 'vig)))
 
 ;;; Recursive substitution in a list
 
