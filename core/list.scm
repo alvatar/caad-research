@@ -51,10 +51,15 @@
   (syntax-rules (else)
     ((_ (?vars ...) ((?p ?f) ...) ?l ...) ; entry for explicit vars case
      (map-cond "make-explicit-vars-init" (?vars ...) ((?p ?f) ...) ?l ... ))
+    ((_ "make-explicit-vars-init" (?vars ...) ((else (?f ...)) . ?ct) ?l ...) ; error: else is first
+     (error "Syntax error: else clause can't be first"))
     ((_ "make-explicit-vars-init" (?vars ...) (((?p ...) (?f ...)) . ?ct) ?l ...) ; init make-explicit-vars
      (map-cond "make-explicit-vars" (?vars ...) ?ct (((?p ...) (?f ...))) (?l ...)))
-    ((_ "make-explicit-vars" (?vars ...) ((else ?f . ?ft) . ?ct) (?conds ...) (?l ...)) ; catch given 'else'
+
+    ((_ "make-explicit-vars" (?vars ...) ((else ?f . ?ft)) (?conds ...) (?l ...)) ; catch given 'else'
      (map-cond "make-explicit-vars-else" (?vars ...) (?f . ?ft) (?conds ...) (?l ...)))
+    ((_ "make-explicit-vars" (?vars ...) ((else ?f . ?ft) . ?ct) (?conds ...) (?l ...)) ; error: else is not last
+     (error "Syntax error: else clause must be last"))
     ((_ "make-explicit-vars" (?vars ...) (((?p ...) (?f ...)) . ?ct) (?conds ...) (?l ...)) ; recur make-explicit-vars
      (map-cond "make-explicit-vars" (?vars ...) ?ct (?conds ... ((?p ...) (?f ...))) (?l ...)))
     ((_ "make-explicit-vars" (?vars ...) () (?conds ...) (?l ...)) ; finalize with default 'else'
@@ -69,17 +74,21 @@
     ((_ "make-vars" (?vars ...) ((?p ?f) ...) (?l ...) ()) ; finalize make-vars
      (map-cond "make-cond" (?vars ...) ((?p ?f) ...) (?l ...)))
 
+    ((_ "make-cond" ?vars ((else ?f) . ?ct) (?l ...)) ; error: else is first
+     (error "Syntax error: else clause can't be first"))
     ((_ "make-cond" ?vars ((?p ?f) . ?ct) (?l ...)) ; init make-cond
      (map-cond "make-cond" ?vars ?ct (((?p . ?vars) (?f . ?vars))) (?l ...)))    
-    ((_ "make-cond" ?vars ((else ?f) . ?ct) (?conds ...) (?l ...)) ; catch given 'else' in make-cond
+    ((_ "make-cond" ?vars ((else ?f)) (?conds ...) (?l ...)) ; catch given 'else' in make-cond
      (map-cond "make-cond-else" ?vars ?f (?conds ...) (?l ...)))
+    ((_ "make-cond" ?vars ((else ?f) . ?ct) (?conds ...) (?l ...)) ; error: else is not last
+     (error "Syntax error: else clause must be last"))
     ((_ "make-cond" ?vars ((?p ?f) . ?ct) (?conds ...) (?l ...)) ; recur make-cond
      (map-cond "make-cond" ?vars ?ct (?conds ... ((?p . ?vars) (?f . ?vars))) (?l ...)))
     ((_ "make-cond" ?vars () (?conds ...) (?l ...)) ; finalize make-cond with default 'else'
      (map (lambda ?vars (cond ?conds ... (else (list . ?vars)))) ?l ...))
     ((_ "make-cond-else" ?vars ?ef (?conds ...) (?l ...)) ; finalize with given else
      (map (lambda ?vars (cond ?conds ... (else (?ef . ?vars)))) ?l ...))
-  
+
     ((_ ((any ...) ...) thing) ; detect wrong syntax
      (error "Syntax error: wrong number of arguments in condition"))))
 
