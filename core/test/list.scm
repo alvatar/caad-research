@@ -9,8 +9,27 @@
 (import ../list)
 
 ;-------------------------------------------------------------------------------
-(test-begin "list")
+(test-begin "list" 4)
 ;-------------------------------------------------------------------------------
+
+(test-equal
+  "map-cond with given identifiers and default 'else'"
+  (map-cond (a b)
+  			(((number? b) (* a b))
+             ((or (string? a) (string? b)) 'one-string))
+			(list 'r 1 2 3 4 0)
+			(list 'b 4 5 6 7 'r))
+  (list (list 'r 'b) 4 10 18 28 (list 0 'r)))
+
+(test-equal
+  "map-cond with given identifiers and given 'else'"
+  (map-cond (a b)
+			(((number? b) (* a b))
+             ((or (string? a) (string? b)) 'one-string)
+			 (else a))
+            (list 'r 1 2 3 4 0)
+            (list 'b 4 5 6 7 "s"))
+  (list 'r 4 10 18 28 'one-string))
 
 (test-equal
   "map-cond without else clause"

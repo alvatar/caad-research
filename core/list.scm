@@ -47,8 +47,21 @@
 ;;; satisfy each predicate. It can contain an else clause
 
 (define-syntax map-cond
-  (syntax-rules (else)    
-    ((_ ((?p ?f) ...) ?l . ?lt) ; init make-vars
+  (syntax-rules (else)
+    ((_ (?vars ...) ((?p ?f) ...) ?l ...) ; entry for explicit vars case
+     (map-cond "make-explicit-vars-init" (?vars ...) ((?p ?f) ...) ?l ... ))
+    ((_ "make-explicit-vars-init" (?vars ...) (((?p ...) (?f ...)) . ?ct) ?l ...) ; init make-explicit-vars
+     (map-cond "make-explicit-vars" (?vars ...) ?ct (((?p ...) (?f ...))) (?l ...)))
+    ((_ "make-explicit-vars" (?vars ...) ((else ?f . ?ft) . ?ct) (?conds ...) (?l ...)) ; catch given 'else'
+     (map-cond "make-explicit-vars-else" (?vars ...) (?f . ?ft) (?conds ...) (?l ...)))
+    ((_ "make-explicit-vars" (?vars ...) (((?p ...) (?f ...)) . ?ct) (?conds ...) (?l ...)) ; recur make-explicit-vars
+     (map-cond "make-explicit-vars" (?vars ...) ?ct (?conds ... ((?p ...) (?f ...))) (?l ...)))
+    ((_ "make-explicit-vars" (?vars ...) () (?conds ...) (?l ...)) ; finalize with default 'else
+     (map (lambda (?vars ...) (cond ?conds ... (else (list ?vars ...)))) ?l ...))
+    ((_ "make-explicit-vars-else" (?vars ...) (?ef ...) (?conds ...) (?l ...)) ; finalize with given 'else'
+     (map (lambda (?vars ...) (cond ?conds ... (else ?ef ...))) ?l ...))
+
+    ((_ ((?p ?f) ...) ?l . ?lt) ; entry for given vars case
      (map-cond "make-vars" () ((?p ?f) ...) () (?l . ?lt)))
     ((_ "make-vars" (?vars ...) ((?p ?f) ...) (?l ...) (?lh . ?lls)) ; recur make-vars
      (map-cond "make-vars" (?vars ... x) ((?p ?f) ...) (?l ... ?lh) ?lls))
@@ -57,13 +70,12 @@
 
     ((_ "make-cond" ?vars ((?p ?f) . ?ct) (?l ...)) ; init make-cond
      (map-cond "make-cond" ?vars ?ct (((?p . ?vars) (?f . ?vars))) (?l ...)))    
-    ((_ "make-cond" ?vars ((else ?f) . ?ct) (?conds ...) (?l ...)) ; catch given 'else'
+    ((_ "make-cond" ?vars ((else ?f) . ?ct) (?conds ...) (?l ...)) ; catch given 'else' in make-cond
      (map-cond "make-cond-else" ?vars ?f (?conds ...) (?l ...)))
-    ((_ "make-cond" ?vars ((?p ?f) . ?ct) (?conds ...) (?l ...)) ; recur
+    ((_ "make-cond" ?vars ((?p ?f) . ?ct) (?conds ...) (?l ...)) ; recur make-cond
      (map-cond "make-cond" ?vars ?ct (?conds ... ((?p . ?vars) (?f . ?vars))) (?l ...)))
-    ((_ "make-cond" ?vars () (?conds ...) (?l ...)) ; finalize with default 'else'
+    ((_ "make-cond" ?vars () (?conds ...) (?l ...)) ; finalize make-cond with default 'else'
      (map (lambda ?vars (cond ?conds ... (else (list . ?vars)))) ?l ...))
-    
     ((_ "make-cond-else" ?vars ?ef (?conds ...) (?l ...)) ; finalize with given else
      (map (lambda ?vars (cond ?conds ... (else (?ef . ?vars)))) ?l ...))
   
