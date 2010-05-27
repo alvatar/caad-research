@@ -9,8 +9,15 @@
 (import ../list)
 
 ;-------------------------------------------------------------------------------
-(test-begin "list" 4)
+(test-begin "list" 5)
 ;-------------------------------------------------------------------------------
+
+(test-equal
+  "map-cond with only one list"
+  (map-cond ((number? number->string)
+			 (else string?))
+			(list "a" 'b 0 1 2 'z 6))
+  (list #t #f "0" "1" "2" #f "6"))
 
 (test-equal
   "map-cond with given identifiers and default 'else'"

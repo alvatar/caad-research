@@ -45,6 +45,7 @@
 		 
 ;;; Map and cond combined: maps applying a function to the elements that
 ;;; satisfy each predicate. It can contain an else clause
+;;; TODO: what happens if else is not at the end of the list?
 
 (define-syntax map-cond
   (syntax-rules (else)
@@ -56,7 +57,7 @@
      (map-cond "make-explicit-vars-else" (?vars ...) (?f . ?ft) (?conds ...) (?l ...)))
     ((_ "make-explicit-vars" (?vars ...) (((?p ...) (?f ...)) . ?ct) (?conds ...) (?l ...)) ; recur make-explicit-vars
      (map-cond "make-explicit-vars" (?vars ...) ?ct (?conds ... ((?p ...) (?f ...))) (?l ...)))
-    ((_ "make-explicit-vars" (?vars ...) () (?conds ...) (?l ...)) ; finalize with default 'else
+    ((_ "make-explicit-vars" (?vars ...) () (?conds ...) (?l ...)) ; finalize with default 'else'
      (map (lambda (?vars ...) (cond ?conds ... (else (list ?vars ...)))) ?l ...))
     ((_ "make-explicit-vars-else" (?vars ...) (?ef ...) (?conds ...) (?l ...)) ; finalize with given 'else'
      (map (lambda (?vars ...) (cond ?conds ... (else ?ef ...))) ?l ...))
