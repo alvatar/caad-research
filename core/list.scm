@@ -72,11 +72,11 @@
     ((_ "make-vars" (?vars ...) ((?p ?f) ...) (?l ...) (?lh . ?lls)) ; recur make-vars
      (map-cond "make-vars" (?vars ... x) ((?p ?f) ...) (?l ... ?lh) ?lls))
     ((_ "make-vars" (?vars ...) ((?p ?f) ...) (?l ...) ()) ; finalize make-vars
-     (map-cond "make-cond" (?vars ...) ((?p ?f) ...) (?l ...)))
+     (map-cond "make-cond-init" (?vars ...) ((?p ?f) ...) (?l ...)))
 
-    ((_ "make-cond" ?vars ((else ?f) . ?ct) (?l ...)) ; error: else is first
+    ((_ "make-cond-init" ?vars ((else ?f) . ?ct) (?l ...)) ; error: else is first
      (error "Syntax error: else clause can't be first"))
-    ((_ "make-cond" ?vars ((?p ?f) . ?ct) (?l ...)) ; init make-cond
+    ((_ "make-cond-init" ?vars ((?p ?f) . ?ct) (?l ...)) ; init make-cond
      (map-cond "make-cond" ?vars ?ct (((?p . ?vars) (?f . ?vars))) (?l ...)))    
     ((_ "make-cond" ?vars ((else ?f)) (?conds ...) (?l ...)) ; catch given 'else' in make-cond
      (map-cond "make-cond-else" ?vars ?f (?conds ...) (?l ...)))
