@@ -47,7 +47,7 @@
 ;;; Takes the biggest room as context
 
 (define (biggest-room graph)
-  (let ((rooms-list (rooms-in-graph graph)))
+  (let ((rooms-list (graph:find-rooms graph)))
     (if
      (null? rooms-list)
      '()
