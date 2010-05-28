@@ -12,9 +12,8 @@
 (import web/parse/ssax-sxml/sxml-tools/sxpath)
 
 (import core/syntax)
+(import core/list-records)
 (import geometry/kernel)
-;(import math/exact-algebra)
-;(import math/inexact-algebra)
 (import sxml-graph)
 
 (import visualization)
@@ -23,21 +22,66 @@
 ; Types
 ;-------------------------------------------------------------------------------
 
-(define-type graph uid environment architecture)
+;; (define-type graph uid environment architecture)
+(define-list-record-type graph
+  (make-graph uid environment architecture)
+  graph?
+  (uid graph-uid)
+  (environment graph-environment)
+  (architecture graph-architecture))
 
-(define-type wall uid pseq windows doors)
+;; (define-type wall uid pseq windows doors)
+(define-list-record-type wall
+  (make-wall uid pseq windows doors)
+  wall?
+  (uid wall-uid)
+  (pseq wall-pseq)
+  (windows wall-windows)
+  (doors wall-doors))
 
-(define-type window pseq from to)
+;; (define-type window pseq from to)
+(define-list-record-type window
+  (make-window pseq from to)
+  windows?
+  (pseq window-pseq)
+  (from window-from)
+  (to window-to))
 
-(define-type door pseq from to)
+;; (define-type door pseq from to)
+(define-list-record-type door
+  (make-door pseq from to)
+  door?
+  (pseq door-pseq)
+  (from door-from)
+  (to door-to))
     
-(define-type room uid walls)
+;; (define-type room uid walls)
+(define-list-record-type room
+  (make-room uid walls)
+  room?
+  (uid room-uid)
+  (walls room-walls))
 
-(define-type structural uid pseq)
+;; (define-type structural uid pseq)
+(define-list-record-type structural
+  (make-structural uid pseq)
+  structural?
+  (uid structural-uid)
+  (pseq structural-pseq))
 
-(define-type entry pseq wall-uid door-number)
+;; (define-type entry pseq wall-uid door-number)
+(define-list-record-type entry
+  (make-entry pseq wall-uid door-number)
+  entry?
+  (pseq entry-pseq)
+  (wall-uid entry-wall-uid)
+  (door-number entry-door-number))
 
-(define-type pipe position)
+;; (define-type pipe position)
+(define-list-record-type pipe
+  (make-pipe position)
+  pipe?
+  (position pipe-position))
 
 ;-------------------------------------------------------------------------------
 ; Selectors
@@ -60,8 +104,8 @@
 
 (define (graph:find-wall/uid graph uid)
   (aif element (find
-                (lambda (e) (equal? uid (wall-uid e)))
-                (graph:find-walls graph)) ; TODO: could be optimized
+                (lambda (e) (and (wall? e) (equal? uid (wall-uid e))))
+                (graph-architecture graph))
        element
        (begin (display "UID: ")(display uid)(newline)
               (error "Wall with such UID not found"))))
@@ -73,6 +117,8 @@
 ;-------------------------------------------------------------------------------
 ; Sxml-grap / graph conversion
 ;-------------------------------------------------------------------------------
+
+;;; SXML to graph conversion
 
 (define (sxml-graph->graph sxmlgraph)
   (make-graph
@@ -110,6 +156,8 @@
           (make-room (sxml:element-uid e)
                      (map (lambda (w) (sxml:element-uid w)) (sxml:room-wall-refs e)))))))
     (sxml:contents sxmlgraph))))
+
+;;; Graph to SXML conversion
 
 (define (graph->sxml-graph graph)
   graph)
