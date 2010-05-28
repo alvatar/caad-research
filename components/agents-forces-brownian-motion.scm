@@ -7,13 +7,13 @@
 
 (import (std srfi/1))
 
-(import ../../core/debug)
-(import ../../core/syntax)
-(import ../../geometry/kernel)
-(import ../../math/exact-algebra)
-(import ../../generation-elements)
-(import ../../graph)
-(import ../../visualization)
+(import ../core/debug)
+(import ../core/syntax)
+(import ../geometry/kernel)
+(import ../math/exact-algebra)
+(import ../generation-elements)
+(import ../graph)
+(import ../visualization)
 (import element-interactions)
 
 (define (agents-forces-brownian-motion graph world)

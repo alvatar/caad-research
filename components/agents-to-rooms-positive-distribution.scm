@@ -8,21 +8,21 @@
 
 (import (std srfi/1))
 
-(import ../../core/debug)
-(import ../../core/syntax)
-(import ../../geometry/kernel)
-(import ../../geometry/generation)
-(import ../../math/exact-algebra)
-(import ../../math/inexact-algebra) ; TODO: Could be removed!
+(import ../core/debug)
+(import ../core/syntax)
+(import ../geometry/kernel)
+(import ../geometry/generation)
+(import ../math/exact-algebra)
+(import ../math/inexact-algebra) ; TODO: Could be removed!
 
-(import ../../auxiliary-operations)
-(import ../../context)
-(import ../../generation-elements)
-(import ../../graph)
-(import ../../graph-visualization)
-(import ../../operations)
-(import ../../output)
-(import ../../visualization)
+(import ../auxiliary-operations)
+(import ../context)
+(import ../generation-elements)
+(import ../graph)
+(import ../graph-visualization)
+(import ../operations)
+(import ../output)
+(import ../visualization)
 
 
 (define (agents-to-rooms-positive-distribution graph world)

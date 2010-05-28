@@ -9,7 +9,7 @@
 
 (import graph)
 (import generation-elements)
-(import strategies/hinted-brownian-agents)
+(import strategies)
 
 ;-------------------------------------------------------------------------------
 ; General procedures

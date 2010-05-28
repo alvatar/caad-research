@@ -7,15 +7,15 @@
 
 (import (std srfi/1))
 
-(import ../../core/debug)
-(import ../../core/syntax)
-(import ../../geometry/kernel)
-(import ../../auxiliary-operations)
-(import ../../math/exact-algebra)
-(import ../../math/inexact-algebra)
-(import ../../generation-elements)
-(import ../../graph)
-(import ../../visualization)
+(import ../core/debug)
+(import ../core/syntax)
+(import ../geometry/kernel)
+(import ../auxiliary-operations)
+(import ../math/exact-algebra)
+(import ../math/inexact-algebra)
+(import ../generation-elements)
+(import ../graph)
+(import ../visualization)
 (import element-interactions)
 
 
