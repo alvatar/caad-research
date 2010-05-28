@@ -11,7 +11,7 @@
 (import ../../geometry/generation)
 (import ../../math/exact-algebra)
 (import ../../generation-elements)
-(import ../../analysis)
+(import ../../auxiliary-operations)
 (import ../../graph)
 (import ../../operations)
 

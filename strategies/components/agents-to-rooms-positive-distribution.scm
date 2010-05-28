@@ -15,7 +15,7 @@
 (import ../../math/exact-algebra)
 (import ../../math/inexact-algebra) ; TODO: Could be removed!
 
-(import ../../analysis)
+(import ../../auxiliary-operations)
 (import ../../context)
 (import ../../generation-elements)
 (import ../../graph)

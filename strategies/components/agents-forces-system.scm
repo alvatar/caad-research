@@ -10,7 +10,7 @@
 (import ../../core/debug)
 (import ../../core/syntax)
 (import ../../geometry/kernel)
-(import ../../analysis)
+(import ../../auxiliary-operations)
 (import ../../math/exact-algebra)
 (import ../../math/inexact-algebra)
 (import ../../generation-elements)

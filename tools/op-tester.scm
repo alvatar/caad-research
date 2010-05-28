@@ -21,7 +21,6 @@
 (import ../core/list)
 (import ../geometry/kernel)
 (import ../math/exact-algebra)
-(import ../analysis)
 (import ../auxiliary-operations)
 
 

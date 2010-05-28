@@ -10,7 +10,7 @@
 (import math/exact-algebra)
 (import geometry/kernel)
 
-(import analysis)
+(import auxiliary-operations)
 ;(import fields-2d)
 (import graph)
 (import visualization)
