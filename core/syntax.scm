@@ -33,6 +33,13 @@
     ((_ condition form . forms)
      (if condition (begin form . forms) #f))))
 
+;;; Unless
+
+(define-syntax unless
+  (syntax-rules ()
+    ((_ test consequent)
+     (if (not test) consequent))))
+
 ;;; Letcc macro (hoping and skipping)
 
 (define-syntax letcc
