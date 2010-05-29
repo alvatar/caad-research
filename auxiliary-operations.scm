@@ -7,11 +7,10 @@
 
 (import (std srfi/1))
 
-(import core/debug)
 (import core/list)
 (import core/functional)
 (import core/syntax)
-(import core/debug)
+(import dev/debugging)
 (import geometry/kernel)
 (import math/exact-algebra)
 (import math/inexact-algebra)

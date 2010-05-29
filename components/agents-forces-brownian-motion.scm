@@ -7,12 +7,12 @@
 
 (import (std srfi/1))
 
-(import ../core/debug)
 (import ../core/syntax)
-(import ../geometry/kernel)
-(import ../math/exact-algebra)
+(import ../dev/debugging)
 (import ../generation-elements)
+(import ../geometry/kernel)
 (import ../graph)
+(import ../math/exact-algebra)
 (import ../visualization)
 (import element-interactions)
 

@@ -8,18 +8,17 @@
 
 (import (std srfi/1))
 
-(import ../core/debug)
-(import ../core/syntax)
-(import ../geometry/kernel)
-(import ../geometry/generation)
-(import ../math/exact-algebra)
-(import ../math/inexact-algebra) ; TODO: Could be removed!
-
 (import ../auxiliary-operations)
 (import ../context)
+(import ../core/syntax)
+(import ../dev/debugging)
 (import ../generation-elements)
+(import ../geometry/kernel)
+(import ../geometry/generation)
 (import ../graph)
 (import ../graph-visualization)
+(import ../math/exact-algebra)
+(import ../math/inexact-algebra) ; TODO: Could be removed!
 (import ../operations)
 (import ../output)
 (import ../visualization)
