@@ -11,13 +11,14 @@
   (lambda (x)
     (and (not (pair? x)) (not (null? x)))))
 
-;;; notnull?
+;;; not null?
 
-(define notnull?
-  (lambda (x)
-    (not (null? x))))
+(define-syntax not-null?
+  (syntax-rules ()
+    ((_ l)
+     (not (null? l)))))
 
-;;; snoc
+;;; snoc (always prefer the use of cons)
 
 (define snoc
   (lambda (ls x)

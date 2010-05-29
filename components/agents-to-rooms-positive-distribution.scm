@@ -26,23 +26,23 @@
 
 (define (agents-to-rooms-positive-distribution graph world)
   (let
-    ((new-graph
-       graph))
-       ;(graph-regeneration-from-agents graph (world-agents world))))
-(graph-regeneration-from-agents graph (world-agents world))
-     ;(visualization:forget-all)
-     ;(pp new-graph)
-     ;(time (visualize-graph new-graph))
-     ;(visualization:do-now)
-     ;(visualize-world world new-graph)
-     (display "REGENERATION DONE\n")
-     (step)
+      ((new-graph
+        graph))
+                                        ;(graph-regeneration-from-agents graph (world-agents world))))
+    (graph-regeneration-from-agents graph (world-agents world))
+                                        ;(visualization:forget-all)
+                                        ;(pp new-graph)
+                                        ;(time (visualize-graph new-graph))
+                                        ;(visualization:do-now)
+                                        ;(visualize-world world new-graph)
+    (display "REGENERATION DONE\n")
+    (step)
 
-     (values
-       new-graph
-       (make-world 
-         (world-agents world)
-         (world-fields world)))))
+    (values
+     new-graph
+     (make-world 
+      (world-agents world)
+      (world-fields world)))))
 
 
 (define (graph-regeneration-from-agents graph agents)
@@ -66,28 +66,28 @@
 
   (define (agents-in-room r)
     (filter
-      (lambda (a)
-        (every
-          (lambda (p)
-            (pseq:point-inside? (room-pseq graph r) p))
-          (agent-positions a))) ; TODO: wrong! if an agent is between two rooms, what to do?
-       agents))
+     (lambda (a)
+       (every
+        (lambda (p)
+          (pseq:point-inside? (room-pseq graph r) p))
+        (agent-positions a))) ; TODO: wrong! if an agent is between two rooms, what to do?
+     agents))
 
   (define (num-agents-in-room r)
     (let ((pol (room->pseq graph r)))
       (fold
-        (lambda (a num)
-          (if (pseq:point-inside? pol (agent-head-position a))
-              (add1 num)
-            num))
-        0
-        agents)))
+       (lambda (a num)
+         (if (pseq:point-inside? pol (agent-head-position a))
+             (add1 num)
+             num))
+       0
+       agents)))
 
   (define (find-next-room-to-partition)
     (find
-      (lambda (r)
-        (> (num-agents-in-room r) 1))
-      (graph:find-rooms graph)))
+     (lambda (r)
+       (> (num-agents-in-room r) 1))
+     (graph:find-rooms graph)))
   
   (define (line->segment line)
     (cond
@@ -113,7 +113,7 @@
        (visualization:paint-set-line-width backend .1)
        (visualization:paint-path backend (segment->pseq (line->segment line)))))
     (visualization:layer-depth-set! 'debug-aids 81)
-    ;(visualization:do-now)
+                                        ;(visualization:do-now)
     line)
 
   (define (make-partition-in-graph room)
@@ -124,15 +124,15 @@
                room
                (d (point+direction->line (vect2+
                                           (vect2:random)
-;                                          (make-vect2 0 0)
+                                        ;                                          (make-vect2 0 0)
                                           (pseq:centroid (room->pseq graph room))) ; TODO: limit random bias
                                          (direction:perpendicular
                                           (segment->direction
                                            (pseq->segment
                                             (wall-pseq
                                              (find-longest-wall-in-room graph room))))))))
-              ;(pp graph)
-              ;(pp (wall-list->pseq-list walls))
+                                        ;(pp graph)
+                                        ;(pp (wall-list->pseq-list walls))
               (if (or (not (= 2 (length walls)))
                       (not (= 2 (length points))))
                   (error "NO BIEN"))
@@ -149,34 +149,34 @@
                                      (,(car points)
                                       ()
                                       ())))]))))
-        ;; (make-context-tree `[,graph
-        ;;                       ()
-        ;;                       (,room
-        ;;                         ()
-        ;;                         (,(room-wall graph room 1);(car walls)
-        ;;                          (,(room-wall graph room 3);(cadr walls)
-        ;;                           ()
-        ;;                           (,(random-real);(cadr points)
-        ;;                             ()
-        ;;                             ()))
-        ;;                          (,(random-real);(car points)
-        ;;                            ()
-        ;;                            ())))])))
+  ;; (make-context-tree `[,graph
+  ;;                       ()
+  ;;                       (,room
+  ;;                         ()
+  ;;                         (,(room-wall graph room 1);(car walls)
+  ;;                          (,(room-wall graph room 3);(cadr walls)
+  ;;                           ()
+  ;;                           (,(random-real);(cadr points)
+  ;;                             ()
+  ;;                             ()))
+  ;;                          (,(random-real);(car points)
+  ;;                            ()
+  ;;                            ())))])))
 
   (define (check-graph graph)
-    graph) ; TODO: NEXT!
+    graph)                              ; TODO: NEXT!
 
   (pp graph)
-  ;(for-each (lambda (e) (if (or (room? e) (wall? e)) (pp e))) (graph-architecture graph))
+                                        ;(for-each (lambda (e) (if (or (room? e) (wall? e)) (pp e))) (graph-architecture graph))
   (visualize-graph graph)
   (visualize-world (make-world agents '()) graph)
   (visualization:do-now)
   (display "\n---------------------------\nSTEP\n")
   (visualization:forget-all)
-  ;(step)
+                                        ;(step)
   ;; Iterate with new graph looking for rooms with more than one agent
   (aif next-room (find-next-room-to-partition)
-    (aif new-graph (check-graph (make-partition-in-graph next-room))
-      (graph-regeneration-from-agents new-graph agents)
-      (graph-regeneration-from-agents graph agents))
-    graph))
+       (aif new-graph (check-graph (make-partition-in-graph next-room))
+            (graph-regeneration-from-agents new-graph agents)
+            (graph-regeneration-from-agents graph agents))
+       graph))

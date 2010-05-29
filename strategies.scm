@@ -9,14 +9,18 @@
 (import (std srfi/1))
 
 (import components/agents-place-randomly)
-(import components/agents-forces-system)
-(import components/agents-forces-brownian-motion)
-(import components/agents-to-rooms-positive-distribution)
+(import components/agents-evolutionary-distribution)
+;; (import components/agents-forces-system)
+;; (import components/agents-forces-brownian-motion)
+;; (import components/agents-to-rooms-positive-distribution)
 
 ;;; Algorithm steps
 
 (define hinted-brownian-agents
-  (list agents-place-randomly
-        agents-forces-system
-        agents-forces-brownian-motion
-        agents-to-rooms-positive-distribution))
+  (list
+   ;; agents-place-randomly
+   agents-evolutionary-distribution
+   ;; agents-forces-system
+   ;; agents-forces-brownian-motion
+   ;; agents-to-rooms-positive-distribution
+   ))

@@ -7,12 +7,11 @@
 
 (import (std srfi/1))
 
-(import math/exact-algebra)
-(import geometry/kernel)
-
 (import auxiliary-operations)
-;(import fields-2d)
+(import core/list)
+(import geometry/kernel)
 (import graph)
+(import math/exact-algebra)
 (import visualization)
 
 ;-------------------------------------------------------------------------------
@@ -92,9 +91,10 @@
       ;; Paint trace
       (map-in-order ; FIXME: this should be for-each with different list lengths
         (lambda (pos-a pos-b)
-          (visualization:paint-set-color backend 1.0 1.0 0.0 1.0)
-          (visualization:paint-set-line-width backend 0.2)
-          (visualization:paint-path backend (list pos-a pos-b)))
+          (if (not-null? pos-b)
+              (begin (visualization:paint-set-color backend 1.0 1.0 0.0 1.0)
+                     (visualization:paint-set-line-width backend 0.2)
+                     (visualization:paint-path backend (list pos-a pos-b)))))
         (agent-positions a)
         (agent-memory a))
       ;; Paint label

@@ -23,6 +23,7 @@
     (visualization:forget-all)
     (visualize-graph graph)
     (visualization:do-now) ; TODO: this is ugly
+    (visualization:forget-all)
     (let ((output-graphs
             (evolution-cycle evolver generator selector graph)))
       (for-each
