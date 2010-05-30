@@ -22,26 +22,26 @@
 
 ;;; Are these walls connected?
 
-(define (walls-are-connected? wall1 wall2)
+(define (graph:walls-are-connected? wall1 wall2)
   (pseq:connected-pseq?
     (wall-pseq wall1)
     (wall-pseq wall2)))
 
 ;;; Is this wall exterior?
 
-(define (exterior-wall? wall graph)
+(define (graph:exterior-wall? wall graph)
   (define (point-in-any-room? p)
-    (any (lambda (room) (point-in-room? graph room p))
-         (graph:find-rooms graph)))
+    (any (lambda (room) (graph:point-in-room? graph room p))
+         (graph:find.rooms graph)))
   (let* ((wall-points (wall-pseq wall))
          (mid-p (pseq:relative-position->point wall-points 0.5))
          (tangent-p (pseq:tangent-in-relative wall-points 0.5))
-         (p1 (rotation:point-w/reference mid-p
+         (p1 (rotate.point-w/reference mid-p
                                          (vect2+
                                           mid-p
                                           (vect2:*scalar tangent-p equal-accuracy))
                                          pi/2))
-         (p2 (rotation:point-w/reference mid-p
+         (p2 (rotate.point-w/reference mid-p
                                          (vect2+
                                           mid-p
                                           (vect2:*scalar tangent-p equal-accuracy))
@@ -51,8 +51,8 @@
 
 ;;; Is point in room?
 
-(define (point-in-room? graph room point)
-  (pseq:point-inside? (room->pseq graph room) point))
+(define (graph:point-in-room? graph room point)
+  (pseq:point-inside? (graph:room->pseq graph room) point))
 
 ;-------------------------------------------------------------------------------
 ; Finders/selectors
@@ -71,20 +71,20 @@
 
 ;;; Find walls connected to a given one
 
-(define (find-walls-connected/uid graph uid)
-  (let ((wall (find-wall/uid graph uid)))
+(define (graph:find.walls-connected/uid graph uid)
+  (let ((wall (graph:find.wall/uid graph uid)))
     (list
       (remove (lambda (elem)
                 (equal? elem wall))
-              (find-walls/point (archpoint->point (wall-first-point wall))))
+              (graph:find.walls/point (archpoint->point (wall-first-point wall))))
       (remove (lambda (elem)
                 (equal? elem wall))
-              (find-walls/point (archpoint->point (wall-last-point wall)))))))
+              (graph:find.walls/point (archpoint->point (wall-last-point wall)))))))
 
 ;;; Find longest wall in room
 
-(define (find-longest-wall-in-room graph room)
-  (let ((walls (graph:find-room-walls graph room)))
+(define (graph:find.longest-wall-in-room graph room)
+  (let ((walls (graph:find.room-walls graph room)))
     (fold
       (lambda (w maxw)
         (if (< (pseq:~length (wall-pseq maxw))
@@ -96,7 +96,7 @@
 
 ;;; Find common wall
 
-(define (find-common-room-walls rooms)
+(define (graph:find.common-room-walls rooms)
   (let ((walls-room-a (room-wall-refs (car rooms)))
         (walls-room-b (room-wall-refs (cadr rooms))))
     (define (iter lis1)
@@ -110,16 +110,16 @@
 
 ;;; Find the exterior walls
 
-(define (find-exterior-walls graph)
+(define (graph:find.exterior-walls graph)
   (define (iter exterior-walls rest-walls)
     (cond
      ((null? rest-walls)
       exterior-walls) ; TODO: check if closed and do something about it, TODO: multiple contours
-     ((exterior-wall? (car rest-walls) graph)
+     ((graph:exterior-wall? (car rest-walls) graph)
       (iter (cons (car rest-walls) exterior-walls) (cdr rest-walls)))
      (else
       (iter exterior-walls (cdr rest-walls)))))
-  (sort-wall-list-connected graph (iter '() (graph:find-walls graph))))
+  (graph:sort.wall-list-connected graph (iter '() (graph:find.walls graph))))
 
 ;-------------------------------------------------------------------------------
 ; Geometrical calculations
@@ -127,35 +127,35 @@
 
 ;;; Calculate bounding box
 
-(define-memoized/key-gen graph-bounding-box 
+(define-memoized/key-gen graph:bounding-box 
   (lambda (graph) (graph-uid graph))
   (lambda (graph)
-    (pseq:bounding-box (wall-list->pseq (find-exterior-walls graph)))))
+    (pseq->bounding-box (graph:wall-list->pseq (graph:find.exterior-walls graph)))))
 
 ;;; External polygon
 
-(define (analysis:graph-limits graph)
-  (wall-list->pseq (find-exterior-walls graph)))
+(define (graph:limits graph)
+  (graph:wall-list->pseq (graph:find.exterior-walls graph)))
 
 ;;; Calculate the pseq that describes a list of walls
 ;;; TODO: reduce?
-(define (wall-list->pseq wlis)
+(define (graph:wall-list->pseq wlis)
   (cond
    ((null? (cdr wlis))
     (wall-pseq (car wlis)))
    (else
     (pseq:append
       (wall-pseq (car wlis))
-      (wall-list->pseq (cdr wlis))))))
+      (graph:wall-list->pseq (cdr wlis))))))
       
 ;;; Calculate the pseq that describes a room
 
-(define (room->pseq graph room)
-  (wall-list->pseq (graph:find-room-walls graph room)))
+(define (graph:room->pseq graph room)
+  (graph:wall-list->pseq (graph:find.room-walls graph room)))
 
 ;;; Walls common point
 
-(define (walls-common-point wall1 wall2)
+(define (grap:walls-common-point wall1 wall2)
   (aif cp (pseq:common-point?
             (wall-pseq wall1)
             (wall-pseq wall2))
@@ -167,8 +167,8 @@
 ;;; Intersection of room and line returns a list of intersected walls and
 ;;; intersection points
 
-(define (room-line-intersection graph room line)
-  (let* ((walls (graph:find-room-walls graph room))
+(define (graph:room-line-intersection graph room line)
+  (let* ((walls (graph:find.room-walls graph room))
          (intersections (map
                          (lambda (w)
                            (intersection:line-segment
@@ -193,19 +193,19 @@
 
 ;;; Calculate south from north direction
 
-(define (north->south vec)
-  (rotation:point vec pi))
+(define (graph:north->south vec)
+  (rotate.point vec pi))
 
 ;;; Calculate north-east from north direction
 
-(define (north->north-east vec)
-  (rotation:point vec pi/4))
+(define (graph:north->north-east vec)
+  (rotate.point vec pi/4))
 
 ;-------------------------------------------------------------------------------
 ; Low-level manipulation of the graph
 ;-------------------------------------------------------------------------------
 
-(define (create-splitted-wall wall split-point-relative uuid1 uuid2)
+(define (graph:create-splitted-wall wall split-point-relative uuid1 uuid2)
   (let ((split-point (pseq:relative-position->point (wall-pseq wall) split-point-relative))
         (first-point (first (wall-pseq wall)))
         (second-point (last (wall-pseq wall))))
@@ -221,7 +221,7 @@
 
 ;;; Update refs to walls in rooms
 
-(define (update-wall-refs-in-rooms graph uid new-uids)
+(define (graph:update-wall-refs-in-rooms graph uid new-uids)
   (make-graph
    (graph-uid graph)
    (graph-environment graph)
@@ -236,7 +236,7 @@
 
 ;;; Try to merge into one wall if the two given are parallel
 
-(define (try-to-merge-if-parallel-walls wall-list new-uid)
+(define (graph:try-to-merge-if-parallel-walls wall-list new-uid)
   (let ((wall-a-points (wall->pseq (car wall-list))) ; TODO: try to generalize
         (wall-b-points (wall->pseq (cadr wall-list))))
     (if (parallel? wall-a-points wall-b-points)
@@ -254,7 +254,7 @@
 ;;; Break in two lists from where a wall was found
 ;;; Warning! This assumes that rooms contain topologically connected walls
 
-(define (room-break graph room first-wall-uid second-wall-uid)
+(define (graph:room-break graph room first-wall-uid second-wall-uid)
                                         ; TODO: check if walls are ordered
   (break (lambda (wall) (equal? second-wall-uid wall))
          (rotate-until-first
@@ -263,21 +263,21 @@
 
 ;;; Fix order of walls in a room
 
-(define (sort-room-walls graph room)
+(define (graph:sort.room-walls graph room)
   (make-room (room-uid room)
              (map (lambda (w)
                     (wall-uid w))
-                  (sort-wall-list-connected graph (graph:find-room-walls graph room)))))
+                  (graph:sort.wall-list-connected graph (graph:find.room-walls graph room)))))
 
 ;;; Sort walls in a wall list so they are connected properly
 
-(define (sort-wall-list-connected graph wall-list) ; TODO: check if the last and the first are really connected
+(define (graph:sort.wall-list-connected graph wall-list) ; TODO: check if the last and the first are really connected
   (define (iter sorted remaining)
     (define (find-next first wall-list) ; (it sorts backwards)
       (cond
        ((null? wall-list)
         #f)
-       ((walls-are-connected? first (car wall-list))
+       ((graph:walls-are-connected? first (car wall-list))
         (car wall-list))
        (else
         (find-next first (cdr wall-list)))))
@@ -290,7 +290,7 @@
           (pp sorted)
           (display "----------\n")
           (pp remaining)
-          (error "sort-walls-connected -- This wall cannot be connected to any other")))))
+          (error "graph:sort.walls-connected -- This wall cannot be connected to any other")))))
   
   (if (null? wall-list)
       (error "Argument #2 (wall-list) is null")

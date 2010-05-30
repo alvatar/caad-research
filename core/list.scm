@@ -5,6 +5,8 @@
 ;;; General list procedures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(import (std srfi/1))
+
 ;;; atom?
 
 (define atom?
@@ -141,3 +143,23 @@
        (else
         (iter (append (cdr lis-iter) (list x)) (+ n 1))))))
   (iter lis 0))
+
+
+;-------------------------------------------------------------------------------
+; Numeric lists
+;-------------------------------------------------------------------------------
+
+;;; Takes the smallest value of a list
+
+(define (smallest l)
+  (reduce (lambda (x prev) (min x prev)) +inf.0 l))
+
+;;; Takes the biggest value of a list
+
+(define (biggest l)
+  (reduce (lambda (x prev) (max x prev)) -inf.0 l))
+
+;;; Computes the sum of all values
+
+(define (sum l)
+  (reduce (lambda (x prev) (+ x prev)) 0 l))

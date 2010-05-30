@@ -16,7 +16,7 @@
 (import ../math/exact-algebra)
 (import ../math/inexact-algebra)
 (import ../visualization)
-(import element-interactions)
+(import element-interrelations)
 
 
 (define (agents-forces-system graph world)

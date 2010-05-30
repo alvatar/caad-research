@@ -249,3 +249,34 @@
              f2))
       '()
       field-list)))
+
+;-------------------------------------------------------------------------------
+; Field operations
+;-------------------------------------------------------------------------------
+
+;;; Calculate least potential vector given a field and a point in it
+
+(define (field-least-potential-vector field pos)
+  (define (make-coords center)
+    (map
+     (lambda (c)
+       (u8-2dfield-coords->reflective-coords
+        field
+        (make-vect2
+         (fx+ (fx* 5 (car c)) (vect2-x center))
+         (fx+ (fx* 5 (cadr c)) (vect2-y center)))))
+     '((0 0)
+       (1 0) (1 1) (0 1) (-1 1) (-1 0) (-1 -1) (0 -1) (1 -1)
+       (2 0) (2 1) (2 2) (1 2) (0 2) (-1 2) (-2 2) (-2 1) (-2 0) (-2 -1) (-2 -2) (-1 -2) (0 -2) (1 -2) (2 -2) (2 -1))))
+  (let ((pos-coords (u8-2dfield-position->coords field pos)))
+    (vect2:/scalar
+     (cadr
+      (fold
+       (lambda (c current-max)
+         (let ((value-in-coords (u8-2dfield-coords->value field c)))
+           (if (> value-in-coords (car current-max))
+               (list value-in-coords (vect2- c pos-coords))
+               current-max)))
+       (list 0 (make-vect2 0 0))
+       (make-coords pos-coords)))
+     5.0)))

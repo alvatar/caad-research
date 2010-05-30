@@ -20,7 +20,7 @@
 ;;; Draw graph
 
 (define (visualize-graph graph)
-  (let* ((limits (graph-bounding-box graph))
+  (let* ((limits (graph:bounding-box graph))
          (size-vec (bounding-box:size-segment limits))
          (frame-factor 0.7)
          (max-scale-x (/ maxx (* (vect2-x size-vec))))
@@ -70,7 +70,7 @@
       ;; Paint room
       (define (paint-room room)
         (visualization:paint-set-color backend 0.0 0.0 0.3 0.3)
-        (visualization:paint-polygon backend (room->pseq graph room)))
+        (visualization:paint-polygon backend (graph:room->pseq graph room)))
       ;; Paint entry
       (define (paint-entry entry)
         (let ((door-mid-point (segment:mid-point (entry-pseq entry))))

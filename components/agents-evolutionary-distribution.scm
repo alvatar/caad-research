@@ -45,7 +45,7 @@
      0.0
      agents))
   
-  (let ((limit-polygon (analysis:graph-limits graph)))
+  (let ((limit-polygon (graph:limits graph)))
     (let evolve ((agents '()))
       (visualization:forget-all)
       (visualize-graph graph)

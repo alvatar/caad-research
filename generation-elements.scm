@@ -111,7 +111,7 @@
 ;;; World visualization
 
 (define (visualize-world world graph)
-  (let* ((bb (graph-bounding-box graph))
+  (let* ((bb (graph:bounding-box graph))
          (size-vec (bounding-box:size-segment bb)))
     (visualization:forget-layers '(agents fields))
     ;; (for-each
