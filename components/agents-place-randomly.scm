@@ -5,7 +5,6 @@
 ;;; Component: place agents randomly inside exterior walls
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import ../auxiliary-operations)
 (import ../core/syntax)
 (import ../dev/debugging)
 (import ../generation-elements)
@@ -13,7 +12,6 @@
 (import ../geometry/generation)
 (import ../graph)
 (import ../math/exact-algebra)
-(import ../operations)
 
 ;-------------------------------------------------------------------------------
 ; Algorithm steps

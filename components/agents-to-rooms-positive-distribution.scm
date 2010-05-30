@@ -8,7 +8,6 @@
 
 (import (std srfi/1))
 
-(import ../auxiliary-operations)
 (import ../context)
 (import ../core/syntax)
 (import ../dev/debugging)
@@ -19,7 +18,8 @@
 (import ../graph-visualization)
 (import ../math/exact-algebra)
 (import ../math/inexact-algebra) ; TODO: Could be removed!
-(import ../operations)
+(import ../operations-high)
+(import ../operations-low)
 (import ../output)
 (import ../visualization)
 

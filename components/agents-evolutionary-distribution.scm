@@ -7,7 +7,6 @@
 
 (import (std srfi/1))
 
-(import ../auxiliary-operations)
 (import ../core/syntax)
 (import ../dev/debugging)
 (import ../generation-elements)
@@ -15,6 +14,7 @@
 (import ../geometry/generation)
 (import ../graph)
 (import ../math/exact-algebra)
+(import ../operations-low)
 (import ../visualization)
 (import ../graph-visualization)
 

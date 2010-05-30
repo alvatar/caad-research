@@ -7,7 +7,7 @@
 
 (import (std srfi/1))
 
-(import ../auxiliary-operations)
+(import ../operations-low)
 (import ../core/syntax)
 (import ../dev/debugging)
 (import ../generation-elements)

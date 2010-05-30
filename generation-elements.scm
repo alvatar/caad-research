@@ -7,7 +7,7 @@
 
 (import (std srfi/1))
 
-(import auxiliary-operations)
+(import operations-low)
 (import core/list)
 (import geometry/kernel)
 (import graph)

@@ -13,43 +13,11 @@
 (import core/list)
 (import geometry/kernel)
 (import math/exact-algebra)
-(import auxiliary-operations)
+(import operations-low)
 (import graph)
 
 (export op:split-room)
 (export op:merge-rooms)
-
-;;; Apply operation to context
-
-(define (apply-operation-in-context graph context new-subgraph)
-  (define (matches-context? elem)
-    (equal? elem context))
-  (define (do-in-context graph-tail)
-    (map
-     (lambda (elem)
-       (if (pair? elem)
-           (call-with-values (lambda () (break matches-context? elem))
-                             (lambda (a b)
-                               (if (equal? b '()) ; If nothing found (b is null)
-                                   (do-in-context elem)
-                                   (append a new-subgraph (cdr b)))))
-           elem))
-     graph-tail))
-  (car (do-in-context (list graph)))) ; Iteration must start at top level
-
-;;; Apply operation to a graph and all contexts matching
-
-(define (apply-operation 
-          operation
-          graph
-          context-selector
-          constraints
-          operation-validator)
-  (let do-until-valid ()
-    (let ((new-graph (operation graph context-selector constraints)))
-      (if (operation-validator new-graph)
-        new-graph
-        (do-until-valid)))))
 
 ;-------------------------------------------------------------------------------
 ; Basic operations
@@ -63,7 +31,10 @@
 ;;; Add element
 
 (define (op:add graph element)
-  (append graph `(,element))) ; TODO: branch for graph vs context-tree
+  (make-graph
+   (graph-uid graph)
+   (graph-environment graph)
+   (cons element (graph-architecture graph))))
 
 ;;; Remove element from graph
 
@@ -75,13 +46,6 @@
 
 ;;; Remove element-list from graph
 
-;; (define (op:remove-multiple graph element-list)
-;;   (remove
-;;     (lambda (e)
-;;       (any (lambda (e-in-element-list)
-;;              (equal? e-in-element-list e))
-;;            element-list))
-;;     graph))
 (define (op:remove-multiple graph le)
   (make-graph
    (graph-uid graph)
@@ -93,10 +57,7 @@
 ;;; Move
 
 (define (op:move graph context-tree)
-  (apply-operation-in-context
-   graph
-   context-selector
-   '()))
+  (error "unimplemented"))
 
 ;-------------------------------------------------------------------------------
 ; Topological operations
@@ -244,18 +205,12 @@
 ;;; Expand
 
 (define (op:expand graph context-selector constraints)
-  (apply-operation-in-context
-   graph
-   context-selector
-   '()))
+  (error "unimplemented"))
 
 ;;; Shrink
 
 (define (op:shrink graph context-selector constraints)
-  (apply-operation-in-context
-   graph
-   context-selector
-   '()))
+  (error "unimplemented"))
 
 ;-------------------------------------------------------------------------------
 ; Post-operations
@@ -264,26 +219,17 @@
 ;;; Stabilize structure: add, move or replace pilars (TODO)
 
 (define (op:stabilize-structure graph context-selector constraints)
-  (apply-operation-in-context
-   graph
-   context-selector
-   '()))
+  (error "unimplemented"))
 
 ;;; Fix accesses (TODO)
 
 (define (op:fix-accesses graph context-selector constraints)
-  (apply-operation-in-context
-   graph
-   context-selector
-   '()))
+  (error "unimplemented"))
 
 ;;; Fix malformed graph (TODO)
 
 (define (op:fix-malformed graph context-selector constraints)
-  (remove
-    (lambda (lst)
-      (equal? lst '()))
-    graph))
+  (error "unimplemented"))
 
 ;;; Fix room topology
 
@@ -300,7 +246,4 @@
 ;;; Fix everything (TODO)
 
 (define (op:fix-everything graph context-selector constraints)
-  (apply-operation-in-context
-   graph
-   context-selector
-   '()))
+  (error "unimplemented"))

@@ -9,7 +9,7 @@
 (import geometry/kernel)
 (import math/exact-algebra)
 
-(import auxiliary-operations)
+(import operations-low)
 (import graph)
 (import visualization)
 
