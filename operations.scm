@@ -132,7 +132,7 @@
   (lambda (graph)
     (pseq->bounding-box (graph:wall-list->pseq (graph:find.exterior-walls graph)))))
 
-;;; External polygon
+;;; External polygon extraction
 
 (define (graph:limits graph)
   (graph:wall-list->pseq (graph:find.exterior-walls graph)))
@@ -155,7 +155,7 @@
 
 ;;; Walls common point
 
-(define (grap:walls-common-point wall1 wall2)
+(define (graph:walls-common-point wall1 wall2)
   (aif cp (pseq:common-point?
             (wall-pseq wall1)
             (wall-pseq wall2))

@@ -13,7 +13,7 @@
 (import core/list)
 (import geometry/kernel)
 (import math/exact-algebra)
-(import operations-low)
+(import operations)
 (import graph)
 
 (export op:split-room)
