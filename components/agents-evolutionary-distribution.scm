@@ -18,9 +18,24 @@
 (import ../visualization)
 (import ../graph-visualization)
 
-;-------------------------------------------------------------------------------
-; Algorithm steps
-;-------------------------------------------------------------------------------
+(export agents-evolutionary-distribution)
+
+(define (score-agents-interrelationships agents)
+  0)
+
+(define (score-agent-orientations agents)
+  0)
+
+(define (score-agents-illumination agents)
+  0)
+
+(define (score-agent-distances-to-elements agents)
+  0)
+
+;; Distances to external walls, minimal between agents, and the like
+
+(define (score-agent-required-geometrical agents)
+  0)
 
 (define (agents-evolutionary-distribution graph world)
 
