@@ -14,7 +14,7 @@
 (import ../geometry/generation)
 (import ../graph)
 (import ../math/exact-algebra)
-(import ../operations)
+(import ../graph-operations)
 (import ../visualization)
 (import ../graph-visualization)
 

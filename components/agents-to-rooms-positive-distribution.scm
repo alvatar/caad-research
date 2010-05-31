@@ -18,8 +18,8 @@
 (import ../graph-visualization)
 (import ../math/exact-algebra)
 (import ../math/inexact-algebra) ; TODO: Could be removed!
-(import ../modifiers)
-(import ../operations)
+(import ../operators)
+(import ../graph-operations)
 (import ../output)
 (import ../visualization)
 

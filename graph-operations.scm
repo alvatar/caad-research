@@ -17,6 +17,37 @@
 (import graph)
 
 ;-------------------------------------------------------------------------------
+; Selectors
+;-------------------------------------------------------------------------------
+
+(define (graph:find.rooms g)
+  (filter (lambda (e) (room? e)) (graph-architecture g)))
+
+(define (graph:find.walls g)
+  (filter (lambda (e) (wall? e)) (graph-architecture g)))
+
+(define (graph:find.structurals g)
+  (filter (lambda (e) (structural? e)) (graph-architecture g)))
+
+(define (graph:find.entries g)
+  (filter (lambda (e) (entry? e)) (graph-architecture g)))
+
+(define (graph:find.pipes g)
+  (filter (lambda (e) (pipe? e)) (graph-architecture g)))
+
+(define (graph:find.wall/uid graph uid)
+  (aif element (find
+                (lambda (e) (and (wall? e) (equal? uid (wall-uid e))))
+                (graph-architecture graph))
+       element
+       (begin (display "UID: ")(display uid)(newline)
+              (error "Wall with such UID not found"))))
+
+;;; TODO: memoize?
+(define (graph:find.room-walls graph room)
+  (map (lambda (r) (graph:find.wall/uid graph r)) (room-walls room)))
+
+;-------------------------------------------------------------------------------
 ; Predicates
 ;-------------------------------------------------------------------------------
 
