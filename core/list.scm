@@ -30,6 +30,10 @@
   (lambda (ls x)
     (append ls (list x))))
 
+;;; TODO: TEST
+
+(define (ticker! tape) (lambda () (begin0 (car tape) (set! tape (cdr tape)))))
+
 ;;; Recursive map
 
 (define (map* f l)
@@ -221,10 +225,44 @@
                    (S (cdr l) (+ 1 n)))))))
      S) l 0))
 
+(define (expand-skeleton s)
+  ((letrec ((E (lambda (s)
+                 (cond
+                  ((null? s) '())
+                  ((list? (car s))
+                   (cons (E (car s)) (E (cdr s))))
+                  (else
+                   (append (make-list (car s) (car s))
+                           (E (cdr s)))))))) E) s))
+
+(define (expand-skeleton s)
+  (letrec ((E (lambda (s)
+                (cond
+                 ((null? s) '())
+                 ((list? (car s))
+                  (cons (E (car s))
+                        (E (cdr s))))
+                 (else
+                  (if (= (car s) 1)
+                      (cons #t (E (cdr s)))
+                      (cons #t (E (cons (- (car s) 1) (cdr s))))))))))
+    (E s)))
+
 ;;; Apply a structure to make a flat list fit this structure
 
 (define (apply-skeleton s l)
-  '())
+  (letrec ((next (ticker! l))
+           (E (lambda (s)
+                (cond
+                 ((null? s) '())
+                 ((list? (car s))
+                  (cons (E (car s))
+                        (E (cdr s))))
+                 (else
+                  (if (= (car s) 1)
+                      (cons (next) (E (cdr s)))
+                      (cons (next) (E (cons (- (car s) 1) (cdr s))))))))))
+    (E s)))
 
 ;;; Calculates the hamming distance (number of different positions) of two lists
 ;;; of equal length
@@ -295,24 +333,3 @@
 ;;           (values l back))]
 ;;      [else                    (loop (cdr slow)
 ;;                                     (cddr fast))])))
-
-;-------------------------------------------------------------------------------
-; Numeric lists
-;-------------------------------------------------------------------------------
-
-;;; TODO: ALGEBRA??
-
-;;; Takes the smallest value of a list
-
-(define (smallest l)
-  (reduce (lambda (x prev) (min x prev)) l l))
-
-;;; Takes the biggest value of a list
-
-(define (biggest l)
-  (reduce (lambda (x prev) (max x prev)) l l))
-
-;;; Computes the sum of all values
-
-(define (sum l)
-  (reduce (lambda (x prev) (+ x prev)) 0 l))

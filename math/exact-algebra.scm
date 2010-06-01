@@ -8,6 +8,7 @@
 ;(declare (standard-bindings)(extended-bindings)(block)(not safe))
 (compile-options force-compile: #t)
 
+(import (std srfi/1))
 (import ../core/functional)
 
 ;-------------------------------------------------------------------------------
@@ -38,6 +39,25 @@
 
 (define (square x)
   (* x x))
+
+;-------------------------------------------------------------------------------
+; Numeric lists
+;-------------------------------------------------------------------------------
+
+;;; Takes the smallest value of a list
+
+(define (smallest l)
+  (reduce (lambda (x prev) (min x prev)) l l))
+
+;;; Takes the biggest value of a list
+
+(define (biggest l)
+  (reduce (lambda (x prev) (max x prev)) l l))
+
+;;; Computes the sum of all values
+
+(define (sum l)
+  (reduce (lambda (x prev) (+ x prev)) 0 l))
 
 ;-------------------------------------------------------------------------------
 ; Vector dimension 2
