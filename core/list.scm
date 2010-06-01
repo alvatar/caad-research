@@ -30,7 +30,7 @@
   (lambda (ls x)
     (append ls (list x))))
 
-;;; TODO: TEST
+;;; TODO: TEST and MOVE TO FUNCTIONAL
 
 (define (ticker! tape) (lambda () (begin0 (car tape) (set! tape (cdr tape)))))
 
@@ -103,7 +103,7 @@
     ((_ ((any ...) ...) thing) ; detect wrong syntax
      (error "Syntax error: wrong number of arguments in condition"))))
 
-;;; Remove first instance of a member
+;;; Remove first instance
 
 (define (rember a l)
   ((letrec ((R (lambda (l)
@@ -112,6 +112,9 @@
                   ((eq? (car l) a) (cdr l))
                   (else (cons (car l)
                               (R (cdr l)))))))) R) l))
+
+;;; Try to find an element and remove it, yeilds #f if not found
+
 (define (find-rember a l)
   (let/cc failed
    ((letrec ((R (lambda (l)
@@ -225,44 +228,44 @@
                    (S (cdr l) (+ 1 n)))))))
      S) l 0))
 
+;;; Expand a skeleton into a list with stub positions
+;; (define (expand-skeleton s) ; TODO Benchmark!
+;;   ((letrec ((E (lambda (s)
+;;                  (cond
+;;                   ((null? s) '())
+;;                   ((list? (car s))
+;;                    (cons (E (car s)) (E (cdr s))))
+;;                   (else
+;;                    (append (make-list (car s) (car s))
+;;                            (E (cdr s)))))))) E) s))
+
 (define (expand-skeleton s)
   ((letrec ((E (lambda (s)
                  (cond
                   ((null? s) '())
                   ((list? (car s))
-                   (cons (E (car s)) (E (cdr s))))
+                   (cons (E (car s))
+                         (E (cdr s))))
                   (else
-                   (append (make-list (car s) (car s))
-                           (E (cdr s)))))))) E) s))
-
-(define (expand-skeleton s)
-  (letrec ((E (lambda (s)
-                (cond
-                 ((null? s) '())
-                 ((list? (car s))
-                  (cons (E (car s))
-                        (E (cdr s))))
-                 (else
-                  (if (= (car s) 1)
-                      (cons #t (E (cdr s)))
-                      (cons #t (E (cons (- (car s) 1) (cdr s))))))))))
-    (E s)))
+                   (if (= (car s) 1)
+                       (cons #t (E (cdr s)))
+                       (cons #t (E (cons (- (car s) 1) (cdr s)))))))))) E) s))
 
 ;;; Apply a structure to make a flat list fit this structure
+;;; TODO! IMPORTANT: REMOVE TICKER
 
 (define (apply-skeleton s l)
-  (letrec ((next (ticker! l))
-           (E (lambda (s)
-                (cond
-                 ((null? s) '())
-                 ((list? (car s))
-                  (cons (E (car s))
-                        (E (cdr s))))
-                 (else
-                  (if (= (car s) 1)
-                      (cons (next) (E (cdr s)))
-                      (cons (next) (E (cons (- (car s) 1) (cdr s))))))))))
-    (E s)))
+  ((letrec ((next (ticker! l))
+            (E (lambda (s)
+                 (cond
+                  ((null? s) '())
+                  ((list? (car s))
+                   (cons (E (car s))
+                         (E (cdr s))))
+                  (else
+                   (if (= (car s) 1)
+                       (cons (next) (E (cdr s)))
+                       (cons (next) (E (cons (- (car s) 1) (cdr s)))))))))) E) s))
 
 ;;; Calculates the hamming distance (number of different positions) of two lists
 ;;; of equal length
@@ -277,23 +280,21 @@
                   ((equal? (car a) (car b))
                    (H (cdr a) (cdr b) d))
                   (else
-                   (H (cdr a) (cdr b) (+ d 1)))))))
-     H) la lb 0))
+                   (H (cdr a) (cdr b) (+ d 1))))))) H) la lb 0))
 
 ;;; Calculates the minimum hamming distance between a list and the permutations
 ;;; of the second
 
 (define (min-hamming-distance la lb)
-  (letrec ((H (lambda (a b d)
-                (if (null? a) ; a always decreases
-                    (if (= d (length b)) ; the length must be equal to the times it wasn't cdr'd
-                        d
-                        (error "lists have different length"))
-                    (let ((newb (find-rember (car a) b))) ; Removes the first instance if found
-                      (if newb
-                          (H (cdr a) newb d)
-                          (H (cdr a) b (+ d 1))))))))
-    (H la lb 0)))
+  ((letrec ((H (lambda (a b d)
+                 (if (null? a)          ; a always decreases
+                     (if (= d (length b)) ; the length must be equal to the times it wasn't cdr'd
+                         d
+                         (error "lists have different length"))
+                     (let ((newb (find-rember (car a) b))) ; Removes the first instance if found
+                       (if newb
+                           (H (cdr a) newb d)
+                           (H (cdr a) b (+ d 1)))))))) H) la lb 0))
 
 ;;; Takes a sublist from start to end positions
 
