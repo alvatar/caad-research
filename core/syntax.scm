@@ -6,10 +6,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Syntax error macro
+;;; TODO: Update places with error instead of syntax-error
 
 (define-syntax syntax-error
   (syntax-rules ()
-    ((syntax-error) (syntax-error "Bad use of syntax error!"))))
+    ((_)
+     (error "Bad use of syntax error!"))
+    ((_ arg)
+     (error arg))))
 
 ;;; Anaforic if
 
@@ -20,9 +24,9 @@
        (if var
          iftrue
          iffalse)))
-    ((_ var test expr iftrue iffalse)
+    ((_ var pred expr iftrue iffalse)
      (let ((var expr))
-       (if (test var)
+       (if (pred var)
          iftrue
          iffalse)))))
 
@@ -42,7 +46,7 @@
 
 ;;; Letcc macro (hoping and skipping)
 
-(define-syntax letcc
+(define-syntax let/cc
   (syntax-rules ()
     ((_ c . body)
      (call-with-current-continuation
@@ -81,3 +85,26 @@
        (lambda () values-producing-form)
        (lambda all-values
          (list-ref all-values n))))))
+
+;;; Define values allows sharing state between functions
+;; UNTESTED
+;; (define-values (inc dec reset)
+;;   (let ((state 0))
+;;     (define (inc)  (set! state (+ state 1)) state)
+;;     (define (dec)  (set! state (- state 1)) state)
+;;     (define (reset)(set! state 0)           state)
+;;     (values inc dec reset)))
+
+(define-syntax define-values
+  (syntax-rules ()
+    ((_ "gentmp" (tmp ...) () (var ...) expr)
+     (begin (define var (undefined)) ...
+            (receive (tmp ...) expr
+                     (set! var tmp) ...
+                     (undefined))))
+    ((_ "gentmp" (tmp ...) (v v2 ...) (var ...) expr)
+     (define-values "gentmp" (tmp ... tmp1) (v2 ...) (var ...) expr))
+    ((_ (var  ...) expr)
+     (define-values "gentmp" () (var ...) (var ...) expr))
+    ((_ . else)
+     (syntax-error "malformed define-values" (define-values . else)))))

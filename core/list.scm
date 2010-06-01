@@ -6,12 +6,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1))
+(import syntax)
 
 ;;; atom?
 
-(define atom?
-  (lambda (x)
-    (and (not (pair? x)) (not (null? x)))))
+(define atom? (lambda (x) (and (not (pair? x)) (not (null? x)))))
 
 ;;; not null?
 
@@ -19,6 +18,11 @@
   (syntax-rules ()
     ((_ l)
      (not (null? l)))))
+
+;;; XOR
+
+(define (xor a b)
+  (if a (not b) b))
 
 ;;; snoc (always prefer the use of cons)
 
@@ -95,6 +99,24 @@
     ((_ ((any ...) ...) thing) ; detect wrong syntax
      (error "Syntax error: wrong number of arguments in condition"))))
 
+;;; Remove first instance of a member
+
+(define (rember a l)
+  ((letrec ((R (lambda (l)
+                 (cond
+                  ((null? l) '())
+                  ((eq? (car l) a) (cdr l))
+                  (else (cons (car l)
+                              (R (cdr l)))))))) R) l))
+(define (find-rember a l)
+  (let/cc failed
+   ((letrec ((R (lambda (l)
+                  (cond
+                   ((null? l) (failed #f))
+                   ((eq? (car l) a) (cdr l))
+                   (else (cons (car l)
+                               (R (cdr l)))))))) R) l)))
+
 ;;; Recursive substitution in a list
 
 (define (subst* new old l)
@@ -144,20 +166,151 @@
         (iter (append (cdr lis-iter) (list x)) (+ n 1))))))
   (iter lis 0))
 
+;;; Flatten a list (not-optimized)
+;;; TODO: benchmark
+;; (define (flatten x)
+;;   (cond
+;;    ((null? x) '())
+;;    ((not (pair? x)) (list x))
+;;    (else (append (flatten (car x))
+;;                  (flatten (cdr x))))))
+
+;;; Flatten a list (optimized)
+;;; http://schemecookbook.org/Cookbook/ListFlatten
+
+(define (flatten x:xs)
+  (let* ((result (cons '() '())) (last-elt result))
+    (define (f x:xs)
+      (cond
+       ((null? x:xs)
+        result)
+       ((pair? (car x:xs))
+        (f (car x:xs)) (f (cdr x:xs)))
+       (else
+        (set-cdr! last-elt (cons (car x:xs) '()))
+        (set! last-elt (cdr last-elt)) 
+        (f (cdr x:xs)))))
+    (f x:xs)
+    (cdr result)))
+
+;;; Fast flatten, that doesn't respect ordering
+
+(define (flatten-unordered x:xs)
+  (define (f x:xs result)
+    (cond
+     ((null? x:xs)
+      result)
+     ((pair? (car x:xs))
+      (f (cdr x:xs) (f (car x:xs) result)))
+     (else
+      (f (cdr x:xs) (cons (car x:xs) result)))))
+  (f x:xs '()))
+
+;;; Make a structure analysis of a list
+
+(define (list->skeleton l)
+  ((letrec ((S (lambda (l n)
+                 (cond
+                  ((null? l)
+                   (if (= n 0) '() (list n)))
+                  ((list? (car l))
+                   (if (= n 0)
+                       (cons (S (car l) 0) (S (cdr l) 0))
+                       (cons n (cons (S (car l) 0) (S (cdr l) 0)))))
+                  (else
+                   (S (cdr l) (+ 1 n)))))))
+     S) l 0))
+
+;;; Apply a structure to make a flat list fit this structure
+
+(define (apply-skeleton s l)
+  '())
+
+;;; Calculates the hamming distance (number of different positions) of two lists
+;;; of equal length
+
+(define (hamming-distance la lb)
+  ((letrec ((H (lambda (a b d)
+                 (cond
+                  ((and (null? a) (null? b))
+                   d)
+                  ((xor (null? a) (null? b))
+                   (error "lists have different length"))
+                  ((equal? (car a) (car b))
+                   (H (cdr a) (cdr b) d))
+                  (else
+                   (H (cdr a) (cdr b) (+ d 1)))))))
+     H) la lb 0))
+
+;;; Calculates the minimum hamming distance between a list and the permutations
+;;; of the second
+
+(define (min-hamming-distance la lb)
+  (letrec ((H (lambda (a b d)
+                (if (null? a) ; a always decreases
+                    (if (= d (length b)) ; the length must be equal to the times it wasn't cdr'd
+                        d
+                        (error "lists have different length"))
+                    (let ((newb (find-rember (car a) b))) ; Removes the first instance if found
+                      (if newb
+                          (H (cdr a) newb d)
+                          (H (cdr a) b (+ d 1))))))))
+    (H la lb 0)))
+
+;;; Takes a sublist from start to end positions
+
+(define (slice l start end)
+  (take (drop l start)
+        (- end start)))
+
+(define (slice! l start end)
+  (take! (drop l start)
+         (- end start)))
+
+; split-in-halves : list -> (values list list)
+;  return two lists of lengths differing with at most one
+;; (define (split-in-halves l)
+;;   (let loop ([front '()]
+;;              [slow  l]
+;;              [fast  l])
+;;     (cond
+;;      [(null? fast)         (values front
+;;                                    slow)]
+;;      [(null? (cdr fast))   (values (cons (car slow) front)
+;;                                    (cdr slow))]
+;;      [else                 (loop (cons (car slow) front)
+;;                                  (cdr slow)
+;;                                  (cddr fast))])))
+
+; split-in-halves! : list -> (values list list)
+;  return two lists of lengths differing with at most one;
+;  modifies the argument
+;; (define (split-in-halves! l)
+;;   (let loop ([slow (cons 'foo l)]
+;;              [fast (cons 'bar l)])
+;;     (cond
+;;      [(or (null? fast)
+;;           (null? (cdr fast))) (let ([back (cdr slow)])
+;;           (set-cdr! slow '())
+;;           (values l back))]
+;;      [else                    (loop (cdr slow)
+;;                                     (cddr fast))])))
 
 ;-------------------------------------------------------------------------------
 ; Numeric lists
 ;-------------------------------------------------------------------------------
 
+;;; TODO: ALGEBRA??
+
 ;;; Takes the smallest value of a list
 
 (define (smallest l)
-  (reduce (lambda (x prev) (min x prev)) +inf.0 l))
+  (reduce (lambda (x prev) (min x prev)) l l))
 
 ;;; Takes the biggest value of a list
 
 (define (biggest l)
-  (reduce (lambda (x prev) (max x prev)) -inf.0 l))
+  (reduce (lambda (x prev) (max x prev)) l l))
 
 ;;; Computes the sum of all values
 
