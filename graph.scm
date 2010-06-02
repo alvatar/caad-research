@@ -42,7 +42,7 @@
 ;; (define-type window pseq from to)
 (define-list-record-type window
   (make-window pseq from to)
-  windows?
+  window?
   (pseq window-pseq)
   (from window-from)
   (to window-to))

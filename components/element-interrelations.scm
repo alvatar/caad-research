@@ -78,7 +78,7 @@
   (let ((distance-vec (vect2-
                        (segment:mid-point (pseq->segment entrypseq))
                        agent-pos)))
-nn    (vect2:/scalar
+    (vect2:/scalar
      distance-vec
      (vect2:~magnitude distance-vec))))
 
@@ -93,10 +93,17 @@ nn    (vect2:/scalar
    (car (agent-positions agent)) ; TODO: multi-nodal agents
    (wall-pseq wall)))
 
+;;; Distance agent-window
+
+(define (distance.agent<->window agent window)
+  (distance.point-pseq
+   (car (agent-positions agent)) ; TODO: multi-nodal agents
+   (window-pseq window)))
+
 ;;; Distance agent-agent
 
 (define (distance.agent<->agent a1 a2)
-  (~distance:point-point
+  (~distance.point-point
    (car (agent-positions a1)) ; TODO: multi-nodal agents
    (car (agent-positions a2))))
 

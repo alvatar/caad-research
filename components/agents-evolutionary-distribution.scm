@@ -17,49 +17,73 @@
 (import ../graph-operations)
 (import ../visualization)
 (import ../graph-visualization)
+(import element-interrelations)
 
 (export agents-evolutionary-distribution)
 
-(define (score-agents-interrelationships agents)
-  0)
 
-(define (score-agent-orientations agents)
-  0)
+(define (score-agent-interrelationships a agents)
+  1.0)
 
-(define (score-agents-illumination agents)
-  0)
+(define (score-agent-orientations a)
+  0.0)
 
-(define (score-agent-distances-to-elements agents)
-  0)
+(define (score-agent-illumination a g)
+  (ps
+   (map (lambda (w) (distance.agent<->window a w)) (graph:find.windows g))))
 
-;; Distances to external walls, minimal between agents, and the like
+(define (score-agent-distances-to-elements a)
+  1.0)
 
-(define (score-agent-required-geometrical agents)
-  0)
+(define (score-agent-required-geometrical a)
+  1.0)
+
+(define (score agents graph)
+  (p (fold
+      (lambda (a sc)
+        (+ sc
+           (case (agent-label a)
+             ((distribution)
+              (+ (* 1.0 (score-agent-interrelationships a agents))
+                 (* 1.0 (score-agent-orientations a))
+                 (* 1.0 (score-agent-distances-to-elements a))
+                 (* 1.0 (score-agent-illumination a graph))
+                 (* 1.0 (score-agent-required-geometrical a))))
+             ((kitchen)
+              (+ (* 1.0 (score-agent-interrelationships a agents))
+                 (* 1.0 (score-agent-orientations a))
+                 (* 1.0 (score-agent-distances-to-elements a))
+                 (* 1.0 (score-agent-illumination a graph))
+                 (* 1.0 (score-agent-required-geometrical a))))
+             ((living)
+              (+ (* 1.0 (score-agent-interrelationships a agents))
+                 (* 1.0 (score-agent-orientations a))
+                 (* 1.0 (score-agent-distances-to-elements a))
+                 (* 1.0 (score-agent-illumination a graph))
+                 (* 1.0 (score-agent-required-geometrical a))))
+             ((room1)
+              (+ (* 1.0 (score-agent-interrelationships a agents))
+                 (* 1.0 (score-agent-orientations a))
+                 (* 1.0 (score-agent-distances-to-elements a))
+                 (* 1.0 (score-agent-illumination a graph))
+                 (* 1.0 (score-agent-required-geometrical a))))
+             ((room2)
+              (+ (* 1.0 (score-agent-interrelationships a agents))
+                 (* 1.0 (score-agent-orientations a))
+                 (* 1.0 (score-agent-distances-to-elements a))
+                 (* 1.0 (score-agent-illumination a graph))
+                 (* 1.0 (score-agent-required-geometrical a))))
+             ((room3)
+              (+ (* 1.0 (score-agent-interrelationships a agents))
+                 (* 1.0 (score-agent-orientations a))
+                 (* 1.0 (score-agent-distances-to-elements a))
+                 (* 1.0 (score-agent-illumination a graph))
+                 (* 1.0 (score-agent-required-geometrical a))))
+             (else (error "Agent type doesn't exist")))))
+      0.0
+      agents)))
 
 (define (agents-evolutionary-distribution graph world)
-
-  (define (score agents)
-    (fold
-     (lambda (a sc)
-       (+ sc
-          (case (agent-label a)
-            ((distribution)
-             5.0)
-            ((kitchen)
-             4.0)
-            ((living)
-             3.0)
-            ((room1)
-             2.0)
-            ((room2)
-             2.0)
-            ((room3)
-             2.0)
-            (else (error "Agent type doesn't exist")))))
-     0.0
-     agents))
-  
   (let ((limit-polygon (graph:limits graph)))
     (let evolve ((agents '()))
       (visualization:forget-all)
@@ -99,7 +123,7 @@
                (list (pseq:make-random-point-inside limit-polygon))
                '()
                (lambda (world a) a)))))
-        (evolve (if (> (score agents) (score new-agents)) agents new-agents))))
+        (evolve (if (> (score agents graph) (score new-agents graph)) agents new-agents))))
 
     (values
      graph

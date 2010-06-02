@@ -35,6 +35,12 @@
 (define (graph:find.pipes g)
   (filter (lambda (e) (pipe? e)) (graph-architecture g)))
 
+(define (graph:find.windows g)
+  (reduce append '() (map (lambda (w) (wall-windows w)) (graph:find.walls g))))
+
+(define (graph:find.doors g)
+  (reduce append '() (map (lambda (w) (wall-doors w)) (graph:find.walls g))))
+
 (define (graph:find.wall/uid graph uid)
   (aif element (find
                 (lambda (e) (and (wall? e) (equal? uid (wall-uid e))))
