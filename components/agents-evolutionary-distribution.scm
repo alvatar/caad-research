@@ -23,51 +23,79 @@
 (export agents-evolutionary-distribution)
 
 
-(define (score-agent-interrelationships a agents)
+(define (score-agents-interrelationships agents)
   0.0)
 
 (define (score-agent-orientations a g)
   0.0)
 
-(define (score-agent-illumination a g)
-  (- (sum
-      (map (lambda (w) (distance.agent<->window a w)) (graph:find.windows g))))
-  0.0)
+(define (score-agent-illumination agents g)
+  (let ((windows (graph:find.windows g)))
+    (smallest
+     (map
+      (lambda (a)
+        (case (agent-label a)
+          ((distribution)
+           0.0)
+          ((kitchen)
+           0.0)
+          ((living)
+           (* -1.0 (smallest (map (lambda (w) (max 4.0 (distance.agent<->window a w))) windows))))
+          ((room1)
+           (* -1.0 (smallest (map (lambda (w) (max 4.0 (distance.agent<->window a w))) windows))))
+          ((room2)
+           (* -1.0 (smallest (map (lambda (w) (max 4.0 (distance.agent<->window a w))) windows))))
+          ((room3)
+           (* -1.0 (smallest (map (lambda (w) (max 4.0 (distance.agent<->window a w))) windows))))))
+      agents))))
 
-(define (score-agent-distances-to-elements a g)
-  (sum
-   (case (agent-label a)
-     ((distribution)
-      (map (lambda (e) (- (distance.agent<->entry a e))) (graph:find.entries g)))
-     ((kitchen)
-      (map (lambda (e) (- (distance.agent<->entry a e))) (graph:find.entries g)))
-     ((living)
-      '(1.0))
-     ((room1)
-      '(1.0))
-     ((room2)
-      '(1.0))
-     ((room3)
-      '(1.0))
-     (else (error "Agent type doesn't exist")))))
+(define (score-agent-distances-to-elements agents g)
+  (average
+   (map (lambda (a)
+          (case (agent-label a)
+            ((distribution)
+             (* -1.0
+                (max ; Only the biggest distance from the necessary elements is important
+                 (smallest (map (lambda (e) (distance.agent<->entry a e)) (graph:find.entries g)))
+                 (smallest (map (lambda (e) (distance.agent<->pipe a e)) (graph:find.pipes g))))))
+            ((kitchen)
+             (* -1.0
+                (smallest
+                 (map (lambda (e) (distance.agent<->pipe a e)) (graph:find.pipes g)))))
+            ((living)
+             0.0)
+            ((room1)
+             0.0)
+            ((room2)
+             0.0)
+            ((room3)
+             0.0)
+            (else (error "Agent type doesn't exist"))))
+        agents)))
 
-(define (score-agent-required-geometrical a g)
-  (sum
-   (map (lambda (e) (distance.agent<->wall a e)) (graph:find.walls g)))
-  0.0)
+(define (score-agent-required-geometrical agents g)
+  (average
+   (list
+    (* -1.0
+       (average
+        (map (lambda (a1)
+               (biggest (map (lambda (a2) (inverse (distance.agent<->agent a1 a2)))
+                             (delete a1 agents))))
+             agents)))
+    (* -1.0
+       (average
+        (map (lambda (w)
+               (biggest (map (lambda (a) (inverse (distance.agent<->wall a w))) agents)))
+             (graph:find.walls g)))))))
 
 (define (score agents graph)
-  (p (fold
-      (lambda (a sc)
-        (+ sc
-           (+ (score-agent-interrelationships a agents)
-              (score-agent-orientations a graph)
-              (score-agent-distances-to-elements a graph)
-              (score-agent-illumination a graph)
-              (score-agent-required-geometrical a graph))))
-      0.0
-      agents)))
+  (p (+ (score-agents-interrelationships agents)
+        (score-agent-illumination agents graph)
+        (score-agent-distances-to-elements agents graph)
+        (score-agent-required-geometrical agents graph)
+        )))
 
+;; TODO: CREATE FROM OLD ONES (SAME NUMBER)
 (define (generate-agents limit-polygon)
   (list
    (make-agent
@@ -112,7 +140,7 @@
       (let ((new-agents (generate-agents limit-polygon)))
         (evolve (if (< (score agents graph) (score new-agents graph))
                     new-agents
-                    agents))))
+                    agents)))) ; TODO REMEMBER LAST SCORE!
 
     (values
      graph

@@ -30,11 +30,6 @@
 (define (inverse x)
   (/ 1 x))
 
-;;; Average between two values
-
-(define (average a b)
-  (/ (+ a b) 2))
-
 ;;; Square
 
 (define (square x)
@@ -58,6 +53,11 @@
 
 (define (sum l)
   (reduce (lambda (x prev) (+ x prev)) l l))
+
+;;; Average of all values in a list
+
+(define (average l)
+  (/ (sum l) (length l))) ; TODO: OPTIMIZE!
 
 ;-------------------------------------------------------------------------------
 ; Vector dimension 2

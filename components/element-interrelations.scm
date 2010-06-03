@@ -89,7 +89,7 @@
 ;;; Distance agent-wall
 
 (define (distance.agent<->wall agent wall)
-  (~distance.point-pseq
+  (squareddistance.point-pseq
    (car (agent-positions agent)) ; TODO: multi-nodal agents
    (wall-pseq wall)))
 
@@ -103,7 +103,7 @@
 ;;; Distance agent-agent
 
 (define (distance.agent<->agent a1 a2)
-  (~distance.point-point
+  (squareddistance.point-point
    (car (agent-positions a1)) ; TODO: multi-nodal agents
    (car (agent-positions a2))))
 
