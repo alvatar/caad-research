@@ -51,7 +51,7 @@
   ;; (define (choose-agent-b agent-a lis)
   ;;   (fold
   ;;     (lambda (a current)
-  ;;       (let ((distance-current (<distance> agent-a a)))
+  ;;       (let ((~distance-current (<distance> agent-a a)))
   ;;         (if (< distance-current (car current))
   ;;             (list distance-current a)
   ;;           current)))

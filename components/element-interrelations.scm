@@ -38,7 +38,7 @@
 (define (interaction.agent<->walls agent-pos pseq-list)
   (fold
    (lambda (p vec)
-     (let ((distance-vec (vect2-
+     (let ((~distance-vec (vect2-
                           agent-pos
                           (segment:mid-point (pseq->segment p)))))
        (vect2+ (vect2:/scalar distance-vec (vect2:~magnitude distance-vec))
@@ -51,7 +51,7 @@
 (define (interaction.agent<->walls-simple agent-pos pseq-list)
   (fold
    (lambda (p vec)
-     (let ((distance-vec (vect2-
+     (let ((~distance-vec (vect2-
                           agent-pos
                           (segment:mid-point (pseq->segment p)))))
        (vect2+ distance-vec
@@ -64,7 +64,7 @@
 (define (interaction.agent<->pipes agent-pos center-list)
   (fold
    (lambda (p vec)
-     (let ((distance-vec (vect2-
+     (let ((~distance-vec (vect2-
                           p
                           agent-pos)))
        (vect2+ (vect2:/scalar distance-vec (vect2:~magnitude distance-vec))
@@ -75,7 +75,7 @@
 ;;; Agent-pipes interaction vector
 
 (define (interaction.agent<->entry agent-pos entrypseq)
-  (let ((distance-vec (vect2-
+  (let ((~distance-vec (vect2-
                        (segment:mid-point (pseq->segment entrypseq))
                        agent-pos)))
     (vect2:/scalar
@@ -89,14 +89,14 @@
 ;;; Distance agent-wall
 
 (define (distance.agent<->wall agent wall)
-  (~distance:point-pseq
+  (~distance.point-pseq
    (car (agent-positions agent)) ; TODO: multi-nodal agents
    (wall-pseq wall)))
 
 ;;; Distance agent-window
 
 (define (distance.agent<->window agent window)
-  (distance.point-pseq
+  (~distance.point-pseq
    (car (agent-positions agent)) ; TODO: multi-nodal agents
    (window-pseq window)))
 
@@ -110,14 +110,14 @@
 ;;; Distance agent-pipe
 
 (define (distance.agent<->pipe a p)
-  (~distance:point-point
+  (~distance.point-point
    (car (agent-positions a))
    (pipe-position p)))
 
 ;;; Distance agent-entry
 
 (define (distance.agent<->entry a e)
-  (~distance:point-pseq
+  (~distance.point-pseq
    (car (agent-positions a))
    (entry-pseq e)))
 
@@ -128,7 +128,7 @@
   (let* ((limits (graph:wall-list->pseq exterior-walls))
          (c (pseq:centroid limits)))
    (map (lambda (w)
-          (~distance:point-pseq
+          (~distance.point-pseq
            (car (agent-positions a))n
            (wall-pseq w)))
         (pseq:relative-position->point
@@ -143,14 +143,14 @@
   (sort as
         (lambda (a1 a2)
           (<
-           (~distance·agent<->agent a a1)
-           (~distance·agent<->agent a a2)))))
+           (distance·agent<->agent a a1)
+           (distance·agent<->agent a a2)))))
 
 ;;; Illumination of the point
 
 (define (light.agent a windows)         ; TODO: multi-nodal
   (sum
    (map (lambda (w)
-          (~distance:point-segment
+          (~distance.point-segment
            (car (agent-positions a))
            (windows-pseq w))))))

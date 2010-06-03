@@ -57,7 +57,7 @@
 ;;; Computes the sum of all values
 
 (define (sum l)
-  (reduce (lambda (x prev) (+ x prev)) 0 l))
+  (reduce (lambda (x prev) (+ x prev)) l l))
 
 ;-------------------------------------------------------------------------------
 ; Vector dimension 2
