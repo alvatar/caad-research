@@ -8,6 +8,7 @@
 (import (std srfi/1))
 
 (import ../core/syntax)
+(import ../core/functional)
 (import ../dev/debugging)
 (import ../generation-elements)
 (import ../geometry/kernel)
@@ -24,6 +25,9 @@
 
 
 (define (score-agents-interrelationships agents)
+  ;; 1) Build a list of proximity groups (lists) '((room living) (bath) (kitchen))
+  ;; 2) Use min-hamming-distance to analyze differences in each group
+  ;; 3) Score according to differences in group distributions
   0.0)
 
 (define (score-agent-orientations a g)
@@ -41,11 +45,7 @@
            0.0)
           ((living)
            (* -1.0 (smallest (map (lambda (w) (max 4.0 (distance.agent<->window a w))) windows))))
-          ((room1)
-           (* -1.0 (smallest (map (lambda (w) (max 4.0 (distance.agent<->window a w))) windows))))
-          ((room2)
-           (* -1.0 (smallest (map (lambda (w) (max 4.0 (distance.agent<->window a w))) windows))))
-          ((room3)
+          ((room)
            (* -1.0 (smallest (map (lambda (w) (max 4.0 (distance.agent<->window a w))) windows))))))
       agents))))
 
@@ -64,11 +64,7 @@
                  (map (lambda (e) (distance.agent<->pipe a e)) (graph:find.pipes g)))))
             ((living)
              0.0)
-            ((room1)
-             0.0)
-            ((room2)
-             0.0)
-            ((room3)
+            ((room)
              0.0)
             (else (error "Agent type doesn't exist"))))
         agents)))
@@ -95,39 +91,30 @@
         (score-agent-required-geometrical agents graph)
         )))
 
-;; TODO: CREATE FROM OLD ONES (SAME NUMBER)
-(define (generate-agents limit-polygon)
-  (list
-   (make-agent
-    'distribution
-    (list (pseq:make-random-point-inside limit-polygon))
-    '()
-    (lambda (world a) a))
-   (make-agent
-    'kitchen
-    (list (pseq:make-random-point-inside limit-polygon))
-    '()
-    (lambda (world a) a))
-   (make-agent
-    'living
-    (list (pseq:make-random-point-inside limit-polygon))
-    '()
-    (lambda (world a) a))
-   (make-agent
-    'room1
-    (list (pseq:make-random-point-inside limit-polygon))
-    '()
-    (lambda (world a) a))
-   (make-agent
-    'room2
-    (list (pseq:make-random-point-inside limit-polygon))
-    '()
-    (lambda (world a) a))
-   (make-agent
-    'room3
-    (list (pseq:make-random-point-inside limit-polygon))
-    '()
-    (lambda (world a) a))))
+(define (generate-agents limit-polygon) ; TODO: 1) IMPORTANTE: Generar con restricciones!!
+  (let ((make-agent-type
+         (lambda (type) ; TODO: Cut or curry
+           (make-agent
+            type
+            (list (pseq:make-random-point-inside limit-polygon))
+            '()
+            '()))))
+   (list ; TODO: This list is generated from an input argument
+    (make-agent-type 'distribution)
+    (make-agent-type 'kitchen)
+    (make-agent-type 'living)
+    (make-agent-type 'room)
+    (make-agent-type 'room)
+    (make-agent-type 'room))))
+
+(define (regenerate-agents agents limit-polygon)
+  (map
+   (lambda (a) (make-agent
+           (agent-label a)
+           (list (pseq:make-random-point-inside limit-polygon))
+           '()
+           '()))
+   agents))
 
 (define (agents-evolutionary-distribution graph world)
   (let ((limit-polygon (graph:limits graph)))
@@ -137,7 +124,7 @@
       (visualize-world (make-world agents '()) graph)
       (visualization:do-now)
       
-      (let ((new-agents (generate-agents limit-polygon)))
+      (let ((new-agents (regenerate-agents agents limit-polygon)))
         (evolve (if (< (score agents graph) (score new-agents graph))
                     new-agents
                     agents)))) ; TODO REMEMBER LAST SCORE!
