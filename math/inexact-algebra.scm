@@ -15,14 +15,27 @@
 ; Constants
 ;-------------------------------------------------------------------------------
 
-(define pi 3.14159265)
-(define pi2 6.28318531)
-(define pi/2 1.57079633)
-(define pi/-2 -1.57079633)
-(define pi/4 0.785398163)
-(define pi3/4 2.35619449)
+(define pi (angle -inf.0))
+(define pi2 (* 2 pi))
+(define pi/2 (/ pi 2))
+(define pi/-2 (/ pi -2))
+(define pi/4 (/ pi 4))
+(define pi3/4 (* 3 (/ 4 pi)))
 
 (define equal-accuracy 0.000001)
+
+;-------------------------------------------------------------------------------
+; Random number utilities
+;-------------------------------------------------------------------------------
+
+(define (random-real/range a b)
+  (+ a (* (random-real) (- b a))))
+
+(define (random-real/0-range x)
+  (* (random-real) x))
+
+(define (random-real/o-ð o delta)
+  (+ o (* (random-real) delta)))
 
 ;-------------------------------------------------------------------------------
 ; Arithmetic

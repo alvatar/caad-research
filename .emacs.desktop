@@ -1,0 +1,105 @@
+;; -*- mode: emacs-lisp; coding: emacs-mule; -*-
+;; --------------------------------------------------------------------------
+;; Desktop File for Emacs
+;; --------------------------------------------------------------------------
+;; Created Fri Jun  4 19:53:29 2010
+;; Desktop file format version 206
+;; Emacs version 23.1.1
+
+;; Global section:
+(setq desktop-missing-file-warning nil)
+(setq tags-file-name nil)
+(setq tags-table-list nil)
+(setq search-ring '("average" "bigge" "bigg"))
+(setq regexp-search-ring nil)
+(setq register-alist nil)
+
+;; Buffer section -- buffers listed in same order as in buffer list:
+(desktop-create-buffer 206
+  "/data/projects/ensanche-core/math/exact-algebra.scm"
+  "exact-algebra.scm"
+  'scheme-mode
+  '(linum-mode auto-complete-mode dot-mode paredit-mode)
+  945
+  '(1049 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . utf-8-unix)))
+
+(desktop-create-buffer 206
+  "/data/projects/ensanche-core/components/agents-evolutionary-distribution.scm"
+  "agents-evolutionary-distribution.scm"
+  'scheme-mode
+  '(linum-mode auto-complete-mode dot-mode paredit-mode)
+  2711
+  '(2501 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . utf-8-unix)))
+
+(desktop-create-buffer 206
+  "/data/projects/ensanche-core/geometry/generation.scm"
+  "generation.scm"
+  'scheme-mode
+  '(linum-mode auto-complete-mode dot-mode paredit-mode)
+  1130
+  '(nil nil)
+  nil
+  nil
+  '((buffer-file-coding-system . utf-8-unix)))
+
+(desktop-create-buffer 206
+  "/data/projects/ensanche-core/components/element-interrelations.scm"
+  "element-interrelations.scm"
+  'scheme-mode
+  '(linum-mode auto-complete-mode dot-mode paredit-mode)
+  3421
+  '(nil nil)
+  nil
+  nil
+  '((buffer-file-coding-system . utf-8-unix)))
+
+(desktop-create-buffer 206
+  "/data/projects/ensanche-core/math/inexact-algebra.scm"
+  "inexact-algebra.scm"
+  'scheme-mode
+  '(linum-mode auto-complete-mode dot-mode paredit-mode)
+  847
+  '(nil nil)
+  nil
+  nil
+  '((buffer-file-coding-system . utf-8-unix)))
+
+(desktop-create-buffer 206
+  nil
+  "components"
+  'dired-mode
+  '(linum-mode)
+  645
+  '(nil nil)
+  t
+  '("/data/projects/ensanche-core/components/")
+  nil)
+
+(desktop-create-buffer 206
+  nil
+  "ensanche-core"
+  'dired-mode
+  '(linum-mode)
+  234
+  '(nil nil)
+  t
+  '("/data/projects/ensanche-core/")
+  nil)
+
+(desktop-create-buffer 206
+  nil
+  "projects"
+  'dired-mode
+  '(linum-mode)
+  393
+  '(nil nil)
+  t
+  '("/data/projects/")
+  nil)
+

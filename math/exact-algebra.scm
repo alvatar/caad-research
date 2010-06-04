@@ -9,6 +9,7 @@
 (compile-options force-compile: #t)
 
 (import (std srfi/1))
+(import (std srfi/16))
 (import ../core/functional)
 
 ;-------------------------------------------------------------------------------
@@ -35,29 +36,28 @@
 (define (square x)
   (* x x))
 
-;-------------------------------------------------------------------------------
-; Numeric lists
-;-------------------------------------------------------------------------------
+;;; 1 arg: mean of all values in a list
+;;; 2 args: mean of the two values
+
+(define mean ; TODO: Check if optimizes, build specific mean2/mean-list generator
+  (case-lambda
+   ((l) (/ (sum l) (length l)))
+   ((a b) (/ (+ a b) 2)))) ; TODO: OPTIMIZE!
 
 ;;; Takes the smallest value of a list
 
-(define (smallest l)
+(define (pick-min l)
   (reduce (lambda (x prev) (min x prev)) l l))
 
 ;;; Takes the biggest value of a list
 
-(define (biggest l)
+(define (pick-max l)
   (reduce (lambda (x prev) (max x prev)) l l))
 
 ;;; Computes the sum of all values
 
 (define (sum l)
   (reduce (lambda (x prev) (+ x prev)) l l))
-
-;;; Average of all values in a list
-
-(define (average l)
-  (/ (sum l) (length l))) ; TODO: OPTIMIZE!
 
 ;-------------------------------------------------------------------------------
 ; Vector dimension 2

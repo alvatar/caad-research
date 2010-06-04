@@ -6,6 +6,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1))
+(import (std srfi/26))
+(import (std srfi/69))
 
 (import ../core/syntax)
 (import ../core/functional)
@@ -23,6 +25,23 @@
 
 (export agents-evolutionary-distribution)
 
+;;; Helper function for debugging scores
+
+(define debug-score
+  (let ((maxs-table (make-hash-table)))
+    (lambda (type s)
+      (let ((max-score (hash-table-ref maxs-table type (lambda () -inf.0))))
+       (if (> s max-score)
+           (hash-table-set! maxs-table type s))
+       (display "\n************ ")
+       (display type)
+       (display " ************\n")
+       (display "score: ")
+       (display s)
+       (display "\nmax-score: ")
+       (display max-score)
+       s))))
+
 
 (define (score-agents-interrelationships agents)
   ;; 1) Build a list of proximity groups (lists) '((room living) (bath) (kitchen))
@@ -35,7 +54,7 @@
 
 (define (score-agent-illumination agents g)
   (let ((windows (graph:find.windows g)))
-    (smallest
+    (pick-min
      (map
       (lambda (a)
         (case (agent-label a)
@@ -44,23 +63,23 @@
           ((kitchen)
            0.0)
           ((living)
-           (* -1.0 (smallest (map (lambda (w) (max 4.0 (distance.agent<->window a w))) windows))))
+           (* -1.0 (pick-min (map (lambda (w) (max 4.0 (distance.agent<->window a w))) windows))))
           ((room)
-           (* -1.0 (smallest (map (lambda (w) (max 4.0 (distance.agent<->window a w))) windows))))))
+           (* -1.0 (pick-min (map (lambda (w) (max 4.0 (distance.agent<->window a w))) windows))))))
       agents))))
 
 (define (score-agent-distances-to-elements agents g)
-  (average
+  (mean
    (map (lambda (a)
           (case (agent-label a)
             ((distribution)
-             (* -1.0
+             (* -2.0
                 (max ; Only the biggest distance from the necessary elements is important
-                 (smallest (map (lambda (e) (distance.agent<->entry a e)) (graph:find.entries g)))
-                 (smallest (map (lambda (e) (distance.agent<->pipe a e)) (graph:find.pipes g))))))
+                 (pick-min (map (lambda (e) (distance.agent<->entry a e)) (graph:find.entries g)))
+                 (pick-min (map (lambda (e) (distance.agent<->pipe a e)) (graph:find.pipes g))))))
             ((kitchen)
-             (* -1.0
-                (smallest
+             (* -2.0
+                (pick-min
                  (map (lambda (e) (distance.agent<->pipe a e)) (graph:find.pipes g)))))
             ((living)
              0.0)
@@ -69,36 +88,31 @@
             (else (error "Agent type doesn't exist"))))
         agents)))
 
-(define (score-agent-required-geometrical agents g)
-  (average
-   (list
-    (* -1.0
-       (average
-        (map (lambda (a1)
-               (biggest (map (lambda (a2) (inverse (distance.agent<->agent a1 a2)))
-                             (delete a1 agents))))
-             agents)))
-    (* -1.0
-       (average
-        (map (lambda (w)
-               (biggest (map (lambda (a) (inverse (distance.agent<->wall a w))) agents)))
-             (graph:find.walls g)))))))
+;; (define (score-agent-required-geometrical agents g)
+;;   (mean
+;;    (list
+;;     (* -1.0
+;;        (mean
+;;         (map (lambda (a1)
+;;                (pick-max (map (lambda (a2) (inverse (distance.agent<->agent a1 a2)))
+;;                              (delete a1 agents))))
+;;              agents)))
+;;     (* -1.0
+;;        (mean
+;;         (map (lambda (w)
+;;                (pick-max (map (lambda (a) (inverse (distance.agent<->wall a w))) agents)))
+;;              (graph:find.walls g)))))))
 
 (define (score agents graph)
-  (p (+ (score-agents-interrelationships agents)
-        (score-agent-illumination agents graph)
-        (score-agent-distances-to-elements agents graph)
-        (score-agent-required-geometrical agents graph)
-        )))
+  (+  (score-agents-interrelationships agents)
+      (debug-score "illumination" (score-agent-illumination agents graph))
+      (debug-score "distances to elements" (score-agent-distances-to-elements agents graph))
+                                        ;(score-agent-required-geometrical agents graph)
+      ))
 
 (define (generate-agents limit-polygon) ; TODO: 1) IMPORTANTE: Generar con restricciones!!
   (let ((make-agent-type
-         (lambda (type) ; TODO: Cut or curry
-           (make-agent
-            type
-            (list (pseq:make-random-point-inside limit-polygon))
-            '()
-            '()))))
+         (cut make-agent <> (list (generate.random-point-inside limit-polygon)) '() '())))
    (list ; TODO: This list is generated from an input argument
     (make-agent-type 'distribution)
     (make-agent-type 'kitchen)
@@ -109,12 +123,13 @@
 
 (define (regenerate-agents agents limit-polygon)
   (map
-   (lambda (a) (make-agent
-           (agent-label a)
-           (list (pseq:make-random-point-inside limit-polygon))
-           '()
-           '()))
-   agents))
+   (lambda (a p) (make-agent
+             (agent-label a)
+             (list p)
+             '()
+             '()))
+   agents
+   (generate.random-points/separation&boundaries (length agents) limit-polygon 4.0 2.0)))
 
 (define (agents-evolutionary-distribution graph world)
   (let ((limit-polygon (graph:limits graph)))
@@ -123,11 +138,10 @@
       (visualize-graph graph)
       (visualize-world (make-world agents '()) graph)
       (visualization:do-now)
-      
       (let ((new-agents (regenerate-agents agents limit-polygon)))
         (evolve (if (< (score agents graph) (score new-agents graph))
                     new-agents
-                    agents)))) ; TODO REMEMBER LAST SCORE!
+                    agents)))) ; TODO REMEMBR LAST SCORE!
 
     (values
      graph
