@@ -294,7 +294,7 @@
 (define (graph:room-break graph room first-wall-uid second-wall-uid)
                                         ; TODO: check if walls are ordered
   (break (lambda (wall) (equal? second-wall-uid wall))
-         (rotate-until-first
+         (find-rotate
           (lambda (wall) (equal? first-wall-uid wall))
           (room-walls room))))
 

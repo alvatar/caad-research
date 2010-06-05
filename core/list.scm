@@ -8,9 +8,9 @@
 (import (std srfi/1))
 (import syntax)
 
-;;; atom?
-
-(define atom? (lambda (x) (and (not (pair? x)) (not (null? x)))))
+;-------------------------------------------------------------------------------
+; Basic
+;-------------------------------------------------------------------------------
 
 ;;; not null?
 
@@ -19,20 +19,23 @@
     ((_ l)
      (not (null? l)))))
 
+;;; atom?
+
+(define atom? (lambda (x) (and (not (pair? x)) (not-null? x))))
+
 ;;; XOR
 
-(define (xor a b)
-  (if a (not b) b))
+(define (xor a b) (if a (not b) b))
 
-;;; snoc (always prefer the use of cons)
+;;; snoc (always prefer the use of cons before this)
 
 (define snoc
   (lambda (ls x)
     (append ls (list x))))
 
-;;; TODO: TEST and MOVE TO FUNCTIONAL
-
-(define (ticker! tape) (lambda () (begin0 (car tape) (set! tape (cdr tape)))))
+;-------------------------------------------------------------------------------
+; Map variants
+;-------------------------------------------------------------------------------
 
 ;;; Recursive map
 
@@ -103,6 +106,10 @@
     ((_ ((any ...) ...) thing) ; detect wrong syntax
      (error "Syntax error: wrong number of arguments in condition"))))
 
+;-------------------------------------------------------------------------------
+; Find, remove, substitute
+;-------------------------------------------------------------------------------
+
 ;;; Remove first instance
 
 (define (rember a l)
@@ -124,6 +131,19 @@
                    (else (cons (car l)
                                (R (cdr l)))))))) R) l)))
 
+;;; Rotates the list until the first one satisfies the predicate
+
+(define (find-rotate pred lis)
+  (define (iter lis-iter n)
+    (let ((x (car lis-iter))
+          (l (length lis)))
+      (cond
+       ((= n l) #f)
+       ((pred x) lis-iter)
+       (else
+        (iter (append (cdr lis-iter) (list x)) (+ n 1))))))
+  (iter lis 0))
+
 ;;; Recursive substitution in a list
 
 (define (subst* new old l)
@@ -144,13 +164,11 @@
       ((atom? (car l)) ; Atoms level
        (cond
          ((eq? (car l) old)
-          (f
-            new
-            (X (cdr l))))
+          (f new
+             (X (cdr l))))
          (else
-           (cons
-             (car l)
-             (X (cdr l))))))
+           (cons (car l)
+                 (X (cdr l))))))
       ((equal? (car l) old) ; Sublist level
        (f new (X (cdr l))))
       (else
@@ -158,20 +176,9 @@
           (X (car l))
           (X (cdr l)))))))) X) l))
 
-;;; Rotates the list until the first one satisfies the predicate
-
-(define (rotate-until-first pred lis)
-  (define (iter lis-iter n)
-    (let ((x (car lis-iter))
-          (l (length lis)))
-      (cond
-       ((= n l)
-        (error "Full list rotation done without satisfying predicate"))
-       ((pred x)
-          lis-iter)
-       (else
-        (iter (append (cdr lis-iter) (list x)) (+ n 1))))))
-  (iter lis 0))
+;-------------------------------------------------------------------------------
+; Skeleton/shape
+;-------------------------------------------------------------------------------
 
 ;;; Flatten a list (not-optimized)
 ;;; TODO: benchmark
@@ -266,6 +273,9 @@
                    (if (= (car s) 1)
                        (cons (next) (E (cdr s)))
                        (cons (next) (E (cons (- (car s) 1) (cdr s)))))))))) E) s))
+;-------------------------------------------------------------------------------
+; Distances
+;-------------------------------------------------------------------------------
 
 ;;; Calculates the hamming distance (number of different positions) of two lists
 ;;; of equal length
@@ -297,6 +307,10 @@
                            (H (cdr a) b (+ d 1)))))))) H) la lb 0))
 
 ;;; Takes a sublist from start to end positions
+
+;-------------------------------------------------------------------------------
+; Sublist operations
+;-------------------------------------------------------------------------------
 
 (define (slice l start end)
   (take (drop l start)
@@ -334,3 +348,60 @@
 ;;           (values l back))]
 ;;      [else                    (loop (cdr slow)
 ;;                                     (cddr fast))])))
+
+;-------------------------------------------------------------------------------
+; Miscellaneous
+;-------------------------------------------------------------------------------
+
+;;; Creates a destructive function to read a list sequantially after each call
+
+(define (ticker! l)
+  (lambda ()
+    (begin0 (car l)
+            (set! l (cdr l)))))
+
+;;; Number of values produced by a 0-arity function
+
+(define (values-length producer)
+  (call-with-values
+      (lambda () (producer))
+    (lambda v (length v))))
+
+;;; Demultiplex a list in 2
+
+(define (demultiplex2 f l)
+  (let recur ((l l))
+    (if (null? l)
+        (values l l)
+        (let ((h (car l)))
+          (call-with-values
+              (lambda () (recur (cdr l)))
+            (lambda (a b)
+              (call-with-values
+                  (lambda () (f h))
+                (lambda (p1 p2) (values (cons p1 a)
+                                   (cons p2 b))))))))))
+
+;;; Demultiplex a list (convert a list into several with a function)
+
+(define (demultiplex f lis)
+  (if (null? lis)
+      '()
+      (let recur ((l lis))
+        (if (null? l)
+            (apply values
+                   (make-list
+                    (values-length (curry f (car lis)))
+                    '()))
+            (let ((h (car l)))
+              (call-with-values
+                  (lambda () (recur (cdr l)))
+                (lambda tails
+                  (call-with-values
+                      (lambda () (f h))
+                    (lambda produced-vals
+                      (apply
+                       values
+                       (map (lambda (p t) (cons p t))
+                            produced-vals
+                            tails)))))))))))
