@@ -163,6 +163,4 @@
 
     (values
      graph
-     (make-world 
-      agents
-      '()))))
+     (make-world agents '()))))

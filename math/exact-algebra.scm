@@ -58,7 +58,7 @@
 
 ;;; Weighed mean of the values of the first list, the second are the weights
 
-(define (weighted-mean3 vl wl)
+(define (weighted-mean vl wl)
   (if (not (= (length vl) (length wl)))
       (error "Values and weights lists are not of the same length")) ; TODO: Change to arg-checks
   (let ((q (fold (lambda (v w num.den) (list
