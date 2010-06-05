@@ -400,8 +400,7 @@
                   (call-with-values
                       (lambda () (f h))
                     (lambda produced-vals
-                      (apply
-                       values
-                       (map (lambda (p t) (cons p t))
-                            produced-vals
-                            tails)))))))))))
+                      (apply values
+                             (map (lambda (p t) (cons p t))
+                                  produced-vals
+                                  tails)))))))))))

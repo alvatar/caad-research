@@ -53,8 +53,19 @@
 
 (define mean ; TODO: Check if optimizes, build specific mean2/mean-list generator
   (case-lambda
-   ((l) (/ (sum l) (length l))) ; TODO: OPTIMIZE!
+   ((l) (/ (sum l) (length l))) ; OPTIMIZE
    ((a b) (/ (+ a b) 2))))
+
+;;; Weighed mean of the values of the first list, the second are the weights
+
+(define (weighted-mean3 vl wl)
+  (if (not (= (length vl) (length wl)))
+      (error "Values and weights lists are not of the same length")) ; TODO: Change to arg-checks
+  (let ((q (fold (lambda (v w num.den) (list
+                                   (+ (* v w) (car num.den))
+                                   (+ w (cadr num.den))))
+                 '(0 0) vl wl)))
+    (/ (car q) (cadr q))))
 
 ;-------------------------------------------------------------------------------
 ; Intervals
