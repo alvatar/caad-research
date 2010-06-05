@@ -46,18 +46,74 @@
 
 ;;; Takes the smallest value of a list
 
-(define (pick-min l)
-  (reduce (lambda (x prev) (min x prev)) l l))
+(define (pick-min l) (apply min l))
 
 ;;; Takes the biggest value of a list
 
-(define (pick-max l)
-  (reduce (lambda (x prev) (max x prev)) l l))
+(define (pick-max l) (apply max l))
 
 ;;; Computes the sum of all values
 
-(define (sum l)
-  (reduce (lambda (x prev) (+ x prev)) l l))
+(define (sum l) (apply + l))
+
+;-------------------------------------------------------------------------------
+; Intervals
+;-------------------------------------------------------------------------------
+
+;;; Clamp value between low and high values
+
+(define (clamp x lo hi)
+  (cond ((< x lo) lo)
+        ((> x hi) hi)
+        (else x)))
+
+;;; Normalize value in a range
+
+(define (normalize x lo hi) ; TODO: should check boundaries?
+  (/ (- x lo) (- hi lo)))
+
+;;; Takes a value and two boundaries, using any as reference, inverts the intervals
+
+(define (invert x lo hi) ; TODO: should check boundaries (or clamp)?
+  (+ lo (- hi x)))
+
+;;; Clamp value and normalize it to the given boundaries
+
+(define (clamp&normalize x lo hi) ; TODO: try with compose
+  (normalize (clamp x lo hi) lo hi))
+
+;;; Clamp & normalize, plus an additional inversion of the reference
+
+(define (clamp&invert&normalize x lo hi) ; TODO: compose!
+  (normalize (invert (clamp x lo hi) lo hi) lo hi))
+
+;;; Cut the value if lower than
+
+(define (cut-low x lo)
+  (if (< x lo)
+      lo
+      x))
+
+;;; Cut the value if higher than
+
+(define (cut-high x hi)
+  (if (> x hi)
+      hi
+      x))
+
+;;; If greater than, otherwise return value
+
+(define (if> a b f)
+  (if (> a b)
+      f
+      a))
+
+;;; If smaller than, otherwise return value
+
+(define (if< a b f)
+  (if (< a b)
+      f
+      a))
 
 ;-------------------------------------------------------------------------------
 ; Vector dimension 2
@@ -156,20 +212,12 @@
         (hix (vect2-x hi-vec))
         (hiy (vect2-y hi-vec)))
     (make-vect2
-      (cond
-       ((< x lox)
-        lox)
-       ((>= x hix)
-        hix)
-       (else
-        x))
-      (cond
-       ((< y loy)
-        lox)
-       ((>= y hiy)
-        hiy)
-       (else
-        y)))))
+      (cond ((< x lox) lox)
+            ((> x hix)  hix)
+            (else x))
+      (cond ((< y loy) lox)
+            ((> y hiy) hiy)
+            (else y)))))
 
 ;;; Clamp to low and high values
 
@@ -177,17 +225,9 @@
   (let ((x (vect2-x vec))
         (y (vect2-y vec)))
     (make-vect2
-      (cond
-       ((< x lo)
-        lo)
-       ((>= x hi)
-        hi)
-       (else
-        x))
-      (cond
-       ((< y lo)
-        lo)
-       ((>= y hi)
-        hi)
-       (else
-        y)))))
+      (cond ((< x lo) lo)
+            ((> x hi) hi)
+            (else x))
+      (cond ((< y lo) lo)
+            ((> y hi) hi)
+            (else y)))))

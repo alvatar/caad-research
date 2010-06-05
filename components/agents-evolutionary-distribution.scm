@@ -40,6 +40,7 @@
        (display s)
        (display "\nmax-score: ")
        (display max-score)
+       (display "\n")
        s))))
 
 
@@ -52,21 +53,23 @@
 (define (score-agent-orientations a g)
   0.0)
 
-(define (score-agent-illumination agents g)
+(define (score-agent-illumination agents g) ; TODO: this should think about obstruction, not distances
   (let ((windows (graph:find.windows g)))
-    (pick-min
-     (map
-      (lambda (a)
-        (case (agent-label a)
-          ((distribution)
-           0.0)
-          ((kitchen)
-           0.0)
-          ((living)
-           (* -1.0 (pick-min (map (lambda (w) (max 4.0 (distance.agent<->window a w))) windows))))
-          ((room)
-           (* -1.0 (pick-min (map (lambda (w) (max 4.0 (distance.agent<->window a w))) windows))))))
-      agents))))
+    (mean
+     (delete
+      'nada
+      (map
+       (lambda (a)
+         (case (agent-label a)
+           ((distribution) 'nada)
+           ((kitchen) 'nada)
+           ((living)
+            (clamp&invert&normalize ; IDEA: find mathematical solution to control distribution of power 1 vs. x
+             (pick-min (map (lambda (w) (distance.agent<->window a w)) windows)) 4.0 8.0)) ; TODO: 4.0 is wall separation
+           ((room)
+            (clamp&invert&normalize
+             (pick-min (map (lambda (w) (distance.agent<->window a w)) windows)) 4.0 6.0))))
+       agents)))))
 
 (define (score-agent-distances-to-elements agents g)
   (mean
@@ -106,11 +109,11 @@
 (define (score agents graph)
   (+  (score-agents-interrelationships agents)
       (debug-score "illumination" (score-agent-illumination agents graph))
-      (debug-score "distances to elements" (score-agent-distances-to-elements agents graph))
+      ;(debug-score "distances to elements" (score-agent-distances-to-elements agents graph))
                                         ;(score-agent-required-geometrical agents graph)
       ))
 
-(define (generate-agents limit-polygon) ; TODO: 1) IMPORTANTE: Generar con restricciones!!
+(define (generate-agents limit-polygon)
   (let ((make-agent-type
          (cut make-agent <> (list (generate.random-point-inside limit-polygon)) '() '())))
    (list ; TODO: This list is generated from an input argument
@@ -131,17 +134,20 @@
    agents
    (generate.random-points/separation&boundaries (length agents) limit-polygon 4.0 2.0)))
 
+;;; Evolutionary algorithm
+
 (define (agents-evolutionary-distribution graph world)
   (let ((limit-polygon (graph:limits graph)))
-    (let evolve ((agents (generate-agents limit-polygon)))
+    (let evolve ((agents (generate-agents limit-polygon))
+                 (old-score 0.0))
       (visualization:forget-all)
       (visualize-graph graph)
       (visualize-world (make-world agents '()) graph)
       (visualization:do-now)
       (let ((new-agents (regenerate-agents agents limit-polygon)))
-        (evolve (if (< (score agents graph) (score new-agents graph))
-                    new-agents
-                    agents)))) ; TODO REMEMBR LAST SCORE!
+        (if (< old-score (score new-agents graph))
+            (evolve new-agents (score new-agents graph))
+            (evolve agents old-score))))                              ; TODO REMEMBR LAST SCORE!
 
     (values
      graph
