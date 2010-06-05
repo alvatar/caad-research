@@ -65,31 +65,43 @@
            ((kitchen) 'nada)
            ((living)
             (clamp&invert&normalize ; IDEA: find mathematical solution to control distribution of power 1 vs. x
-             (pick-min (map (lambda (w) (distance.agent<->window a w)) windows)) 4.0 8.0)) ; TODO: 4.0 is wall separation
+             (pick-min (map (lambda (w) (distance.agent<->window a w)) windows))
+             8.0
+             12.0))                      ; TODO: 2.0 is wall separation
            ((room)
             (clamp&invert&normalize
-             (pick-min (map (lambda (w) (distance.agent<->window a w)) windows)) 4.0 6.0))))
+             (pick-min (map (lambda (w) (distance.agent<->window a w)) windows))
+             8.0
+             12.0))
+           (else (error "Agent type doesn't exist"))))
        agents)))))
+;; IDEA: optimal positions through forces
 
 (define (score-agent-distances-to-elements agents g)
   (mean
-   (map (lambda (a)
-          (case (agent-label a)
-            ((distribution)
-             (* -2.0
-                (max ; Only the biggest distance from the necessary elements is important
-                 (pick-min (map (lambda (e) (distance.agent<->entry a e)) (graph:find.entries g)))
-                 (pick-min (map (lambda (e) (distance.agent<->pipe a e)) (graph:find.pipes g))))))
-            ((kitchen)
-             (* -2.0
-                (pick-min
-                 (map (lambda (e) (distance.agent<->pipe a e)) (graph:find.pipes g)))))
-            ((living)
-             0.0)
-            ((room)
-             0.0)
-            (else (error "Agent type doesn't exist"))))
-        agents)))
+   (delete
+    'nada
+    (map
+     (lambda (a)
+       (case (agent-label a)
+         ((distribution)
+          (clamp&invert&normalize
+           (max ; Only the biggest distance from the necessary elements is important
+            (pick-min (map (lambda (e) (distance.agent<->entry a e)) (graph:find.entries g)))
+            ;(pick-min (map (lambda (e) (distance.agent<->pipe a e)) (graph:find.pipes g)))
+            )
+           8.0 ; TODO: the best point that satisfies this (calculated with forces??)
+           20.0)) ; TODO: This number should be analyzed from graph (the max possible distance)
+         ((kitchen)
+          (clamp&invert&normalize
+           (pick-min
+            (map (lambda (e) (distance.agent<->pipe a e)) (graph:find.pipes g)))
+           0.0
+           20.0))
+         ((living) 'nada)
+         ((room) 'nada)
+         (else (error "Agent type doesn't exist"))))
+     agents))))
 
 ;; (define (score-agent-required-geometrical agents g)
 ;;   (mean
@@ -109,7 +121,7 @@
 (define (score agents graph)
   (+  (score-agents-interrelationships agents)
       (debug-score "illumination" (score-agent-illumination agents graph))
-      ;(debug-score "distances to elements" (score-agent-distances-to-elements agents graph))
+      (* 2.0 (debug-score "distances to elements" (score-agent-distances-to-elements agents graph)))
                                         ;(score-agent-required-geometrical agents graph)
       ))
 
