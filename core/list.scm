@@ -106,6 +106,15 @@
     ((_ ((any ...) ...) thing) ; detect wrong syntax
      (error "Syntax error: wrong number of arguments in condition"))))
 
+;;; Map that generates a value for each element
+;;; (map/values (lambda (x y z) (values x y z)) '(a 1) '(b 2) '(c 3))
+;;; => (a b c)
+;;;    (1 2 3)
+
+(define (map/values f . ls)
+  (list->values
+   (apply map (lambda args (values->list (apply f args))) ls)))
+
 ;-------------------------------------------------------------------------------
 ; Find, remove, substitute
 ;-------------------------------------------------------------------------------
@@ -428,15 +437,6 @@
                              (map (lambda (p t) (cons p t))
                                   produced-vals
                                   tails)))))))))))
-
-;;; Map that generates a value for each element
-;;; (values-map (lambda (x y z) (values x y z)) '(a 1) '(b 2) '(c 3))
-;;; => (a b c)
-;;;    (1 2 3)
-
-(define (values-map f . ls)
-  (list->values
-   (apply map (lambda args (values->list (apply f args))) ls)))
 
 ;-------------------------------------------------------------------------------
 ; Miscellaneous
