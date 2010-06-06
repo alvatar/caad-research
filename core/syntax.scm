@@ -76,16 +76,6 @@
        expr1 ...
        return))))
 
-;;; Extract only the nth-value from a function returning multiple values
-
-(define-syntax nth-value
-  (syntax-rules ()
-    ((_ n values-producing-form)
-     (call-with-values
-       (lambda () values-producing-form)
-       (lambda all-values
-         (list-ref all-values n))))))
-
 ;;; Define values allows sharing state between functions
 ;; UNTESTED
 ;; (define-values (inc dec reset)

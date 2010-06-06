@@ -258,7 +258,7 @@
                        (cons #t (E (cdr s)))
                        (cons #t (E (cons (- (car s) 1) (cdr s)))))))))) E) s))
 
-;;; Apply a structure to make a flat list fit this structure
+;;; Apply a structure to make a flat list fit into a skeleton
 ;;; TODO! IMPORTANT: REMOVE TICKER
 
 (define (apply-skeleton s l)
@@ -273,6 +273,7 @@
                    (if (= (car s) 1)
                        (cons (next) (E (cdr s)))
                        (cons (next) (E (cons (- (car s) 1) (cdr s)))))))))) E) s))
+
 ;-------------------------------------------------------------------------------
 ; Distances
 ;-------------------------------------------------------------------------------
@@ -350,22 +351,42 @@
 ;;                                     (cddr fast))])))
 
 ;-------------------------------------------------------------------------------
-; Miscellaneous
+; List/values
 ;-------------------------------------------------------------------------------
 
-;;; Creates a destructive function to read a list sequantially after each call
+;;; Values to list
 
-(define (ticker! l)
-  (lambda ()
-    (begin0 (car l)
-            (set! l (cdr l)))))
+(define-syntax values->list
+  (syntax-rules ()
+    ((_ producer)
+     (call-with-values
+         (lambda () producer)
+       (lambda v (apply list v))))))
 
-;;; Number of values produced by a 0-arity function
+;;; List to values
 
-(define (values-length producer)
-  (call-with-values
-      (lambda () (producer))
-    (lambda v (length v))))
+(define-syntax list->values
+  (syntax-rules ()
+    ((_ l)
+     (apply values l))))
+
+;;; Number of values produced
+
+(define-syntax values-length
+  (syntax-rules ()
+    ((_ producer)
+     (call-with-values
+         (lambda () producer)
+       (lambda v (length v))))))
+
+;;; Extract only the nth-value from a function returning multiple values
+
+(define-syntax values-ref
+  (syntax-rules ()
+    ((_ n producer)
+     (call-with-values
+       (lambda () producer)
+       (lambda v (list-ref v n))))))
 
 ;;; Demultiplex a list in 2
 
@@ -382,7 +403,10 @@
                 (lambda (p1 p2) (values (cons p1 a)
                                    (cons p2 b))))))))))
 
-;;; Demultiplex a list (convert a list into several with a function)
+;;; Demultiplex a list
+;;; (demultiplex (lambda (x) (values (car x) (cadr x))) '((a 1) (b 2) (c 3)))
+;;; => (a b c)
+;;;    (1 2 3)
 
 (define (demultiplex f lis)
   (if (null? lis)
@@ -391,7 +415,7 @@
         (if (null? l)
             (apply values
                    (make-list
-                    (values-length (curry f (car lis)))
+                    (values-length (f (car lis)))
                     '()))
             (let ((h (car l)))
               (call-with-values
@@ -404,3 +428,23 @@
                              (map (lambda (p t) (cons p t))
                                   produced-vals
                                   tails)))))))))))
+
+;;; Map that generates a value for each element
+;;; (values-map (lambda (x y z) (values x y z)) '(a 1) '(b 2) '(c 3))
+;;; => (a b c)
+;;;    (1 2 3)
+
+(define (values-map f . ls)
+  (list->values
+   (apply map (lambda args (values->list (apply f args))) ls)))
+
+;-------------------------------------------------------------------------------
+; Miscellaneous
+;-------------------------------------------------------------------------------
+
+;;; Creates a destructive function to read a list sequantially after each call
+
+(define (ticker! l)
+  (lambda ()
+    (begin0 (car l)
+            (set! l (cdr l)))))
