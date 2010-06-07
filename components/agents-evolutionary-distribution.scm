@@ -8,6 +8,7 @@
 (import (std srfi/1))
 (import (std srfi/26))
 (import (std srfi/69))
+(import (std srfi/95))
 
 (import ../core/syntax)
 (import ../core/functional)
@@ -16,11 +17,11 @@
 (import ../geometry/kernel)
 (import ../geometry/generation)
 (import ../graph)
+(import ../graph-visualization)
+(import ../graph-operations)
 (import ../math/exact-algebra)
 (import ../math/inexact-algebra)
-(import ../graph-operations)
 (import ../visualization)
-(import ../graph-visualization)
 (import element-interrelations)
 
 (export agents-evolutionary-distribution)
@@ -50,8 +51,35 @@
   ;; 3) Score according to differences in group distributions
   0.0)
 
-(define (score-agent-orientations a g)
-  0.0)
+(define (score-agent-orientations agents g limits)
+  (let* ((bb (pseq->bounding-box limits))
+         (bblt (bounding-box-lefttop bb))
+         (bbrt (bounding-box-righttop bb))
+         (bblb (bounding-box-leftbottom bb))
+         (bbrb (bounding-box-rightbottom bb))
+         (east-angle (- (direction->angle-rad (graph:north->east (car (graph-environment g))))))
+         (north (rotate.point (segment:mid-point (make-segment bblt bbrt)) east-angle))
+         (south (rotate.point (segment:mid-point (make-segment bblb bbrb)) east-angle))
+         (east (rotate.point (segment:mid-point (make-segment bbrt bbrb)) east-angle))
+         (west (rotate.point (segment:mid-point (make-segment bblt bblb)) east-angle)))
+    (define (agent-orientation a)
+      (caar (sort
+             `((north ,(distance.agent<->point a north))
+               (south ,(distance.agent<->point a south))
+               (east ,(distance.agent<->point a east))
+               (west ,(distance.agent<->point a west)))
+             (lambda (a b) (< (cadr a) (cadr b))))))
+    (ps
+     (delete
+      'nada
+      (map (lambda (a)
+             (case (agent-label a)
+               ((distribution) (agent-orientation a))
+               ((kitchen) (agent-orientation a))
+               ((living) (agent-orientation a))
+               ((room) (agent-orientation a))))
+           agents)))
+    ))
 
 (define (score-agent-illumination agents g) ; TODO: this should think about obstruction, not distances
   (let ((windows (graph:find.windows g)))
@@ -118,11 +146,11 @@
 ;;                (pick-max (map (lambda (a) (inverse (distance.agent<->wall a w))) agents)))
 ;;              (graph:find.walls g)))))))
 
-(define (score agents graph)
-  (+  (score-agents-interrelationships agents)
-      (debug-score "illumination" (score-agent-illumination agents graph))
-      (* 2.0 (debug-score "distances to elements" (score-agent-distances-to-elements agents graph)))
-                                        ;(score-agent-required-geometrical agents graph)
+(define (score agents graph limits)
+  (+  ;(score-agents-interrelationships agents)
+      ;(debug-score "illumination" (score-agent-illumination agents graph))
+      ;(debug-score "distances to elements" (score-agent-distances-to-elements agents graph))
+      (debug-score "orientation" (score-agent-orientations agents graph limits))
       ))
 
 (define (generate-agents limit-polygon)
@@ -150,16 +178,20 @@
 
 (define (agents-evolutionary-distribution graph world)
   (let ((limit-polygon (graph:limits graph)))
-    (let evolve ((agents (generate-agents limit-polygon))
+    (let evolve ((old-agents (generate-agents limit-polygon))
                  (old-score 0.0))
       (visualization:forget-all)
       (visualize-graph graph)
-      (visualize-world (make-world agents '()) graph)
+      (visualize-world (make-world old-agents '()) graph)
       (visualization:do-now)
-      (let ((new-agents (regenerate-agents agents limit-polygon)))
-        (if (< old-score (score new-agents graph))
-            (evolve new-agents (score new-agents graph))
-            (evolve agents old-score))))                              ; TODO REMEMBR LAST SCORE!
+      (let ((new-agents (regenerate-agents old-agents limit-polygon)))
+        (if (< old-score (score new-agents
+                                graph
+                                limit-polygon))
+            (evolve new-agents (score new-agents
+                                      graph
+                                      limit-polygon))
+            (evolve old-agents old-score))))
 
     (values
      graph

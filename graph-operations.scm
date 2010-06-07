@@ -238,6 +238,11 @@
 (define (graph:north->north-east vec)
   (rotate.point vec pi/4))
 
+;;; Calculate east from north direction
+
+(define (graph:north->east vec)
+  (rotate.point vec pi/2))
+
 ;-------------------------------------------------------------------------------
 ; Low-level manipulation of the graph
 ;-------------------------------------------------------------------------------

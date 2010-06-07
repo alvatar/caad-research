@@ -86,6 +86,13 @@
 ; Elements geometrical interrelations
 ;-------------------------------------------------------------------------------
 
+;;; Distance agent-point
+
+(define (distance.agent<->point agent point)
+  (~distance.point-point
+   (car (agent-positions agent))
+   point)) ; TODO: multi-nodal agents
+
 ;;; Distance agent-wall
 
 (define (distance.agent<->wall agent wall)

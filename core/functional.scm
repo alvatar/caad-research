@@ -5,7 +5,7 @@
 ;;; Functional programming utilities
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(export U Y compose
+(export U Y Y! compose
         define-associative
         curry define-curried lambda-curried uncurry
         define-memoized define-memoized/key-gen)
@@ -14,17 +14,25 @@
 ; Functional operators
 ;-------------------------------------------------------------------------------
 
-;;; U combinator
+;;; U-combinator
 
 (define U
   (lambda (f) (f f)))
 
-;;; Y combinator
+;;; Y-combinator
 
 (define Y
   (lambda (X)
     (U (lambda (proc)
          (X (lambda (arg) ((U proc) arg)))))))
+
+;;; The applicative-order imperative y-combinator (by Peter Landin)
+
+(define Y!
+  (lambda (f)
+    (letrec
+        ((h (f (lambda (arg) (h arg)))))
+      h)))
 
 ;;; Function composition
 
