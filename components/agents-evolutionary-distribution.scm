@@ -44,7 +44,6 @@
        (display "\n")
        s))))
 
-
 (define (score-agents-interrelationships agents)
   ;; 1) Build a list of proximity groups (lists) '((room living) (bath) (kitchen))
   ;; 2) Use min-hamming-distance to analyze differences in each group
@@ -57,11 +56,17 @@
          (bbrt (bounding-box-righttop bb))
          (bblb (bounding-box-leftbottom bb))
          (bbrb (bounding-box-rightbottom bb))
-         (east-angle (- (direction->angle-rad (graph:north->east (car (graph-environment g))))))
-         (north (rotate.point (segment:mid-point (make-segment bblt bbrt)) east-angle))
-         (south (rotate.point (segment:mid-point (make-segment bblb bbrb)) east-angle))
-         (east (rotate.point (segment:mid-point (make-segment bbrt bbrb)) east-angle))
-         (west (rotate.point (segment:mid-point (make-segment bblt bblb)) east-angle)))
+         (east-angle
+          (-              ; invert to use it for aligning bounding box
+           (direction->angle-rad (graph:north->east (car (graph-environment g))))))
+         (rotfunc (cute rotate.point-w/reference
+                        (bounding-box:centroid bb)
+                        <>
+                        east-angle))
+         (north (rotfunc (segment:mid-point (make-segment bblt bbrt))))
+         (south (rotfunc (segment:mid-point (make-segment bblb bbrb))))
+         (east (rotfunc (segment:mid-point (make-segment bbrt bbrb))))
+         (west (rotfunc (segment:mid-point (make-segment bblt bblb)))))
     (define (agent-orientation a)
       (caar (sort
              `((north ,(distance.agent<->point a north))
@@ -69,17 +74,24 @@
                (east ,(distance.agent<->point a east))
                (west ,(distance.agent<->point a west)))
              (lambda (a b) (< (cadr a) (cadr b))))))
-    (ps
+
+    ;; (visualization:forget-all)
+    ;; (visualize-graph g)
+    ;; (visualize-world (make-world agents '()) g)
+    ;; (visualization:point-list-now 0.5 (list north east south west))
+    (mean
      (delete
       'nada
       (map (lambda (a)
              (case (agent-label a)
-               ((distribution) (agent-orientation a))
-               ((kitchen) (agent-orientation a))
-               ((living) (agent-orientation a))
-               ((room) (agent-orientation a))))
-           agents)))
-    ))
+               ((distribution) 'nada)
+               ((kitchen)
+                (if (equal? 'north (agent-orientation a)) 1.0 0.0))
+               ((living)
+                (if (equal? 'south (agent-orientation a)) 1.0 0.0))
+               ((room)
+                (if (equal? 'north (agent-orientation a)) 1.0 0.0))))
+           agents)))))
 
 (define (score-agent-illumination agents g) ; TODO: this should think about obstruction, not distances
   (let ((windows (graph:find.windows g)))

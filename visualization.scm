@@ -17,27 +17,30 @@
 
 (export maxx)
 (export maxy)
-(export visualization:do-later)
-(export visualization:do-now)
-(export visualization:do-now-layers)
-(export visualization:forget-layers)
-(export visualization:forget-all)
-(export visualization:layer-depth-set!)
-(export visualization:paint-path)
-(export visualization:paint-polygon)
-(export visualization:paint-set-color)
-(export visualization:paint-circle-fill)
-(export visualization:paint-circle-border)
-(export visualization:paint-set-line-cap)
-(export visualization:paint-set-line-width)
-(export visualization:paint-set-line-style)
-(export visualization:paint-text)
-(export visualization:create-image)
-(export visualization:paint-image)
-(export visualization:image-set!)
-(export visualization:translate)
-(export visualization:scale)
-(export visualization:reset-transformations)
+(export visualization:do-later
+        visualization:do-now
+        visualization:do-now-layers
+        visualization:forget-layers
+        visualization:forget-all
+        visualization:layer-depth-set!
+        visualization:paint-path
+        visualization:paint-polygon
+        visualization:paint-set-color
+        visualization:paint-circle-fill
+        visualization:paint-circle-border
+        visualization:paint-set-line-cap
+        visualization:paint-set-line-width
+        visualization:paint-set-line-style
+        visualization:paint-text
+        visualization:create-image
+        visualization:paint-image
+        visualization:image-set!
+        visualization:translate
+        visualization:scale
+        visualization:reset-transformations
+        visualization:pseq-now
+        visualization:point-list-now
+        visualization:point-now)
 
 (define maxx 500)
 (define maxy 500)
@@ -318,3 +321,44 @@
   (set! visualization-environment (make-visualization:environment
                                     (make-vect2 0.0 0.0)
                                     (make-vect2 0.0 0.0))))
+
+;-------------------------------------------------------------------------------
+; Utility and convenience functions
+;-------------------------------------------------------------------------------
+
+;;; Draw now a path in green
+
+(define (visualization:pseq-now pseq)
+  (visualization:do-later
+   '%now-helpers
+   (lambda (backend vis-env)
+     (visualization:paint-set-line-width backend 0.1)
+     (visualization:paint-set-color backend 0.0 1.0 0.0 1.0)
+     (visualization:paint-path backend pseq)))
+  (visualization:layer-depth-set! 'cardinal-points 100)
+  (visualization:do-now))
+
+;;; Draw now a list of points in green
+
+(define (visualization:point-list-now diam plis)
+  (visualization:do-later
+   '%now-helpers
+   (lambda (backend vis-env)
+     (for-each
+      (lambda (p) 
+        (visualization:paint-set-color backend 0.0 1.0 0.0 1.0)
+        (visualization:paint-circle-fill backend (vect2-x p) (vect2-y p) diam))
+      plis)))
+  (visualization:layer-depth-set! 'cardinal-points 100)
+  (visualization:do-now))
+
+;;; Draw now a point in green
+
+(define (visualization:point-now diam p)
+  (visualization:do-later
+   '%now-helpers
+   (lambda (backend vis-env)
+     (visualization:paint-set-color backend 0.0 1.0 0.0 1.0)
+     (visualization:paint-circle-fill backend (vect2-x p) (vect2-y p) diam)))
+  (visualization:layer-depth-set! 'cardinal-points 100)
+  (visualization:do-now))

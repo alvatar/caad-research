@@ -18,8 +18,9 @@
 (define pi (angle -inf.0))
 (define pi2 (* 2 pi))
 (define pi/2 (/ pi 2))
-(define pi/-2 (/ pi -2))
+(define -pi/2 (/ pi -2))
 (define pi/4 (/ pi 4))
+(define -pi/4 (/ pi -4))
 (define pi3/4 (* 3 (/ 4 pi)))
 
 (define equal-accuracy 0.000001)

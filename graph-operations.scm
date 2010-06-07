@@ -82,7 +82,7 @@
                                          (vect2+
                                           mid-p
                                           (vect2:*scalar tangent-p equal-accuracy))
-                                         pi/-2)))
+                                         -pi/2)))
     (not (and (point-in-any-room? p1)
               (point-in-any-room? p2)))))
 
@@ -236,12 +236,12 @@
 ;;; Calculate north-east from north direction
 
 (define (graph:north->north-east vec)
-  (rotate.point vec pi/4))
+  (rotate.point vec -pi/4))
 
 ;;; Calculate east from north direction
 
 (define (graph:north->east vec)
-  (rotate.point vec pi/2))
+  (rotate.point vec -pi/2)) ; TODO: perpendicular+
 
 ;-------------------------------------------------------------------------------
 ; Low-level manipulation of the graph
