@@ -7,10 +7,21 @@
 
 (import (std srfi/1))
 (import syntax)
+(import)
 
 ;-------------------------------------------------------------------------------
 ; Basic
 ;-------------------------------------------------------------------------------
+
+;;; add 1
+
+(define (add1 x)
+  (+ x 1))
+
+;;; substract 1
+
+(define (sub1 x)
+  (- x 1))
 
 ;;; not null?
 
@@ -453,3 +464,22 @@
 
 (define (pick-random l)
   (list-ref l (random-integer (length l))))
+
+;;; Pick a random element with known list length
+
+(define (pick-random/length l len)
+  (list-ref l (random-integer len)))
+
+;;; Pick a number of random elements without repetition
+
+(define (pick-random//repetition l n)
+  (let recur ((l l)
+              (n n)
+              (picked '()))
+    (if (or (null? l) (zero? n))
+        picked
+        (receive (fore aft)
+                 (split-at l (random-integer (length l)))
+                 (recur (append fore (cdr aft))
+                        (sub1 n)
+                        (cons (car aft) picked))))))

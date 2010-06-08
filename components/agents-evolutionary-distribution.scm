@@ -190,8 +190,7 @@
                   '()
                   '()))
         agents
-        (list-tabulate (length agents) (lambda (x) (pick-random slots)))
-        )))))
+        (pick-random//repetition slots (length agents)))))))
 
 ;;; Evolutionary algorithm
 
