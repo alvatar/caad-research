@@ -66,6 +66,9 @@
             <wall uid="DB7F49A3-BBF6-40F3-95A1-038CCACE1D88">
                 <pt x="0.0" y="0.0"/>
                 <pt x="18.0" y="0.0"/>
+                <window from="0.4" to="0.5"/>
+                <window from="0.6" to="0.7"/>
+                <window from="0.8" to="0.9"/>
             </wall>
 
             <wall uid="B06528DA-C0B9-4583-A7AF-8A3E788DB6EF">

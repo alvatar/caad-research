@@ -5,6 +5,8 @@
 ;;; Visualization
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(compile-options force-compile: #t)
+
 (import (std srfi/1))
 (import (std srfi/95))
 (import ffi/gl)

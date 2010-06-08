@@ -5,6 +5,8 @@
 ;;; A predesigned band strategy
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(compile-options force-compile: #t)
+
 (import core/list)
 (import geometry/kernel)
 (import math/exact-algebra)

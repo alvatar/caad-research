@@ -5,6 +5,8 @@
 ;;; Graph definition and low-level operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(compile-options force-compile: #t)
+
 (import (std srfi/1))
 (import (std string/xml-to-sxml))
 (import (std misc/uuid))

@@ -5,6 +5,8 @@
 ;;; Architectural high-level operations on the graph
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(compile-options force-compile: #t)
+
 (import (std srfi/1))
 (import (std misc/uuid))
 

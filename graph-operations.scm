@@ -5,6 +5,8 @@
 ;;; Low-level and auxiliary operations on a graph
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(compile-options force-compile: #t)
+
 (import (std srfi/1))
 
 (import core/list)
@@ -108,15 +110,15 @@
 
 ;;; Find walls connected to a given one
 
-(define (graph:find.walls-connected/uid graph uid)
-  (let ((wall (graph:find.wall/uid graph uid)))
-    (list
-      (remove (lambda (elem)
-                (equal? elem wall))
-              (graph:find.walls/point (archpoint->point (wall-first-point wall))))
-      (remove (lambda (elem)
-                (equal? elem wall))
-              (graph:find.walls/point (archpoint->point (wall-last-point wall)))))))
+;; (define (graph:find.walls-connected/uid graph uid)
+;;   (let ((wall (graph:find.wall/uid graph uid)))
+;;     (list
+;;       (remove (lambda (elem)
+;;                 (equal? elem wall))
+;;               (graph:find.walls/point (archpoint->point (first (wall-pseq wall)))))
+;;       (remove (lambda (elem)
+;;                 (equal? elem wall))
+;;               (graph:find.walls/point (archpoint->point (last (wall-pseq wall))))))))
 
 ;;; Find longest wall in room
 
@@ -134,14 +136,14 @@
 ;;; Find common wall
 
 (define (graph:find.common-room-walls rooms)
-  (let ((walls-room-a (room-wall-refs (car rooms)))
-        (walls-room-b (room-wall-refs (cadr rooms))))
+  (let ((walls-room-a (room-walls (car rooms)))
+        (walls-room-b (room-walls (cadr rooms))))
     (define (iter lis1)
       (let ((first (car lis1)))
         (if (null? lis1)
             (error "No common wall found")
           (if (any (lambda (elem) (equal? elem first)) walls-room-b)
-              (element-uid first)
+              (wall-uid first)
             (iter (cdr lis1))))))
     (iter walls-room-b)))
 
@@ -208,7 +210,7 @@
   (let* ((walls (graph:find.room-walls graph room))
          (intersections (map
                          (lambda (w)
-                           (intersection:line-segment
+                           (intersection.line-segment
                             line
                             (pseq->segment (wall-pseq w))))
                          walls)))
@@ -278,20 +280,20 @@
 
 ;;; Try to merge into one wall if the two given are parallel
 
-(define (graph:try-to-merge-if-parallel-walls wall-list new-uid)
-  (let ((wall-a-points (wall->pseq (car wall-list))) ; TODO: try to generalize
-        (wall-b-points (wall->pseq (cadr wall-list))))
-    (if (parallel? wall-a-points wall-b-points)
-        (let ((first-point (if (segment:is-end-point? wall-b-points (car wall-a-points))
-                               (cadr wall-a-points)
-                             (car wall-a-points)))
-              (second-point (if (segment:is-end-point? wall-a-points (car wall-b-points))
-                                (cadr wall-b-points)
-                              (car wall-b-points))))
-          (list (point-list->wall
-                (list first-point second-point)
-                new-uid)))
-        wall-list)))
+;; (define (graph:try-to-merge-if-parallel-walls wall-list new-uid)
+;;   (let ((wall-a-points (wall-pseq (car wall-list))) ; TODO: try to generalize
+;;         (wall-b-points (wall-pseq (cadr wall-list))))
+;;     (if (parallel? wall-a-points wall-b-points)
+;;         (let ((first-point (if (segment:is-end-point? wall-b-points (car wall-a-points))
+;;                                (cadr wall-a-points)
+;;                              (car wall-a-points)))
+;;               (second-point (if (segment:is-end-point? wall-a-points (car wall-b-points))
+;;                                 (cadr wall-b-points)
+;;                               (car wall-b-points))))
+;;           (list (pseq->wall
+;;                 (list first-point second-point)
+;;                 new-uid)))
+;;         wall-list)))
 
 ;;; Break in two lists from where a wall was found
 ;;; Warning! This assumes that rooms contain topologically connected walls

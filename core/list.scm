@@ -450,15 +450,8 @@
                                   tails)))))))))))
 
 ;-------------------------------------------------------------------------------
-; Miscellaneous
+; Random picking
 ;-------------------------------------------------------------------------------
-
-;;; Creates a destructive function to read a list sequantially after each call
-
-(define (ticker! l)
-  (lambda ()
-    (begin0 (car l)
-            (set! l (cdr l)))))
 
 ;;; Pick a random element
 
@@ -483,3 +476,14 @@
                  (recur (append fore (cdr aft))
                         (sub1 n)
                         (cons (car aft) picked))))))
+
+;-------------------------------------------------------------------------------
+; Miscellaneous
+;-------------------------------------------------------------------------------
+
+;;; Creates a destructive function to read a list sequantially after each call
+
+(define (ticker! l)
+  (lambda ()
+    (begin0 (car l)
+            (set! l (cdr l)))))
