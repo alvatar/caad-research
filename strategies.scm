@@ -10,17 +10,15 @@
 
 (import components/agents-place-randomly)
 (import components/agents-evolutionary-distribution)
+(import components/agents-hinted-evolutionary-distribution)
 ;; (import components/agents-forces-system)
 ;; (import components/agents-forces-brownian-motion)
 ;; (import components/agents-to-rooms-positive-distribution)
 
-;;; Algorithm steps
-
-(define hinted-brownian-agents
+(define fully-evolutionary
   (list
-   ;; agents-place-randomly
-   agents-evolutionary-distribution
-   ;; agents-forces-system
-   ;; agents-forces-brownian-motion
-   ;; agents-to-rooms-positive-distribution
-   ))
+   agents-evolutionary-distribution))
+
+(define hinted-evolutionary
+  (list
+   agents-hinted-evolutionary-distribution))

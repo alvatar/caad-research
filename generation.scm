@@ -35,7 +35,7 @@
 
 (define (generator generation-hints seed-data)
   (define (select-strategy)
-    hinted-brownian-agents) ; TODO: expand for more components' types
+    hinted-evolutionary) ; TODO: expand for more components' types
   (cond
     ((and (not generation-hints) (graph? seed-data))
      (generate-from-graph (select-strategy)))
