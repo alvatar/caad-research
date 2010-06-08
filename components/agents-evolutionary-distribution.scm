@@ -12,6 +12,7 @@
 
 (import ../core/syntax)
 (import ../core/functional)
+(import ../core/list)
 (import ../dev/debugging)
 (import ../generation-elements)
 (import ../geometry/kernel)
@@ -51,16 +52,16 @@
   0.0)
 
 (define (score-agent-orientations agents g limits)
-  (let* ((bb (pseq->bounding-box limits))
-         (bblt (bounding-box-lefttop bb))
-         (bbrt (bounding-box-righttop bb))
-         (bblb (bounding-box-leftbottom bb))
-         (bbrb (bounding-box-rightbottom bb))
+  (let* ((bb (pseq->bbox limits))
+         (bblt (bbox-lefttop bb))
+         (bbrt (bbox-righttop bb))
+         (bblb (bbox-leftbottom bb))
+         (bbrb (bbox-rightbottom bb))
          (east-angle
           (-              ; invert to use it for aligning bounding box
            (direction->angle-rad (graph:north->east (car (graph-environment g))))))
          (rotfunc (cute rotate.point-w/reference
-                        (bounding-box:centroid bb)
+                        (bbox:centroid bb)
                         <>
                         east-angle))
          (north (rotfunc (segment:mid-point (make-segment bblt bbrt))))
@@ -86,7 +87,7 @@
              (case (agent-label a)
                ((distribution) 'nada)
                ((kitchen)
-                (if (equal? 'north (agent-orientation a)) 1.0 0.0))
+                (if (equal? 'south (agent-orientation a)) 1.0 0.0))
                ((living)
                 (if (equal? 'south (agent-orientation a)) 1.0 0.0))
                ((room)
@@ -106,12 +107,12 @@
            ((living)
             (clamp&invert&normalize ; IDEA: find mathematical solution to control distribution of power 1 vs. x
              (pick-min (map (lambda (w) (distance.agent<->window a w)) windows))
-             8.0
+             2.0
              12.0))                      ; TODO: 2.0 is wall separation
            ((room)
             (clamp&invert&normalize
              (pick-min (map (lambda (w) (distance.agent<->window a w)) windows))
-             8.0
+             2.0
              12.0))
            (else (error "Agent type doesn't exist"))))
        agents)))))
@@ -162,8 +163,10 @@
   (+  ;(score-agents-interrelationships agents)
       ;(debug-score "illumination" (score-agent-illumination agents graph))
       ;(debug-score "distances to elements" (score-agent-distances-to-elements agents graph))
-      (debug-score "orientation" (score-agent-orientations agents graph limits))
-      ))
+      ;(debug-score "orientation" (score-agent-orientations agents graph limits))
+   (score-agent-illumination agents graph)
+   (score-agent-distances-to-elements agents graph)
+   (score-agent-orientations agents graph limits)))
 
 (define (generate-agents limit-polygon)
   (let ((make-agent-type
@@ -176,15 +179,19 @@
     (make-agent-type 'room)
     (make-agent-type 'room))))
 
-(define (regenerate-agents agents limit-polygon)
-  (map
-   (lambda (a p) (make-agent
-             (agent-label a)
-             (list p)
-             '()
-             '()))
-   agents
-   (generate.random-points/separation&boundaries (length agents) limit-polygon 4.0 2.0)))
+(define agents-regenerator
+  (lambda (limit-polygon)
+   (let ((slots (generate.point-mesh-centered (pseq->bbox limit-polygon) 2.0 5.0 5.0)))
+     (lambda (agents)
+       (map
+        (lambda (a p) (make-agent
+                  (agent-label a)
+                  (list p)
+                  '()
+                  '()))
+        agents
+        (list-tabulate (length agents) (lambda (x) (pick-random slots)))
+        )))))
 
 ;;; Evolutionary algorithm
 
@@ -196,7 +203,7 @@
       (visualize-graph graph)
       (visualize-world (make-world old-agents '()) graph)
       (visualization:do-now)
-      (let ((new-agents (regenerate-agents old-agents limit-polygon)))
+      (let ((new-agents ((agents-regenerator limit-polygon) old-agents))) ; TODO: we are regenerating
         (if (< old-score (score new-agents
                                 graph
                                 limit-polygon))

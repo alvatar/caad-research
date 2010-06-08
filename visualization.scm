@@ -336,7 +336,8 @@
      (visualization:paint-set-color backend 0.0 1.0 0.0 1.0)
      (visualization:paint-path backend pseq)))
   (visualization:layer-depth-set! 'cardinal-points 100)
-  (visualization:do-now))
+  (visualization:do-now)
+  pseq)
 
 ;;; Draw now a list of points in green
 
@@ -350,7 +351,8 @@
         (visualization:paint-circle-fill backend (vect2-x p) (vect2-y p) diam))
       plis)))
   (visualization:layer-depth-set! 'cardinal-points 100)
-  (visualization:do-now))
+  (visualization:do-now)
+  plis)
 
 ;;; Draw now a point in green
 
@@ -361,4 +363,5 @@
      (visualization:paint-set-color backend 0.0 1.0 0.0 1.0)
      (visualization:paint-circle-fill backend (vect2-x p) (vect2-y p) diam)))
   (visualization:layer-depth-set! 'cardinal-points 100)
-  (visualization:do-now))
+  (visualization:do-now)
+  p)

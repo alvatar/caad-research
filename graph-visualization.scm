@@ -21,7 +21,7 @@
 
 (define (visualize-graph graph)
   (let* ((limits (graph:bounding-box graph))
-         (size-vec (bounding-box:size-segment limits))
+         (size-vec (bbox:size-segment limits))
          (frame-factor 0.7)
          (max-scale-x (/ maxx (* (vect2-x size-vec))))
          (max-scale-y (/ maxy (* (vect2-y size-vec))))
@@ -128,7 +128,7 @@
   (visualization:do-later
     '%framing
     (lambda (backend vis-env)
-      (visualization:translate backend (vect2:symmetric (bounding-box-lefttop limits)))
+      (visualization:translate backend (vect2:symmetric (bbox-lefttop limits)))
       (visualization:scale backend (make-vect2 vis-scale vis-scale))
       (visualization:translate
         backend

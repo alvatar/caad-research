@@ -59,6 +59,11 @@
 (define (~zero? a)
   (=~e a 0.0 equal-accuracy))
 
+;;; Decimal part
+
+(define (~decimal-part x)
+  (- x (truncate x)))
+
 ;;; Inverse function
 
 (define (~inverse x)
@@ -107,7 +112,7 @@
 
 ;;; Calculate vector length
 
-(define (vect2:~magnitude vec)
+(define (vect2:~magnitude vec) ; TODO: IMPLEMENT WITH MAGNITUDE r5rs
   (sqrt (+ (square (vect2-x vec))
            (square (vect2-y vec)))))
 

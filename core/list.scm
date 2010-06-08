@@ -448,3 +448,8 @@
   (lambda ()
     (begin0 (car l)
             (set! l (cdr l)))))
+
+;;; Pick a random element
+
+(define (pick-random l)
+  (list-ref l (random-integer (length l))))

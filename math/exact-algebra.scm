@@ -200,6 +200,18 @@
   (make-vect2 (- (vect2-x vec))
               (- (vect2-y vec))))
 
+;;; Calculate x projection
+
+(define (vect2:x-projection vec)
+  (make-vect2 (vect2-x vec)
+              0))
+
+;;; Calculate y projection
+
+(define (vect2:y-projection vec)
+  (make-vect2 0
+              (vect2-y vec)))
+
 ;;; Absolute vector
 
 (define (vect2:abs vec)

@@ -167,7 +167,7 @@
 (define-memoized/key-gen graph:bounding-box 
   (lambda (graph) (graph-uid graph))
   (lambda (graph)
-    (pseq->bounding-box (graph:wall-list->pseq (graph:find.exterior-walls graph)))))
+    (pseq->bbox (graph:wall-list->pseq (graph:find.exterior-walls graph)))))
 
 ;;; External polygon extraction
 
