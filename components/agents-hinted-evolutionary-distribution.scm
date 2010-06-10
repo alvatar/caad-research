@@ -27,7 +27,7 @@
   (+ (score-agent-illumination agents graph)
      (score-agent-orientations agents graph limits)))
 
-(define (generate-agents limit-polygon)
+(define (agent-seeds limit-polygon)
   (let ((make-agent-type
          (cut make-agent <> (list (generate.random-point-inside limit-polygon)) '() '())))
    (list ; TODO: This list is generated from an input argument
@@ -54,14 +54,15 @@
 ;;; Evolutionary algorithm
 
 (define (agents-hinted-evolutionary-distribution graph world)
-  (let ((limit-polygon (graph:limits graph)))
-    (let evolve ((old-agents (generate-agents limit-polygon))
+  (let* ((limit-polygon (graph:limits graph))
+         (regenerate-agents (agents-regenerator limit-polygon)))
+    (let evolve ((old-agents (agent-seeds limit-polygon))
                  (old-score 0.0))
       (visualization:forget-all)
       (visualize-graph graph)
       (visualize-world (make-world old-agents '()) graph)
       (visualization:do-now)
-      (let ((new-agents ((agents-regenerator limit-polygon) old-agents))) ; TODO: we are regenerating
+      (let ((new-agents (regenerate-agents old-agents))) ; TODO: we are regenerating
         (if (< old-score (score new-agents
                                 graph
                                 limit-polygon))

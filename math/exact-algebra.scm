@@ -5,7 +5,10 @@
 ;;; Algebraic kernel
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;(declare (standard-bindings)(extended-bindings)(block)(not safe))
+(declare (standard-bindings)
+         (extended-bindings)
+         (block)
+         (mostly-generic))
 (compile-options force-compile: #t)
 
 (import (std srfi/1))
@@ -125,6 +128,7 @@
 ;-------------------------------------------------------------------------------
 
 ;;; vect2 type
+
 (define-structure vect2 x y)
 
 ;;; Vector addition

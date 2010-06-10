@@ -5,7 +5,10 @@
 ;;; Algebraic kernel
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;(declare (standard-bindings)(extended-bindings)(block)(not safe))
+(declare (standard-bindings)
+         (extended-bindings)
+         (block)
+         (flonum))
 (compile-options force-compile: #t)
 
 (import ../core/functional)
@@ -16,12 +19,12 @@
 ;-------------------------------------------------------------------------------
 
 (define pi (angle -inf.0))
-(define pi2 (* 2 pi))
-(define pi/2 (/ pi 2))
-(define -pi/2 (/ pi -2))
-(define pi/4 (/ pi 4))
-(define -pi/4 (/ pi -4))
-(define pi3/4 (* 3 (/ 4 pi)))
+(define pi2 (* #i2 pi))
+(define pi/2 (/ pi #i2))
+(define -pi/2 (/ pi #i-2))
+(define pi/4 (/ pi #i4))
+(define -pi/4 (/ pi #i-4))
+(define pi3/4 (* #i3 (/ #i4 pi)))
 
 (define equal-accuracy 0.000001)
 
@@ -30,7 +33,9 @@
 ;-------------------------------------------------------------------------------
 
 (define (random-real/range a b)
-  (+ a (* (random-real) (- b a))))
+  (let ((ia (exact->inexact a))
+        (ib (exact->inexact b)))
+   (+ ia (* (random-real) (- ib ia)))))
 
 (define (random-real/0-range x)
   (* (random-real) x))

@@ -5,6 +5,9 @@
 ;;; Low-level and auxiliary operations on a graph
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declare (standard-bindings)
+         (extended-bindings)
+         (block))
 (compile-options force-compile: #t)
 
 (import (std srfi/1))
