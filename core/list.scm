@@ -5,6 +5,12 @@
 ;;; General list procedures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declare (standard-bindings)
+         (extended-bindings)
+         (block)
+         (mostly-generic))
+(compile-options force-compile: #t)
+
 (import (std srfi/1))
 (import syntax)
 (import)
@@ -68,25 +74,26 @@
     ((_ p ft ff l)
      (map (lambda (e) (if (p e) (ft e) (ff e))) l))))
 		 
-;;; Map and cond combined: maps applying a function to the elements that
+ç;;; Map and cond combined: maps applying a function to the elements that
 ;;; satisfy each predicate. It can contain an else clause
-;;; TODO: what happens if else is not at the end of the list?
+;;; TODO: Returning somthing NOT inside an s-expr doesn't work!!!
+;;; TODO: default else should be #f!!!
 
 (define-syntax map-cond
   (syntax-rules (else)
-    ((_ (?vars ...) ((?p ?f) ...) ?l ...) ; entry for explicit vars case
-     (map-cond "make-explicit-vars-init" (?vars ...) ((?p ?f) ...) ?l ... ))
-    ((_ "make-explicit-vars-init" (?vars ...) ((else (?f ...)) . ?ct) ?l ...) ; error: else is first
+    ((_ (?vars ...) ((?p ?f ...) ...) ?l ...) ; entry for explicit vars case
+     (map-cond "make-explicit-vars-init" (?vars ...) ((?p ?f ...) ...) ?l ... ))
+    ((_ "make-explicit-vars-init" (?vars ...) ((else ?f ...) . ?ct) ?l ...) ; error: else is first
      (error "Syntax error: else clause can't be first"))
-    ((_ "make-explicit-vars-init" (?vars ...) (((?p ...) (?f ...)) . ?ct) ?l ...) ; init make-explicit-vars
-     (map-cond "make-explicit-vars" (?vars ...) ?ct (((?p ...) (?f ...))) (?l ...)))
+    ((_ "make-explicit-vars-init" (?vars ...) (((?p ...) ?f ...) . ?ct) ?l ...) ; init make-explicit-vars
+     (map-cond "make-explicit-vars" (?vars ...) ?ct (((?p ...) ?f ...)) (?l ...)))
 
     ((_ "make-explicit-vars" (?vars ...) ((else ?f . ?ft)) (?conds ...) (?l ...)) ; catch given 'else'
      (map-cond "make-explicit-vars-else" (?vars ...) (?f . ?ft) (?conds ...) (?l ...)))
     ((_ "make-explicit-vars" (?vars ...) ((else ?f . ?ft) . ?ct) (?conds ...) (?l ...)) ; error: else is not last
      (error "Syntax error: else clause must be last"))
-    ((_ "make-explicit-vars" (?vars ...) (((?p ...) (?f ...)) . ?ct) (?conds ...) (?l ...)) ; recur make-explicit-vars
-     (map-cond "make-explicit-vars" (?vars ...) ?ct (?conds ... ((?p ...) (?f ...))) (?l ...)))
+    ((_ "make-explicit-vars" (?vars ...) (((?p ...) ?f ...) . ?ct) (?conds ...) (?l ...)) ; recur make-explicit-vars
+     (map-cond "make-explicit-vars" (?vars ...) ?ct (?conds ... ((?p ...) ?f ...)) (?l ...)))
     ((_ "make-explicit-vars" (?vars ...) () (?conds ...) (?l ...)) ; finalize with default 'else'
      (map (lambda (?vars ...) (cond ?conds ... (else (list ?vars ...)))) ?l ...))
     ((_ "make-explicit-vars-else" (?vars ...) (?ef ...) (?conds ...) (?l ...)) ; finalize with given 'else'

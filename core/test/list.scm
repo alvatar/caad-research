@@ -5,6 +5,12 @@
 ;;; Tests for geometry package
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declare (standard-bindings)
+         (extended-bindings)
+         (block)
+         (mostly-generic))
+(compile-options force-compile: #t)
+
 (import (std srfi/64))
 (import ../list)
 

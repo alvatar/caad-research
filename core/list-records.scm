@@ -5,6 +5,12 @@
 ;;; SRFI-9 modified to build records with lists
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declare (standard-bindings)
+         (extended-bindings)
+         (block)
+         (mostly-generic))
+(compile-options force-compile: #t)
+
 (export define-list-record-type)
 
 (define-syntax define-list-record-type

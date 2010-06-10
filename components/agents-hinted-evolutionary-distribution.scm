@@ -7,6 +7,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1))
+(import (std srfi/11))
 (import (std srfi/26))
 
 (import ../core/functional)
@@ -38,18 +39,49 @@
     (make-agent-type 'room)
     (make-agent-type 'room))))
 
+;; (define (hint-agents type/hint slots agents)
+;;   (let-values (((hinted-agents free-agents)
+;;                 (partition (lambda (a)
+;;                              (any (lambda (ha) (equal? ha a))
+;;                                   (map car type/hint)))
+;;                            agents)))
+;;     (ps hinted-agents)
+;;     (ps free-agents)
+;;     (append
+;;      (map-cond ())
+;;      (map
+;;       (lambda (a p) (make-agent
+;;                 (agent-label a)
+;;                 (list p)
+;;                 '()
+;;                 '()))
+;;       free-agents
+;;       (pick-random//repetition slots (length free-agents))))))
+
 (define agents-regenerator
   (lambda (limit-polygon)
    (let ((slots (generate.point-mesh-centered (pseq->bbox limit-polygon) 2.0 5.0 5.0)))
      (lambda (agents)
-       (map
-        (lambda (a p) (make-agent
-                  (agent-label a)
-                  (list p)
-                  '()
-                  '()))
+       (map-cond
+        (a p)
+        (((equal? (agent-label a) 'distribution)
+          a)
+         ((equal? (agent-label a) 'kitchen)
+          a)
+         (else
+          (make-agent
+           (agent-label a)
+           (list p)
+           '()
+           '())))
         agents
-        (pick-random//repetition slots (length agents)))))))
+        slots)
+       ;; (hint-agents
+       ;;  (('distribution (lambda (a) #########))
+       ;;   ('kitchen (lambda (a) ##########)))
+       ;;  slots
+       ;;  agents)
+       ))))
 
 ;;; Evolutionary algorithm
 

@@ -5,6 +5,12 @@
 ;;; Syntax extensions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declare (standard-bindings)
+         (extended-bindings)
+         (block)
+         (mostly-generic))
+(compile-options force-compile: #t)
+
 ;;; Syntax error macro
 ;;; TODO: Update places with error instead of syntax-error
 
