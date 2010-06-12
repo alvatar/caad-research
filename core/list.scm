@@ -51,6 +51,99 @@
     (append ls (list x))))
 
 ;-------------------------------------------------------------------------------
+; List/values
+;-------------------------------------------------------------------------------
+
+;;; All cars and all cdrs
+
+(define (cars+cdrs ls)
+  (call/cc
+   (lambda (abort)
+     (let recur ((ls ls))
+       (if (pair? ls)
+           (receive (hl tl) (car+cdr ls)
+                    (if (null-list? hl) (abort '() '())
+                        (receive (a d) (car+cdr hl)
+                                 (receive (cars cdrs) (recur tl)
+                                          (values (cons a cars) (cons d cdrs))))))
+           (values '() '()))))))
+
+;;; Values to list
+
+(define-syntax values->list
+  (syntax-rules ()
+    ((_ producer)
+     (call-with-values
+         (lambda () producer)
+       (lambda v (apply list v))))))
+
+;;; List to values
+
+(define-syntax list->values
+  (syntax-rules ()
+    ((_ l)
+     (apply values l))))
+
+;;; Number of values produced
+
+(define-syntax values-length
+  (syntax-rules ()
+    ((_ producer)
+     (call-with-values
+         (lambda () producer)
+       (lambda v (length v))))))
+
+;;; Extract only the nth-value from a function returning multiple values
+
+(define-syntax values-ref
+  (syntax-rules ()
+    ((_ n producer)
+     (call-with-values
+       (lambda () producer)
+       (lambda v (list-ref v n))))))
+
+;;; Demultiplex a list in 2
+
+(define (demultiplex2 f l)
+  (let recur ((l l))
+    (if (null? l)
+        (values l l)
+        (let ((h (car l)))
+          (call-with-values
+              (lambda () (recur (cdr l)))
+            (lambda (a b)
+              (call-with-values
+                  (lambda () (f h))
+                (lambda (p1 p2) (values (cons p1 a)
+                                   (cons p2 b))))))))))
+
+;;; Demultiplex a list
+;;; (demultiplex (lambda (x) (values (car x) (cadr x))) '((a 1) (b 2) (c 3)))
+;;; => (a b c)
+;;;    (1 2 3)
+
+(define (demultiplex f lis)
+  (if (null? lis)
+      '()
+      (let recur ((l lis))
+        (if (null? l)
+            (apply values
+                   (make-list
+                    (values-length (f (car lis)))
+                    '()))
+            (let ((h (car l)))
+              (call-with-values
+                  (lambda () (recur (cdr l)))
+                (lambda tails
+                  (call-with-values
+                      (lambda () (f h))
+                    (lambda produced-vals
+                      (apply values
+                             (map (lambda (p t) (cons p t))
+                                  produced-vals
+                                  tails)))))))))))
+
+;-------------------------------------------------------------------------------
 ; Map variants
 ;-------------------------------------------------------------------------------
 
@@ -74,7 +167,7 @@
     ((_ p ft ff l)
      (map (lambda (e) (if (p e) (ft e) (ff e))) l))))
 		 
-ç;;; Map and cond combined: maps applying a function to the elements that
+;;; Map and cond combined: maps applying a function to the elements that
 ;;; satisfy each predicate. It can contain an else clause
 ;;; TODO: Returning somthing NOT inside an s-expr doesn't work!!!
 ;;; TODO: default else should be #f!!!
@@ -132,6 +225,73 @@
 (define (map/values f . ls)
   (list->values
    (apply map (lambda args (values->list (apply f args))) ls)))
+
+;;; map+fold combines them two, returning the map and the fold
+;;; (map+fold (lambda (a b) (values (+ a b) (+ b 1))) 0 '(1 2 3 4))
+;;; (1 3 5 7)
+;;; 3
+
+(define (map+fold kons knil lis1 . lists)
+  (if (pair? lists)
+      (let recur ((lists (cons lis1 lists))
+                  (fold-ans knil))
+        (receive (cars cdrs) (cars+cdrs lists)
+                 (if (null? cars)
+                     (values '() fold-ans)
+                     (receive (mapv foldv)
+                              (apply kons (snoc cars fold-ans))
+                              (receive (map-next fold-next)
+                                       (recur cdrs foldv)
+                                       (values (cons mapv map-next)
+                                               fold-next))))))
+      (let recur ((l lis1)
+                  (fold-ans knil))
+        (if (pair? l)
+            (receive (lh lt) (car+cdr l)
+                     (receive (mapv foldv)
+                              (kons lh fold-ans)
+                              (receive (map-next fold-next)
+                                       (recur lt foldv)
+                                       (values (cons mapv map-next)
+                                               fold-next))))
+            (values '() fold-ans)))))
+
+;; TODO: WHY THIS DOESN'T WORK??
+(define (leave-come-back)
+  (receive (go-back)
+           (call/cc
+            (lambda (k)
+              (let recur ((n 0))
+                (if (= n 5)
+                    (begin
+                      (call/cc (lambda (back) (k back)))
+                      n)
+                    (recur (+ n 1))))))
+           (values (go-back))))
+
+;;; map-fold combines them two, maps values but also accumulates as fold, so that value can be
+;;; used inside the map-fold computation
+;;; (map-fold (lambda (a b) (values (+ a b) (+ b 1))) 0 '(1 2 3 4))
+;;; (1 3 5 7)
+
+(define (map-fold kons knil lis1 . lists) ; OPTIMIZE: meause if better than fold+map specialization
+  (if (pair? lists)
+      (let recur ((lists (cons lis1 lists))
+                  (fold-ans knil))
+        (receive (cars cdrs) (cars+cdrs lists)
+                 (if (null? cars)
+                     '()
+                     (receive (mapv foldv)
+                              (apply kons (snoc cars fold-ans))
+                              (cons mapv (recur cdrs foldv))))))
+      (let recur ((l lis1) ; Fast path for
+                  (fold-ans knil))
+        (if (null? l)
+            '()
+            (receive (lh lt) (car+cdr l)
+                     (receive (mapv foldv)
+                              (kons lh fold-ans)
+                              (cons mapv (recur lt foldv))))))))
 
 ;-------------------------------------------------------------------------------
 ; Find, remove, substitute
@@ -376,85 +536,6 @@
 ;;           (values l back))]
 ;;      [else                    (loop (cdr slow)
 ;;                                     (cddr fast))])))
-
-;-------------------------------------------------------------------------------
-; List/values
-;-------------------------------------------------------------------------------
-
-;;; Values to list
-
-(define-syntax values->list
-  (syntax-rules ()
-    ((_ producer)
-     (call-with-values
-         (lambda () producer)
-       (lambda v (apply list v))))))
-
-;;; List to values
-
-(define-syntax list->values
-  (syntax-rules ()
-    ((_ l)
-     (apply values l))))
-
-;;; Number of values produced
-
-(define-syntax values-length
-  (syntax-rules ()
-    ((_ producer)
-     (call-with-values
-         (lambda () producer)
-       (lambda v (length v))))))
-
-;;; Extract only the nth-value from a function returning multiple values
-
-(define-syntax values-ref
-  (syntax-rules ()
-    ((_ n producer)
-     (call-with-values
-       (lambda () producer)
-       (lambda v (list-ref v n))))))
-
-;;; Demultiplex a list in 2
-
-(define (demultiplex2 f l)
-  (let recur ((l l))
-    (if (null? l)
-        (values l l)
-        (let ((h (car l)))
-          (call-with-values
-              (lambda () (recur (cdr l)))
-            (lambda (a b)
-              (call-with-values
-                  (lambda () (f h))
-                (lambda (p1 p2) (values (cons p1 a)
-                                   (cons p2 b))))))))))
-
-;;; Demultiplex a list
-;;; (demultiplex (lambda (x) (values (car x) (cadr x))) '((a 1) (b 2) (c 3)))
-;;; => (a b c)
-;;;    (1 2 3)
-
-(define (demultiplex f lis)
-  (if (null? lis)
-      '()
-      (let recur ((l lis))
-        (if (null? l)
-            (apply values
-                   (make-list
-                    (values-length (f (car lis)))
-                    '()))
-            (let ((h (car l)))
-              (call-with-values
-                  (lambda () (recur (cdr l)))
-                (lambda tails
-                  (call-with-values
-                      (lambda () (f h))
-                    (lambda produced-vals
-                      (apply values
-                             (map (lambda (p t) (cons p t))
-                                  produced-vals
-                                  tails)))))))))))
 
 ;-------------------------------------------------------------------------------
 ; Random picking
