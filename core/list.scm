@@ -258,16 +258,19 @@
 
 ;; TODO: WHY THIS DOESN'T WORK??
 (define (leave-come-back)
-  (receive (go-back)
-           (call/cc
-            (lambda (k)
-              (let recur ((n 0))
-                (if (= n 5)
-                    (begin
-                      (call/cc (lambda (back) (k back)))
-                      n)
-                    (recur (+ n 1))))))
-           (values (go-back))))
+  (receive (a b)
+   (call/cc
+    (lambda (k)
+      (let recur ((n 0))
+        (if (= n 5)
+            (begin (pp 'AAA)
+                   (call/cc (lambda (back) (k 'asdf back)))
+                   (pp 'NOW)
+                   (values 'aa (lambda (kont) (kont 'bb))))
+            (recur (+ n 1))))))
+   (begin
+     (pp 'CUESCO) (pp a) (pp b)
+     (values a (call/cc b)))))
 
 ;;; map-fold combines them two, maps values but also accumulates as fold, so that value can be
 ;;; used inside the map-fold computation
@@ -508,34 +511,37 @@
   (take! (drop l start)
          (- end start)))
 
-; split-in-halves : list -> (values list list)
-;  return two lists of lengths differing with at most one
-;; (define (split-in-halves l)
-;;   (let loop ([front '()]
-;;              [slow  l]
-;;              [fast  l])
-;;     (cond
-;;      [(null? fast)         (values front
-;;                                    slow)]
-;;      [(null? (cdr fast))   (values (cons (car slow) front)
-;;                                    (cdr slow))]
-;;      [else                 (loop (cons (car slow) front)
-;;                                  (cdr slow)
-;;                                  (cddr fast))])))
+;; split-in-halves : list -> (values list list)
+;;  return two lists of lengths differing with at most one
+(define (split-in-halves l)
+  (let loop ((front '())
+             (slow  l)
+             (fast  l))
+    (cond
+     ((null? fast)
+      (values front
+              slow))
+     ((null? (cdr fast))
+      (values (cons (car slow) front)
+              (cdr slow)))
+     (else
+      (loop (cons (car slow) front)
+            (cdr slow)
+            (cddr fast))))))
 
 ; split-in-halves! : list -> (values list list)
 ;  return two lists of lengths differing with at most one;
 ;  modifies the argument
-;; (define (split-in-halves! l)
-;;   (let loop ([slow (cons 'foo l)]
-;;              [fast (cons 'bar l)])
-;;     (cond
-;;      [(or (null? fast)
-;;           (null? (cdr fast))) (let ([back (cdr slow)])
-;;           (set-cdr! slow '())
-;;           (values l back))]
-;;      [else                    (loop (cdr slow)
-;;                                     (cddr fast))])))
+(define (split-in-halves! l)
+  (let loop ([slow (cons 'foo l)]
+             [fast (cons 'bar l)])
+    (cond
+     [(or (null? fast)
+          (null? (cdr fast))) (let ([back (cdr slow)])
+          (set-cdr! slow '())
+          (values l back))]
+     [else                    (loop (cdr slow)
+                                    (cddr fast))])))
 
 ;-------------------------------------------------------------------------------
 ; Random picking
@@ -564,6 +570,26 @@
                  (recur (append fore (cdr aft))
                         (sub1 n)
                         (cons (car aft) picked))))))
+
+;;; Pick a random element and return also the list without that element
+
+(define (pick-random+remove l)
+  (receive (a b)
+           (split-at l
+                     (random-integer (length l)))
+           (values
+            (car b)
+            (append a (cdr b)))))
+
+;;; Pick a random element and return also the list without that element
+
+(define (pick-random+remove/length l len)
+  (receive (a b)
+           (split-at l
+                     (random-integer len))
+           (values
+            (car b)
+            (append a (cdr b)))))
 
 ;-------------------------------------------------------------------------------
 ; Miscellaneous
