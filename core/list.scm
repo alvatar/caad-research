@@ -258,19 +258,15 @@
 
 ;; TODO: WHY THIS DOESN'T WORK??
 (define (leave-come-back)
-  (receive (a b)
-   (call/cc
-    (lambda (k)
-      (let recur ((n 0))
-        (if (= n 5)
-            (begin (pp 'AAA)
-                   (call/cc (lambda (back) (k 'asdf back)))
-                   (pp 'NOW)
-                   (values 'aa (lambda (kont) (kont 'bb))))
-            (recur (+ n 1))))))
-   (begin
-     (pp 'CUESCO) (pp a) (pp b)
-     (values a (call/cc b)))))
+  (let ((L (lambda (k) 
+             (let recur ((n 0))
+               (if (= n 5)
+                   (begin (call/cc (lambda (back) (k n back)))
+                          '())
+                   (cons n (recur (+ n 1))))))))
+    (receive (a b)
+             (call/cc L)
+             (values a (b)))))
 
 ;;; map-fold combines them two, maps values but also accumulates as fold, so that value can be
 ;;; used inside the map-fold computation

@@ -21,13 +21,11 @@
 
 ;;; Inverse function
 
-(define (inverse x)
-  (/ 1 x))
+(define inverse (curry / 1))
 
 ;;; Square
 
-(define (square x)
-  (* x x))
+(define (square x) (* x x))
 
 ;-------------------------------------------------------------------------------
 ; Statistic

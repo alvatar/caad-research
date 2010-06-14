@@ -15,14 +15,14 @@
 ;; (test-equal "vector" (match '#(ok) (#(x) x)) 'ok)
 (test-equal "any doubled" (match '(1 2) ((_ _) 'ok)) 'ok)
 (test-equal "and empty" (match '(o k) ((and) 'ok)) 'ok)
-;; (test-equal "and single" (match 'ok ((and x) x)) 'ok)
-;; (test-equal "and double" (match 'ok ((and (? symbol?) y) 'ok)) 'ok)
-;; (test-equal "or empty" (match '(o k) ((or) 'fail) (else 'ok)) 'ok)
-;; (test-equal "or single" (match 'ok ((or x) 'ok)) 'ok)
-;; (test-equal "or double" (match 'ok ((or (? symbol? y) y) y)) 'ok)
+(test-equal "and single" (match 'ok ((and x) x)) 'ok)
+(test-equal "and double" (match 'ok ((and (? symbol?) y) 'ok)) 'ok)
+(test-equal "or empty" (match '(o k) ((or) 'fail) (else 'ok)) 'ok)
+(test-equal "or single" (match 'ok ((or x) 'ok)) 'ok)
+(test-equal "or double" (match 'ok ((or (? symbol? y) y) y)) 'ok)
 (test-equal "not" (match 28 ((not (a . b)) 'ok)) 'ok)
 (test-equal "pred" (match 28 ((? number?) 'ok)) 'ok)
-;; (test-equal "named pred" (match 28 ((? number? x) (+ x 1))) 29)
+(test-equal "named pred" (match 28 ((? number? x) (+ x 1))) 29)
 
 (test-equal "duplicate symbols pass" (match '(ok . ok) ((x . x) x)) 'ok)
 (test-equal "duplicate symbols fail" (match '(ok . bad) ((x . x) 'bad) (else 'ok)) 'ok)
@@ -42,11 +42,11 @@
 ;; ;;               (#(a b c (hd . tl) ...) (list a b c hd tl)))
 ;; ;;             '(1 2 3 (a b c) (1 2 3)))
 
-;; (test-equal "pred ellipses"
-;;             (match '(1 2 3)
-;;               (((? odd? n) ___) n)
-;;               (((? number? n) ___) n))
-;;             '(1 2 3))
+(test-equal "pred ellipses"
+            (match '(1 2 3)
+              (((? odd? n) ___) n)
+              (((? number? n) ___) n))
+            '(1 2 3))
 
 (test-equal "failure continuation"
             (match '(1 2)

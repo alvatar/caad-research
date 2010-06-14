@@ -40,10 +40,13 @@
 ;; 2006/12/24 - bugfixes
 ;; 2006/12/01 - non-linear patterns, shared variables in OR, get!/set!
 
+;; 
+;; Adapted to Blackhole for Gambit by Álvaro Castro-Castilla
+
 (declare (standard-bindings)
-         (extended-bindings)
-         (block)
-         (mostly-generic))
+		 (extended-bindings)
+		 (block)
+		 (mostly-generic))
 (compile-options force-compile: #t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -135,9 +138,7 @@
     ((match-two v () g+s (sk ...) fk i)
      (if (null? v) (sk ... i) fk))
     ((match-two v (quote p) g+s (sk ...) fk i)
-     (match-two "quote" v p g+s (sk ...) fk i))
-    ((match-two "quote" v p g+s (sk ...) fk i)
-     (if (equal? v (quote p)) (sk ... i) fk))
+     (if (equal? v 'p) (sk ... i) fk))
     ((match-two v (quasiquote p) . x)
      (match-quasiquote v p . x))
     ((match-two v (and) g+s (sk ...) fk i) (sk ... i))

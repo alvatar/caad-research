@@ -11,6 +11,8 @@
          (mostly-generic))
 (compile-options force-compile: #t)
 
+(import (std srfi/1))
+
 (export U Y Y! compose
         define-associative
         curry define-curried lambda-curried uncurry
@@ -43,10 +45,11 @@
 ;;; Function composition
 
 (define (compose . fns)
-  (define (make-chain fn chain)
-    (lambda args
-      (call-with-values (lambda () (apply fn args)) chain)))
-  (reduce make-chain values fns))
+  (reduce (lambda (fn chain)
+            (lambda args
+              (call-with-values (lambda () (apply fn args)) chain)))
+          values
+          fns))
 
 ;-------------------------------------------------------------------------------
 ; Associative functions
@@ -78,9 +81,12 @@
 
 ;;; Explicit currying of an arbitrary function
 
-(define (curry fun . args)
-  (lambda x
-    (apply fun (append args x))))
+(define (curry fun arg1 . args)
+  (if (pair? args)
+      (lambda x
+        (apply fun (append arg1 args x)))
+      (lambda x                              ; Fast path
+        (apply fun (cons arg1 x)))))
 
 ;;; Define an automatically curryable function
 ;;;
