@@ -308,11 +308,12 @@
 (define (find-rember pred lis)
   (let/cc failed
    ((letrec ((R (lambda (l)
-                  (cond
-                   ((null? l) (failed #f))
-                   ((pred (car l)) (cdr l))
-                   (else (cons (car l)
-                               (R (cdr l)))))))) R) lis)))
+                  (if (null? l)
+                      (failed #f)
+                      (receive (h t) (car+cdr l)
+                               (if (pred h)
+                                   t
+                                   (cons h (R t)))))))) R) lis)))
 
 ;;; Try to find an element, yielding #f if not found. It returns both the element
 ;;; and the list with that element removed
@@ -322,12 +323,12 @@
    ((letrec ((R (lambda (l)
                   (if
                    (null? l) (failed #f lis) ; TODO: Break in two ifs
-                   (let ((h (car l)))
-                     (if (pred h)
-                         (values h (cdr l))
-                         (receive (newhead newtail)
-                                  (R (cdr l))
-                                  (values newhead (cons h newtail))))))))) R) lis)))
+                   (receive (h t) (car+cdr l)
+                            (if (pred h)
+                                (values h t)
+                                (receive (newhead newtail)
+                                         (R t)
+                                         (values newhead (cons h newtail))))))))) R) lis)))
 
 ;;; Rotates the list until the first one satisfies the predicate
 
