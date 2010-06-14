@@ -12,6 +12,7 @@
 (compile-options force-compile: #t)
 
 (import (std srfi/1))
+(import functional)
 (import syntax)
 (import)
 
@@ -21,13 +22,11 @@
 
 ;;; add 1
 
-(define (add1 x)
-  (+ x 1))
+(define (add1 x) (+ x 1))
 
 ;;; substract 1
 
-(define (sub1 x)
-  (- x 1))
+(define (sub1 x) (- x 1))
 
 ;;; not null?
 
@@ -44,7 +43,7 @@
 
 (define (xor a b) (if a (not b) b))
 
-;;; snoc (always prefer the use of cons before this)
+;;; snoc (always prefer the use of cons
 
 (define snoc
   (lambda (ls x)
@@ -304,16 +303,31 @@
                   (else (cons (car l)
                               (R (cdr l)))))))) R) l))
 
-;;; Try to find an element and remove it, yeilds #f if not found
+;;; Try to find an element and remove it, yields #f if not found
 
-(define (find-rember a l)
+(define (find-rember pred lis)
   (let/cc failed
    ((letrec ((R (lambda (l)
                   (cond
                    ((null? l) (failed #f))
-                   ((eq? (car l) a) (cdr l))
+                   ((pred (car l)) (cdr l))
                    (else (cons (car l)
-                               (R (cdr l)))))))) R) l)))
+                               (R (cdr l)))))))) R) lis)))
+
+;;; Try to find an element, yielding #f if not found. It returns both the element
+;;; and the list with that element removed
+
+(define (find+rember pred lis)
+  (let/cc failed
+   ((letrec ((R (lambda (l)
+                  (if
+                   (null? l) (failed #f lis) ; TODO: Break in two ifs
+                   (let ((h (car l)))
+                     (if (pred h)
+                         (values h (cdr l))
+                         (receive (newhead newtail)
+                                  (R (cdr l))
+                                  (values newhead (cons h newtail))))))))) R) lis)))
 
 ;;; Rotates the list until the first one satisfies the predicate
 
@@ -333,7 +347,7 @@
 (define (subst* new old l)
   (xsubst* cons new old l))
 
-;;; Recursive substitution with multiple 'news' in a list
+;;; Recursive substitution with multiple insertion
 
 (define (msubst* lnew old l)
   (xsubst* append lnew old l))
@@ -442,8 +456,8 @@
                        (cons #t (E (cdr s)))
                        (cons #t (E (cons (- (car s) 1) (cdr s)))))))))) E) s))
 
-;;; Apply a structure to make a flat list fit into a skeleton
-;;; TODO! IMPORTANT: REMOVE TICKER
+;;; Make a flat list fit into a skeleton
+;;; TODO: remove ticker, do with receive/values
 
 (define (apply-skeleton s l)
   ((letrec ((next (ticker! l))
@@ -486,7 +500,7 @@
                      (if (= d (length b)) ; the length must be equal to the times it wasn't cdr'd
                          d
                          (error "lists have different length"))
-                     (let ((newb (find-rember (car a) b))) ; Removes the first instance if found
+                     (let ((newb (find-rember (curry eq? (car a)) b))) ; Removes the first instance if found
                        (if newb
                            (H (cdr a) newb d)
                            (H (cdr a) b (+ d 1)))))))) H) la lb 0))
@@ -526,29 +540,31 @@
             (cddr fast))))))
 
 (define (split-in-halves! l)
-  (let loop ([slow (cons 'foo l)]
-             [fast (cons 'bar l)])
+  (let loop ((slow (cons 'foo l))
+             (fast (cons 'bar l)))
     (cond
-     [(or (null? fast)
-          (null? (cdr fast))) (let ([back (cdr slow)])
-          (set-cdr! slow '())
-          (values l back))]
-     [else                    (loop (cdr slow)
-                                    (cddr fast))])))
+     ((or (null? fast)
+          (null? (cdr fast)))
+      (let ((back (cdr slow)))
+        (set-cdr! slow '())
+        (values l back)))
+     (else
+      (loop (cdr slow)
+            (cddr fast))))))
 
 ;-------------------------------------------------------------------------------
 ; Random picking
 ;-------------------------------------------------------------------------------
 
-;;; Pick a random element
-
-(define (pick-random l)
-  (list-ref l (random-integer (length l))))
-
 ;;; Pick a random element with known list length
 
 (define (pick-random/length l len)
   (list-ref l (random-integer len)))
+
+;;; Pick a random element
+
+(define (pick-random l)
+  (pick-random/length l (length l)))
 
 ;;; Pick a number of random elements without repetition
 
@@ -566,23 +582,18 @@
 
 ;;; Pick a random element and return also the list without that element
 
-(define (pick-random+remove l)
-  (receive (a b)
-           (split-at l
-                     (random-integer (length l)))
-           (values
-            (car b)
-            (append a (cdr b)))))
-
-;;; Pick a random element and return also the list without that element
-
-(define (pick-random+remove/length l len)
+(define (pick-random+rember/length l len)
   (receive (a b)
            (split-at l
                      (random-integer len))
            (values
             (car b)
             (append a (cdr b)))))
+
+;;; Pick a random element and return also the list without that element
+
+(define (pick-random+rember l)
+  (pick-random+rember/length l (length l)))
 
 ;-------------------------------------------------------------------------------
 ; Miscellaneous

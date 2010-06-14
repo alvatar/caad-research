@@ -69,21 +69,21 @@
           (case (agent-label a)
             ((distribution)
              (receive (p rslots)
-                      (pick-random+remove fslots)
+                      (pick-random+rember fslots)
                       (values (make-agent-simple
                                (agent-label a)
                                (list p))
                               rslots)))
             ((kitchen)
              (receive (p rslots)
-                      (pick-random+remove fslots)
+                      (pick-random+rember fslots)
                       (values (make-agent-simple
                                (agent-label a)
                                (list p))
                               rslots)))
             (else
              (receive (p rslots)
-                      (pick-random+remove fslots)
+                      (pick-random+rember fslots)
                       (values (make-agent-simple
                                (agent-label a)
                                (list p))
