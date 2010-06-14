@@ -12,6 +12,7 @@
 
 (import ../core/functional)
 (import ../core/list)
+(import ../dev/debugging)
 (import ../generation-elements)
 (import ../geometry/generation)
 (import ../geometry/kernel)
@@ -60,28 +61,35 @@
 
 (define agents-regenerator
   (lambda (limit-polygon)
-   (let ((slots (generate.point-mesh-centered (pseq->bbox limit-polygon) 2.0 5.0 5.0)))
+   (let ((slots (generate.point-mesh-centered (pseq->bbox limit-polygon) 2.0 5.0 5.0))
+         (make-agent-simple (cut make-agent <> <> '() '())))
      (lambda (agents)
-       (map-cond
-        (a p)
-        (((equal? (agent-label a) 'distribution)
-          a)
-         ((equal? (agent-label a) 'kitchen)
-          a)
-         (else
-          (make-agent
-           (agent-label a)
-           (list p)
-           '()
-           '())))
-        agents
-        slots)
-       ;; (hint-agents
-       ;;  (('distribution (lambda (a) #########))
-       ;;   ('kitchen (lambda (a) ##########)))
-       ;;  slots
-       ;;  agents)
-       ))))
+       (map-fold
+        (lambda (a fslots)
+          (case (agent-label a)
+            ((distribution)
+             (receive (p rslots)
+                      (pick-random+remove fslots)
+                      (values (make-agent-simple
+                               (agent-label a)
+                               (list p))
+                              rslots)))
+            ((kitchen)
+             (receive (p rslots)
+                      (pick-random+remove fslots)
+                      (values (make-agent-simple
+                               (agent-label a)
+                               (list p))
+                              rslots)))
+            (else
+             (receive (p rslots)
+                      (pick-random+remove fslots)
+                      (values (make-agent-simple
+                               (agent-label a)
+                               (list p))
+                              rslots)))))
+        slots
+        agents)))))
 
 ;;; Evolutionary algorithm
 

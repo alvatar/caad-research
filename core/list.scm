@@ -182,15 +182,13 @@
      (map-cond "make-explicit-vars" (?vars ...) ?ct (((?p ...) ?f ...)) (?l ...)))
 
     ((_ "make-explicit-vars" (?vars ...) ((else ?f . ?ft)) (?conds ...) (?l ...)) ; catch given 'else'
-     (map-cond "make-explicit-vars-else" (?vars ...) (?f . ?ft) (?conds ...) (?l ...)))
+     (map (lambda (?vars ...) (cond ?conds ... (else ?f . ?ft))) ?l ...))
     ((_ "make-explicit-vars" (?vars ...) ((else ?f . ?ft) . ?ct) (?conds ...) (?l ...)) ; error: else is not last
      (error "Syntax error: else clause must be last"))
     ((_ "make-explicit-vars" (?vars ...) (((?p ...) ?f ...) . ?ct) (?conds ...) (?l ...)) ; recur make-explicit-vars
      (map-cond "make-explicit-vars" (?vars ...) ?ct (?conds ... ((?p ...) ?f ...)) (?l ...)))
     ((_ "make-explicit-vars" (?vars ...) () (?conds ...) (?l ...)) ; finalize with default 'else'
      (map (lambda (?vars ...) (cond ?conds ... (else (list ?vars ...)))) ?l ...))
-    ((_ "make-explicit-vars-else" (?vars ...) (?ef ...) (?conds ...) (?l ...)) ; finalize with given 'else'
-     (map (lambda (?vars ...) (cond ?conds ... (else ?ef ...))) ?l ...))
 
     ((_ ((?p ?f) ...) ?l . ?lt) ; entry for given vars case
      (map-cond "make-vars" () ((?p ?f) ...) () (?l . ?lt)))
@@ -499,6 +497,8 @@
 ; Sublist operations
 ;-------------------------------------------------------------------------------
 
+;;; Return a sublist from a start to an end positions
+
 (define (slice l start end)
   (take (drop l start)
         (- end start)))
@@ -506,10 +506,10 @@
 (define (slice! l start end)
   (take! (drop l start)
          (- end start)))
+ 
+;;; Return two lists of lengths differing with at most one
 
-;; split-in-halves : list -> (values list list)
-;;  return two lists of lengths differing with at most one
-(define (split-in-halves l)
+(define (split-in-halves l) ; TODO: currently reverses first list
   (let loop ((front '())
              (slow  l)
              (fast  l))
@@ -525,9 +525,6 @@
             (cdr slow)
             (cddr fast))))))
 
-; split-in-halves! : list -> (values list list)
-;  return two lists of lengths differing with at most one;
-;  modifies the argument
 (define (split-in-halves! l)
   (let loop ([slow (cons 'foo l)]
              [fast (cons 'bar l)])

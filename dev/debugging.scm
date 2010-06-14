@@ -14,9 +14,18 @@
 
 ;;; Debug print
 
-(define (p v)
-  (pp v)
-  v)
+;; (define (p v)
+;;   (pp v)
+;;   v)
+
+(define-syntax pv
+  (syntax-rules ()
+    ((_ form ...)
+     (call-with-values
+         (lambda () (begin form ...))
+         (lambda args
+           (for-each pp args)
+           (apply values args))))))
 
 ;;; Debug print and step in place
 
