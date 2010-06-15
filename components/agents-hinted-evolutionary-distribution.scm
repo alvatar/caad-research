@@ -19,8 +19,10 @@
 (import ../graph)
 (import ../graph-operations)
 (import ../graph-visualization)
+(import ../math/exact-algebra)
 (import ../visualization)
 (import evolution-evaluation)
+(import element-interrelations)
 
 (export agents-hinted-evolutionary-distribution)
 
@@ -59,42 +61,51 @@
 ;;       free-agents
 ;;       (pick-random//repetition slots (length free-agents))))))
 
+(define (avrg-dist-to-elements graph p)
+  ;;(pick-min (map (lambda (e) (~distance.point-point p (pipe-position e))) (graph:find.pipes graph)))
+  (pick-min (map (lambda (e) (~distance.point-pseq p (entry-pseq e))) (graph:find.entries graph))))
+
 (define agents-regenerator
   (lambda (limit-polygon)
-   (let ((slots (generate.point-mesh-centered (pseq->bbox limit-polygon) 2.0 5.0 5.0))
-         (make-agent-simple (cut make-agent <> <> '() '())))
-     (lambda (agents)
-       (map-fold
-        (lambda (a foldedslots)
-          (case (agent-label a)
-            ((distribution)
-             (receive (p rslots)
-                      (select+rember (lambda (s1 s2) (min (avrg-dist-to-elements s1)
-                                                   (avrg-dist-to-elements s2)))
-                                   (car foldedslots) ; should be reduce+rember
-                                   foldedslots)
-                      (values (make-agent-simple
-                               (agent-label a)
-                               (list p))
-                              rslots)))
-            ((kitchen)
-             (receive (p rslots)
-                      (find+rember (lambda (s)
-                                     (< (distance.agent<->pipe a s) 2.0))
-                                   foldedslots) ; closer than 2 m.
-                      (values (make-agent-simple
-                               (agent-label a)
-                               (list p))
-                              rslots)))
-            (else
-             (receive (p rslots)
-                      (pick-random+rember foldedslots)
-                      (values (make-agent-simple
-                               (agent-label a)
-                               (list p))
-                              rslots)))))
-        slots
-        agents)))))
+    (let ((slots (generate.point-mesh-centered (pseq->bbox limit-polygon) 2.0 5.0 5.0))
+          (make-agent-simple (cut make-agent <> <> '() '())))
+      
+      (lambda (graph agents)
+        (map-fold
+         (lambda (a foldedslots)
+           (case (agent-label a)
+             ((distribution)
+              (receive (p rslots)
+                       (most+rember (lambda (s1 s2)
+                                      (< (avrg-dist-to-elements graph s1)
+                                         (avrg-dist-to-elements graph s2)))
+                                    foldedslots)
+                       (values (make-agent-simple
+                                (agent-label a)
+                                (list p))
+                               rslots)))
+             ((kitchen)
+              (receive (p rslots)
+                       (find+rember (lambda (s)
+                                      (< (pick-min
+                                          (map (lambda (pipe)
+                                                 (~distance.point-point s (pipe-position pipe)))
+                                               (graph:find.pipes graph)))
+                                         8.0)) ; closer than 8 m.
+                                    foldedslots)
+                       (values (make-agent-simple
+                                (agent-label a)
+                                (list p))
+                               rslots)))
+             (else
+              (receive (p rslots)
+                       (pick-random+rember foldedslots)
+                       (values (make-agent-simple
+                                (agent-label a)
+                                (list p))
+                               rslots)))))
+         slots
+         agents)))))
 
 ;;; Evolutionary algorithm
 
@@ -107,7 +118,7 @@
       (visualize-graph graph)
       (visualize-world (make-world old-agents '()) graph)
       (visualization:do-now)
-      (let ((new-agents (regenerate-agents old-agents))) ; TODO: we are regenerating
+      (let ((new-agents (regenerate-agents graph old-agents))) ; TODO: we are regenerating
         (if (< old-score (score new-agents
                                 graph
                                 limit-polygon))

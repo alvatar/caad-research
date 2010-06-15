@@ -64,7 +64,8 @@
                     (if (null-list? hl) (abort '() '())
                         (receive (a d) (car+cdr hl)
                                  (receive (cars cdrs) (recur tl)
-                                          (values (cons a cars) (cons d cdrs))))))
+                                          (values (cons a cars)
+                                                  (cons d cdrs))))))
            (values '() '()))))))
 
 ;;; Values to list
@@ -321,14 +322,15 @@
 (define (find+rember pred lis)
   (let/cc failed
    ((letrec ((R (lambda (l)
-                  (if
-                   (null? l) (failed #f lis) ; TODO: Break in two ifs
-                   (receive (h t) (car+cdr l)
-                            (if (pred h)
-                                (values h t)
-                                (receive (newhead newtail)
-                                         (R t)
-                                         (values newhead (cons h newtail))))))))) R) lis)))
+                  (if (null? l)
+                      (failed #f lis)
+                      (receive (h t) (car+cdr l)
+                               (if (pred h)
+                                   (values h t)
+                                   (receive (newhead newtail)
+                                            (R t)
+                                            (values newhead
+                                                    (cons h newtail))))))))) R) lis)))
 
 ;;; Rotates the list until the first one satisfies the predicate
 
@@ -342,6 +344,37 @@
        (else
         (iter (append (cdr lis-iter) (list x)) (+ n 1))))))
   (iter lis 0))
+
+;;; Find the element that satisfies the predicate against all the other elements
+
+(define (most pred lis)
+  (reduce (lambda (a b) (if (pred b a) b a)) #f lis))
+
+;;; Most, but return also the list with that element removed
+;;; TODO: Benchmark!!!!!
+
+(define (most+rember pred lis)
+  (let recur ((l lis)
+              (list-common '())
+              (list-rembered '())
+              (ans (car lis)))
+    (if (null? l)
+        (values ans
+                (append! list-common (cdr list-rembered)))
+        (receive (h t) (car+cdr l)
+                 (if (pred h ans)
+                     (recur t
+                            (append! list-common list-rembered)
+                            (list h)
+                            h)
+                     (recur t
+                            list-common
+                            (append! list-rembered (list h))
+                            ans))))))
+;; (define (most+rember pred lis)
+;;   (let ((res (most pred lis)))
+;;     (values res
+;;             (rember res lis))))
 
 ;;; Recursive substitution in a list
 
