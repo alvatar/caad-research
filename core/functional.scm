@@ -143,7 +143,7 @@
 ;;; Function computation memoization specifying a key generation procedure
 
 (define (memoize/key-gen key-gen f)
-  (let ((memos '()))
+  (let ((memos '())) ; OPTIMIZE: hash table!
     (lambda args
       (let ((key (apply key-gen args)))
         (apply

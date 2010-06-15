@@ -65,25 +65,30 @@
          (make-agent-simple (cut make-agent <> <> '() '())))
      (lambda (agents)
        (map-fold
-        (lambda (a fslots)
+        (lambda (a foldedslots)
           (case (agent-label a)
             ((distribution)
              (receive (p rslots)
-                      (pick-random+rember fslots)
+                      (select+rember (lambda (s1 s2) (min (avrg-dist-to-elements s1)
+                                                   (avrg-dist-to-elements s2)))
+                                   (car foldedslots) ; should be reduce+rember
+                                   foldedslots)
                       (values (make-agent-simple
                                (agent-label a)
                                (list p))
                               rslots)))
             ((kitchen)
              (receive (p rslots)
-                      (pick-random+rember fslots)
+                      (find+rember (lambda (s)
+                                     (< (distance.agent<->pipe a s) 2.0))
+                                   foldedslots) ; closer than 2 m.
                       (values (make-agent-simple
                                (agent-label a)
                                (list p))
                               rslots)))
             (else
              (receive (p rslots)
-                      (pick-random+rember fslots)
+                      (pick-random+rember foldedslots)
                       (values (make-agent-simple
                                (agent-label a)
                                (list p))
