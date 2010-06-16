@@ -585,49 +585,6 @@
             (cddr fast))))))
 
 ;-------------------------------------------------------------------------------
-; Random picking
-;-------------------------------------------------------------------------------
-
-;;; Pick a random element with known list length
-
-(define (pick-random/length l len)
-  (list-ref l (random-integer len)))
-
-;;; Pick a random element
-
-(define (pick-random l)
-  (pick-random/length l (length l)))
-
-;;; Pick a number of random elements without repetition
-
-(define (pick-random//repetition l n)
-  (let recur ((l l)
-              (n n)
-              (picked '()))
-    (if (or (null? l) (zero? n))
-        picked
-        (receive (fore aft)
-                 (split-at l (random-integer (length l)))
-                 (recur (append fore (cdr aft))
-                        (sub1 n)
-                        (cons (car aft) picked))))))
-
-;;; Pick a random element and return also the list without that element
-
-(define (pick-random+rember/length l len)
-  (receive (a b)
-           (split-at l
-                     (random-integer len))
-           (values
-            (car b)
-            (append a (cdr b)))))
-
-;;; Pick a random element and return also the list without that element
-
-(define (pick-random+rember l)
-  (pick-random+rember/length l (length l)))
-
-;-------------------------------------------------------------------------------
 ; Miscellaneous
 ;-------------------------------------------------------------------------------
 
