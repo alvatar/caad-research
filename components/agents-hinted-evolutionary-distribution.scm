@@ -105,7 +105,7 @@
           (visualization:do-now)
           (let ((new-agents (regenerate-agents graph old-agents))) ; TODO: we are regenerating and it is calculated even if not used
             (cond
-             ((> num-iterations 1000)
+             ((> num-iterations 10)
               (walls-step old-agents))
              ((< old-score (score new-agents
                                   graph
@@ -119,9 +119,15 @@
               (evolve old-agents
                       old-score
                       (add1 num-iterations))))))))
-    (define (walls-step agents)
-      (values
+    (define (walls-step finished-agents)
+      (define (step1 graph world) (pp 'step1) (values graph world))
+      (define (step2 graph world) (pp 'step2) (values graph world))
+      (define (step3 graph world) (pp 'step3) (values graph world))
+      ((compose-right
+        step1
+        step2
+        step3)
        graph
-       (make-world '() '())))
+       (make-world finished-agents '())))
     
     (agents-step)))

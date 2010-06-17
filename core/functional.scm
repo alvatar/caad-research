@@ -13,7 +13,7 @@
 
 (import (std srfi/1))
 
-(export U Y Y! compose
+(export U Y Y! compose compose-right
         define-associative
         curry define-curried lambda-curried uncurry
         define-memoized define-memoized/key-gen)
@@ -44,12 +44,18 @@
 
 ;;; Function composition
 
-(define (compose . fns)
-  (reduce (lambda (fn chain)
+(define (%compose reducer . fns)
+  (reducer (lambda (fn chain)
             (lambda args
               (call-with-values (lambda () (apply fn args)) chain)))
           values
           fns))
+
+(define (compose . fns)
+  (apply %compose reduce fns))
+
+(define (compose-right . fns)
+  (apply %compose reduce-right fns))
 
 ;-------------------------------------------------------------------------------
 ; Associative functions
