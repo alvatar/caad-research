@@ -1,7 +1,7 @@
 ;;; Copyright (c) 2010 by Álvaro Castro-Castilla, All Rights Reserved.
 ;;; Licensed under the GPLv3 license, see LICENSE file for full description.
 
-;;; Copyright (c) Taylor Cambpell, All Rights Reserved. Public domain.
+;;; Copyright (c) Taylor Cambpell. Public domain.
 ;;; (binary, merge, insertion, selection, Fisher-Yates)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -89,7 +89,6 @@
 ;;; next element from.
 
 (define (merge-shuffle-list list)
-
   (define (merge a b)
     (cond ((not (pair? a)) b)
           ((not (pair? b)) a)
@@ -299,5 +298,11 @@
 ; Reservoir sampling
 ;-------------------------------------------------------------------------------
 
-(define (reservoir-sampling l)
-  (error "TODO"))
+;;; Naïve implementation of reservoir sampling. It shuffles the list and picks
+;;; the top n as the reservoir.
+;;; TODO: A better algorithm would build a list of length n filling it with
+;;; randomly picked elements
+;;; 
+
+(define (reservoir-sampling shuffler lis n)
+  (take (shuffler lis) n))
