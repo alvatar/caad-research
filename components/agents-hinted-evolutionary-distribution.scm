@@ -12,6 +12,7 @@
 
 (import ../core/functional)
 (import ../core/list)
+(import ../core/randomization)
 (import ../dev/debugging)
 (import ../generation-elements)
 (import ../geometry/generation)
@@ -41,25 +42,6 @@
     (make-agent-type 'room)
     (make-agent-type 'room)
     (make-agent-type 'room))))
-
-;; (define (hint-agents type/hint slots agents)
-;;   (let-values (((hinted-agents free-agents)
-;;                 (partition (lambda (a)
-;;                              (any (lambda (ha) (equal? ha a))
-;;                                   (map car type/hint)))
-;;                            agents)))
-;;     (ps hinted-agents)
-;;     (ps free-agents)
-;;     (append
-;;      (map-cond ())
-;;      (map
-;;       (lambda (a p) (make-agent
-;;                 (agent-label a)
-;;                 (list p)
-;;                 '()
-;;                 '()))
-;;       free-agents
-;;       (pick-random//repetition slots (length free-agents))))))
 
 (define (avrg-dist-to-elements graph p)
   ;;(pick-min (map (lambda (e) (~distance.point-point p (pipe-position e))) (graph:find.pipes graph)))
@@ -104,29 +86,42 @@
                                 (agent-label a)
                                 (list p))
                                rslots)))))
-         slots
+         (binary-shuffle-list slots)
          agents)))))
 
 ;;; Evolutionary algorithm
 
 (define (agents-hinted-evolutionary-distribution graph world)
-  (let* ((limit-polygon (graph:limits graph))
-         (regenerate-agents (agents-regenerator limit-polygon)))
-    (let evolve ((old-agents (agent-seeds limit-polygon))
-                 (old-score 0.0))
-      (visualization:forget-all)
-      (visualize-graph graph)
-      (visualize-world (make-world old-agents '()) graph)
-      (visualization:do-now)
-      (let ((new-agents (regenerate-agents graph old-agents))) ; TODO: we are regenerating
-        (if (< old-score (score new-agents
-                                graph
-                                limit-polygon))
-            (evolve new-agents (score new-agents
-                                      graph
-                                      limit-polygon))
-            (evolve old-agents old-score))))
-
-    (values
-     graph
-     (make-world agents '()))))
+  (let ((limit-polygon (graph:limits graph)))
+    
+    (define (agents-step)
+      (let ((regenerate-agents (agents-regenerator limit-polygon)))
+        (let evolve ((old-agents (agent-seeds limit-polygon))
+                     (old-score 0.0)
+                     (num-iterations 0))
+          (visualization:forget-all)
+          (visualize-graph graph)
+          (visualize-world (make-world old-agents '()) graph)
+          (visualization:do-now)
+          (let ((new-agents (regenerate-agents graph old-agents))) ; TODO: we are regenerating and it is calculated even if not used
+            (cond
+             ((> num-iterations 1000)
+              (walls-step old-agents))
+             ((< old-score (score new-agents
+                                  graph
+                                  limit-polygon))
+              (evolve new-agents
+                      (score new-agents
+                             graph
+                             limit-polygon)
+                      (add1 num-iterations)))
+             (else
+              (evolve old-agents
+                      old-score
+                      (add1 num-iterations))))))))
+    (define (walls-step agents)
+      (values
+       graph
+       (make-world '() '())))
+    
+    (agents-step)))

@@ -75,7 +75,7 @@
                             (set! control-state resume-here)
                             (return))))
            (let loop ()
-             (SDL::delay 20)
+             ;; (SDL::delay 20)
              (let ((event (SDL::event-exit)))
                (cond
                 ((= event 27) ; 27 = escape TODO!

@@ -15,7 +15,7 @@
 (compile-options force-compile: #t)
 
 (import (std srfi/1))
-
+(import list)
 
 (define (flip-coin) (if (= 1 (random-integer 2)) #t #f))
 
