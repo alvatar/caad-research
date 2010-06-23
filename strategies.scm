@@ -11,7 +11,7 @@
 (import components/agents-place-randomly)
 (import components/agents-evolutionary-distribution)
 (import components/agents-hinted-evolutionary-distribution)
-(import components/walls-from-agents-distribution-bath-block)
+(import components/walls-from-agents-bath-distribution-block)
 
 (define fully-evolutionary
   (list
