@@ -11,9 +11,7 @@
 (import components/agents-place-randomly)
 (import components/agents-evolutionary-distribution)
 (import components/agents-hinted-evolutionary-distribution)
-;; (import components/agents-forces-system)
-;; (import components/agents-forces-brownian-motion)
-;; (import components/agents-to-rooms-positive-distribution)
+(import components/walls-from-agents-distribution-bath-block)
 
 (define fully-evolutionary
   (list
@@ -21,4 +19,5 @@
 
 (define hinted-evolutionary
   (list
-   agents-hinted-evolutionary-distribution))
+   agents-hinted-evolutionary-distribution
+   walls-from-agents/distribution&bath-block))

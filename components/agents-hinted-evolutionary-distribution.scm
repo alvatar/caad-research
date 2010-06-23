@@ -10,7 +10,6 @@
 (import (std srfi/11))
 (import (std srfi/26))
 
-(import ../core/functional)
 (import ../core/list)
 (import ../core/randomization)
 (import ../dev/debugging)
@@ -94,40 +93,29 @@
 (define (agents-hinted-evolutionary-distribution graph world)
   (let ((limit-polygon (graph:limits graph)))
     
-    (define (agents-step)
-      (let ((regenerate-agents (agents-regenerator limit-polygon)))
-        (let evolve ((old-agents (agent-seeds limit-polygon))
-                     (old-score 0.0)
-                     (num-iterations 0))
-          (visualization:forget-all)
-          (visualize-graph graph)
-          (visualize-world (make-world old-agents '()) graph)
-          (visualization:do-now)
-          (let ((new-agents (regenerate-agents graph old-agents))) ; TODO: we are regenerating and it is calculated even if not used
-            (cond
-             ((> num-iterations 10)
-              (walls-step old-agents))
-             ((< old-score (score new-agents
-                                  graph
-                                  limit-polygon))
-              (evolve new-agents
-                      (score new-agents
-                             graph
-                             limit-polygon)
-                      (add1 num-iterations)))
-             (else
-              (evolve old-agents
-                      old-score
-                      (add1 num-iterations))))))))
-    (define (walls-step finished-agents)
-      (define (step1 graph world) (pp 'step1) (values graph world))
-      (define (step2 graph world) (pp 'step2) (values graph world))
-      (define (step3 graph world) (pp 'step3) (values graph world))
-      ((compose-right
-        step1
-        step2
-        step3)
-       graph
-       (make-world finished-agents '())))
-    
-    (agents-step)))
+    (let ((regenerate-agents (agents-regenerator limit-polygon)))
+      (let evolve ((old-agents (agent-seeds limit-polygon))
+                   (old-score 0.0)
+                   (num-iterations 0))
+        (let ((new-agents (regenerate-agents graph old-agents))) ; TODO: we are regenerating//it is calculated even if not used
+          (cond
+           ((> num-iterations 100)
+            (values graph (make-world
+                           old-agents
+                           '())))
+           ((< old-score (score new-agents
+                                graph
+                                limit-polygon))
+            (visualization:forget-all)
+            (visualize-graph graph)
+            (visualize-world (make-world old-agents '()) graph)
+            (visualization:do-now)
+            (evolve new-agents
+                    (score new-agents
+                           graph
+                           limit-polygon)
+                    (add1 num-iterations)))
+           (else
+            (evolve old-agents
+                    old-score
+                    (add1 num-iterations)))))))))
