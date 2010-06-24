@@ -29,7 +29,7 @@
 
 ;;; Find the first node in a level
 
-(define context-tree:first-in-level btree:first-in-level)
+(define context-tree:first-in-level btree:leftmost-in-level)
 
 ;-------------------------------------------------------------------------------
 ; Vector dimension 2
