@@ -7,29 +7,29 @@
 
 (import (std srfi/1))
 (import graph)
-(import ds/btree)
+(import ds/binary-tree)
 
 ;-------------------------------------------------------------------------------
 ; Context tree
 ;-------------------------------------------------------------------------------
 
-(define-structure btree node sibling child)
+(define-structure binary-tree node sibling child)
 
 ;;; Create a context-tree
 
-(define make-context-tree list->btree)
+(define make-context-tree list->binary-tree)
 
 ;;; Get the context-tree root node
 
-(define context-tree:root btree:root)
+(define context-tree:root binary-tree:root)
 
 ;;; Extract a list of all nodes in the same level
 
-(define context-tree:level btree:level)
+(define context-tree:level binary-tree:level)
 
 ;;; Find the first node in a level
 
-(define context-tree:first-in-level btree:leftmost-in-level)
+(define context-tree:first-in-level binary-tree:leftmost-in-level)
 
 ;-------------------------------------------------------------------------------
 ; Vector dimension 2
