@@ -6,6 +6,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;; TODO: Argument checks
+;;;;;; TODO: define-type??
 
 (import ../core/list)
 
@@ -13,7 +14,7 @@
   (list content left right))
 
 (define (binary-tree:make-leaf content)
-  (list content))
+  (list content #f #f))
 
 (define (binary-tree:node-content node)
   (car node))
@@ -29,8 +30,12 @@
        (= (length e) 3)))
 
 (define (binary-tree:leaf? e)
-  (and (list? e)
-       (= (length e) 1)))
+  (and (binary-tree:node? e)
+       (not (binary-tree:node-left e))
+       (not (binary-tree:node-right e))))
+
+(define (binary-tree:empty? e)
+  (null? e))
 
 ;;; Create a binary-tree node from a list of three elements
 
