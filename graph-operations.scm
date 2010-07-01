@@ -206,7 +206,7 @@
 
 (define (graph:closest-wall graph point)
   (max/generator (lambda (w)
-                   (~distance.point-pseq (wall-pseq w)))
+                   (~distance.point-pseq point (wall-pseq w)))
                  (graph:find.walls graph)))
 
 ;;; Calculate the pseq that describes a room

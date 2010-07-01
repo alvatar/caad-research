@@ -26,7 +26,7 @@
 
 
 (define (add-bath-corridor-block graph world)
-  (define calculate-corridor-width 1.0)
+  (define (calculate-corridor-width) 1.0)
   (values
    (receive (parallel-1 parallel-2)
             (generate.parallels-at-distance (let ((base-point
@@ -35,7 +35,7 @@
                                              (point+direction->line
                                               base-point
                                               (graph:wall-perpendicular
-                                               (graph:closest-wall graph base-point))))
+                                               (ps (graph:closest-wall graph base-point)))))
                                             (calculate-corridor-width))
             (compose
              (op:cut (graph+line->context graph

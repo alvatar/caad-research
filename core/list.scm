@@ -374,20 +374,27 @@
 ;;     (values res
 ;;             (rember res lis))))
 
-;;; MAX standard function with a comparable number generator. Similar to MOST,
-;;; but compares the numbers generated
-
-(define (max/generator generator lis)
-  (let iter ((ans (generator (car lis)))
+(define (most/generator generator comparator lis)
+  (let iter ((ans (car lis))
+             (current-max (generator (car lis)))
              (rest (cdr lis)))
     (if (null? rest)
         ans
         (receive (h t)
                  (car+cdr rest)
                  (let ((val (generator h)))
-                   (if (> val ans)
-                       (iter val t)
-                       (iter ans t)))))))
+                   (if (comparator val current-max)
+                       (iter h val t)
+                       (iter ans current-max t)))))))
+
+;;; MAX/MIN standard functions with a comparable number generator. Similar to MOST,
+;;; but compares the numbers generated
+
+(define (max/generator generator lis)
+  (most/generator generator > lis))
+
+(define (min/generator generator lis)
+  (most/generator generator < lis))
 
 ;;; Recursive substitution in a list
 
