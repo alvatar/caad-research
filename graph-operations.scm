@@ -205,7 +205,7 @@
 ;;; Calculate the closest wall to a point
 
 (define (graph:closest-wall graph point)
-  (max/generator (lambda (w)
+  (min/generator (lambda (w)
                    (~distance.point-pseq point (wall-pseq w)))
                  (graph:find.walls graph)))
 

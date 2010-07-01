@@ -374,6 +374,8 @@
 ;;     (values res
 ;;             (rember res lis))))
 
+;;; MOST using a generator instead of a comparator predicate
+
 (define (most/generator generator comparator lis)
   (let iter ((ans (car lis))
              (current-max (generator (car lis)))
