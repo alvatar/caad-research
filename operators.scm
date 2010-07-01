@@ -65,6 +65,14 @@
 ; Topological operations
 ;-------------------------------------------------------------------------------
 
+;;; The generic CUT operation: given a graph and a set of points with a minimum
+;;; length of 2, first select the 2 walls where those first and last points lay.
+;;; Then split the room if they belong to the same one and the path doesn't
+;;; intersect any other wall.
+
+(define (op:cut context-tree)
+  (error "unimplemented"))
+
 ;;; Split a room
 
 (define (op:split-room context-tree) ;graph context-selector constraints)

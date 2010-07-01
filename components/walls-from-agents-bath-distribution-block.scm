@@ -26,8 +26,23 @@
 
 
 (define (add-bath-corridor-block graph world)
-  (pp 'step1)
-  (values graph world))
+  (define calculate-corridor-width 1.0)
+  (values
+   (receive (parallel-1 parallel-2)
+            (generate.parallels-at-distance (let ((base-point
+                                                   (car (agent-positions
+                                                         (find-agent (world-agents world) 'distribution)))))
+                                             (point+direction->line
+                                              base-point
+                                              (graph:wall-perpendicular
+                                               (graph:closest-wall graph base-point))))
+                                            (calculate-corridor-width))
+            (compose
+             (op:cut (graph+line->context graph
+                                          parallel-1))
+             (op:cut (graph+line->context graph
+                                          parallel-2))))
+   world))
 
 (define (step2 graph world) (pp 'step2) (values graph world))
 

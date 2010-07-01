@@ -374,6 +374,21 @@
 ;;     (values res
 ;;             (rember res lis))))
 
+;;; MAX standard function with a comparable number generator. Similar to MOST,
+;;; but compares the numbers generated
+
+(define (max/generator generator lis)
+  (let iter ((ans (generator (car lis)))
+             (rest (cdr lis)))
+    (if (null? rest)
+        ans
+        (receive (h t)
+                 (car+cdr rest)
+                 (let ((val (generator h)))
+                   (if (> val ans)
+                       (iter val t)
+                       (iter ans t)))))))
+
 ;;; Recursive substitution in a list
 
 (define (subst* new old l)

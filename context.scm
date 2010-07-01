@@ -32,31 +32,44 @@
 (define context-tree:first-in-level binary-tree:leftmost-in-level)
 
 ;-------------------------------------------------------------------------------
-; Vector dimension 2
+; Context builders
 ;-------------------------------------------------------------------------------
 
 ;;; All
 
-(define all-graph
-  (lambda (graph) graph))
+;; (define all-graph->context
+;;   (lambda (graph) graph))
 
 ;;; Returns the smallest room as context
 
-(define smallest-room '())
+;; (define smallest-room->context '())
 
 ;;; Takes the biggest room as context
 
-(define (biggest-room graph)
-  (let ((rooms-list (graph:find-rooms graph)))
-    (if
-     (null? rooms-list)
-     '()
-     (car rooms-list))))                ; TODO
+;; (define (biggest-room->context graph)
+;;   (let ((rooms-list (graph:find-rooms graph)))
+;;     (if
+;;      (null? rooms-list)
+;;      '()
+;;      (car rooms-list))))                ; TODO
 
 ;;; Takes the two first rooms as context
 
-(define (two-rooms graph)
-  (let ((rooms-list (rooms-in-graph graph)))
-    (if (> (length rooms-list) 1)
-        (take rooms-list 2)
-        '())))
+;; (define (two-rooms->context graph)
+;;   (let ((rooms-list (rooms-in-graph graph)))
+;;     (if (> (length rooms-list) 1)
+;;         (take rooms-list 2)
+;;         '())))
+
+;;; Takes a graph and an infinite line and builds the context with the
+;;; computation of their intersection
+
+(define (graph+line->context graph line)
+  (error "unimplemented"))
+
+;-------------------------------------------------------------------------------
+; Context transformers
+;-------------------------------------------------------------------------------
+
+(define (context:add-free-point context point)
+  (error "unimplemented"))

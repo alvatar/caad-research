@@ -189,7 +189,26 @@
     (pseq:append
       (wall-pseq (car wlis))
       (graph:wall-list->pseq (cdr wlis))))))
-      
+
+
+;;; Calculate a wall's perpendicular through a point
+
+(define (graph:wall-perpendicular wall #!optional p)
+  (if p
+      (error "unimplemented with perpendicular-through-point")
+      (direction:perpendicular
+       (segment->direction
+        (pseq->segment
+         (wall-pseq
+          wall))))))
+
+;;; Calculate the closest wall to a point
+
+(define (graph:closest-wall graph point)
+  (max/generator (lambda (w)
+                   (~distance.point-pseq (wall-pseq w)))
+                 (graph:find.walls graph)))
+
 ;;; Calculate the pseq that describes a room
 
 (define (graph:room->pseq graph room)
