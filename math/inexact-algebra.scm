@@ -8,7 +8,7 @@
 (declare (standard-bindings)
          (extended-bindings)
          (block)
-         (flonum))
+         (mostly-flonum))
 (compile-options force-compile: #t)
 
 (import ../core/functional)

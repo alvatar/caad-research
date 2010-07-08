@@ -45,7 +45,8 @@
         visualization:reset-transformations
         visualization:pseq-now
         visualization:point-list-now
-        visualization:point-now)
+        visualization:point-now
+        visualization:line-now)
 
 (define maxx 500)
 (define maxy 500)
@@ -340,7 +341,7 @@
      (visualization:paint-set-line-width backend 0.1)
      (visualization:paint-set-color backend 0.0 1.0 0.0 1.0)
      (visualization:paint-path backend pseq)))
-  (visualization:layer-depth-set! 'cardinal-points 100)
+  (visualization:layer-depth-set! '%now-helpers 100)
   (visualization:do-now)
   pseq)
 
@@ -355,7 +356,7 @@
         (visualization:paint-set-color backend 0.0 1.0 0.0 1.0)
         (visualization:paint-circle-fill backend (vect2-x p) (vect2-y p) diam))
       plis)))
-  (visualization:layer-depth-set! 'cardinal-points 100)
+  (visualization:layer-depth-set! '%now-helpers 100)
   (visualization:do-now)
   plis)
 
@@ -367,6 +368,20 @@
    (lambda (backend vis-env)
      (visualization:paint-set-color backend 0.0 1.0 0.0 1.0)
      (visualization:paint-circle-fill backend (vect2-x p) (vect2-y p) diam)))
-  (visualization:layer-depth-set! 'cardinal-points 100)
+  (visualization:layer-depth-set! '%now-helpers 100)
   (visualization:do-now)
   p)
+
+;;; Draw a line in red
+
+(define (visualization:line-now line)
+  (visualization:do-later
+   '%now-helpers
+   (lambda (backend vis-env)
+     (visualization:paint-set-color backend 1.0 0.0 0.0 1.0)
+     (visualization:paint-set-line-cap backend 'square)
+     (visualization:paint-set-line-width backend .1)
+     (visualization:paint-path backend (segment->pseq (line->segment line -100.0 100.0)))))
+  (visualization:layer-depth-set! '%now-helpers 81)
+  (visualization:do-now)
+  line)

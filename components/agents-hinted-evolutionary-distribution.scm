@@ -33,7 +33,7 @@
 
 (define (agent-seeds limit-polygon)
   (let ((make-agent-type
-         (cut make-agent <> (list (generate.random-point-inside limit-polygon)) '() '())))
+         (cut make-agent <> (list (~generate.random-point-inside limit-polygon)) '() '())))
    (list ; TODO: This list is generated from an input argument
     (make-agent-type 'distribution)
     (make-agent-type 'kitchen)
@@ -48,7 +48,7 @@
 
 (define agents-regenerator
   (lambda (limit-polygon)
-    (let ((slots (generate.point-mesh-centered (pseq->bbox limit-polygon) 2.0 5.0 5.0))
+    (let ((slots (~generate.point-mesh-centered (pseq->bbox limit-polygon) 2.0 5.0 5.0))
           (make-agent-simple (cut make-agent <> <> '() '())))
       
       (lambda (graph agents)

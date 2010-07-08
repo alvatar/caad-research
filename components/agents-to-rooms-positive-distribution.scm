@@ -89,40 +89,13 @@
        (> (num-agents-in-room r) 1))
      (graph:find-rooms graph)))
   
-  (define (line->segment line)
-    (cond
-     ((~zero? (line-a line))
-      (make-segment
-       (make-point -100.0 (/ (- (line-c line)) (line-b line)))
-       (make-point 100.0 (/ (- (line-c line)) (line-b line)))))
-     ((~zero? (line-b line))
-      (make-segment
-       (make-point (/ (- (line-c line)) (line-a line)) -100.0)
-       (make-point (/ (- (line-c line)) (line-a line)) 100.0)))
-     (else
-      (let ((any-origin (make-point 0.0 (/ (- (line-c line)) (line-b line))))
-            (dirmult (vect2:*scalar (line->direction line) 100.0)))
-        (make-segment (vect2- any-origin dirmult) (vect2+ any-origin dirmult))))))
-
-  (define (d line)
-    (visualization:do-later
-     'debug-aids
-     (lambda (backend vis-env)
-       (visualization:paint-set-color backend 1.0 0.0 0.0 1.0)
-       (visualization:paint-set-line-cap backend 'square)
-       (visualization:paint-set-line-width backend .1)
-       (visualization:paint-path backend (segment->pseq (line->segment line)))))
-    (visualization:layer-depth-set! 'debug-aids 81)
-                                        ;(visualization:do-now)
-    line)
-
   (define (make-partition-in-graph room)
     (op:split-room
      (receive (points walls)
               (room-line-intersection
                graph
                room
-               (d (point+direction->line (vect2+
+               (visualization:line-now (point+direction->line (vect2+
                                           (vect2:random)
                                           (pseq:centroid (room->pseq graph room))) ; TODO: limit random bias
                                          (graph:wall-perpendicular

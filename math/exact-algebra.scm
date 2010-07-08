@@ -75,7 +75,7 @@
 
 ;;; Normalize value in a range
 
-(define (normalize x lo hi) ; TODO: should check boundaries?
+(define (normalize x lo hi) ; TODO: should check boundaries? yes, if debug
   (/ (- x lo) (- hi lo)))
 
 ;;; Takes a value and two boundaries, using any as reference, inverts the intervals
