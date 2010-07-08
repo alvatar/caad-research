@@ -32,10 +32,10 @@
             (generate.parallels-at-distance (let ((base-point
                                                    (car (agent-positions
                                                          (find-agent (world-agents world) 'distribution)))))
-                                             (point+direction->line
-                                              base-point
-                                              (graph:wall-perpendicular
-                                               (ps (graph:closest-wall graph base-point)))))
+                                              (point+direction->line
+                                               base-point
+                                               (graph:wall-perpendicular
+                                                (graph:closest-wall graph base-point))))
                                             (calculate-corridor-width))
             (compose
              (op:cut (graph+line->context graph
