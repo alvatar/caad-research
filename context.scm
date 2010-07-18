@@ -65,7 +65,8 @@
 ;;; computation of their intersection
 
 (define (graph+line->context graph line)
-  (error "unimplemented graph+line->context"))
+  `(graph
+    ,@())) ; TODO
 
 ;-------------------------------------------------------------------------------
 ; Context transformers

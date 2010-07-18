@@ -14,7 +14,6 @@
 (import (std srfi/1))
 (import functional)
 (import syntax)
-(import)
 
 ;-------------------------------------------------------------------------------
 ; Basic
@@ -144,7 +143,7 @@
                                   tails)))))))))))
 
 ;-------------------------------------------------------------------------------
-; Map variants
+; Map/fold variants
 ;-------------------------------------------------------------------------------
 
 ;;; Recursive map
@@ -221,6 +220,20 @@
 (define (map/values f . ls)
   (list->values
    (apply map (lambda args (values->list (apply f args))) ls)))
+
+;;; Fold that accumulates several values
+;;; (fold/values (lambda (x a b) (values (cons (+ 1 x) a) (cons x b))) '(() ()) '(1 2 3 4 5))
+;;; => (6 5 4 3 2)
+;;;    (5 4 3 2 1)
+
+(define (fold/values kons knil . ls)
+  (list->values
+   (apply fold
+          (lambda args
+            (let ((rev (reverse args))) ; (x . y (a . b)) -> (x . y . a . b)
+              (values->list (apply kons (append (cdr rev) (car rev))))))
+          knil
+          ls)))
 
 ;;; map+fold combines them two, returning the map and the fold
 ;;; (map+fold (lambda (a b) (values (+ a b) (+ b 1))) 0 '(1 2 3 4))
