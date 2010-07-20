@@ -16,10 +16,8 @@
 
 ;;; Get a node's data
 
-(define (tree-data tree)
-  (if (tree-node? tree)
-      (cadr tree)
-      tree))
+(define (node-data node) ; TODO check node
+  (cadr tree))
 
 ;;; Get a node's children
 
@@ -39,37 +37,54 @@
 ;;; Build a tree taking only up the that depth
 
 (define (tree:take-levels tree level)
-  (cond
-   ((null? tree)
-    '())
-   ((tree-leaf? tree)
-    tree)
-   ((zero? level)
-    (make-leaf (tree-data tree)))
-   (else
-    (make-node (tree-data tree)
-               (let ((new-level (- level 1)))
-                 (let recur ((children (node-children tree)))
-                   (if (null? children)
-                       '()
-                       (cons (tree:take-levels (car children) new-level)
-                             (recur (cdr children))))))))))
+  (let recur ((node tree)
+              (level level))
+   (cond
+    ((null? node)
+     '())
+    ((tree-leaf? node)
+     node)
+    ((zero? level)
+     (make-leaf (node-data node)))
+    (else
+     (make-node (node-data node)
+                (let ((new-level (- level 1)))
+                  (let recur-children ((children (node-children node)))
+                    (if (null? children)
+                        '()
+                        (cons (recur (car children) new-level)
+                              (recur-children (cdr children)))))))))))
 
-;; Build a list with a given tree level
+;; Build a list with a given tree level. Takes an option to deal with shallow leaves
 
-(define (tree:level tree level)
-  (cond
-   ((null? tree)
-    '())
-   ((zero? level)
-    (tree-data tree))
-   ((tree-leaf? tree)
-    '())
-   (else
-    (make-node (tree-data tree)
-               (let ((new-level (- level 1)))
-                 (let recur ((children (node-children tree)))
-                   (if (null? children)
-                       '()
-                       (cons (tree:level (car children) new-level)
-                             (recur (cdr children))))))))))
+(define (tree:level tree level #!optional shallow-leaves)
+  (let/cc
+   abort
+   (let ((leaf-process (case shallow-leaves
+                         ((strict) ; Aborts if reaches a leaf shallower than target level
+                          (lambda (leaf) (abort #f)))
+                         ((accept) ; If they are leaves, add them even if not in target level
+                          (lambda (leaf) leaf))
+                         ((remove #f) ; Doesn't consider leaves that are not in target level
+                          (lambda (leaf) #f)))))
+     (let recur-down ((node tree)
+                      (level level))
+       (cond
+        ((null? node)
+         '())
+        ((zero? level)
+         (if (tree-leaf? node)
+             node
+             (node-data node)))
+        ((tree-leaf? node)              ; leaf but not in target level
+         (leaf-process node))
+        (else
+         (let ((new-level (- level 1)))
+           (let recur-children ((children (node-children node)))
+             (if (null? children)
+                 '()
+                 (let ((valid-head (recur-down (car children) new-level)))
+                   (if (not valid-head)
+                       (recur-children (cdr children))
+                       (cons valid-head
+                             (recur-children (cdr children)))))))))))))))

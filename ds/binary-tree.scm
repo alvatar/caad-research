@@ -107,11 +107,12 @@
 (define (binary-tree:reverse node)
   (if (binary-tree:leaf? node)
       node
-      (binary-tree:make-node (binary-tree:node-content node)
-                       (binary-tree:reverse
-                        (binary-tree:node-right node))
-                       (binary-tree:reverse
-                        (binary-tree:node-left node)))))
+      (binary-tree:make-node
+       (binary-tree:node-content node)
+       (binary-tree:reverse
+        (binary-tree:node-right node))
+       (binary-tree:reverse
+        (binary-tree:node-left node)))))
 
 (define (binary-tree:preorder node)
   (let recur ((current node)
