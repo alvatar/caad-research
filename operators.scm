@@ -1,3 +1,4 @@
+
 ;;; Copyright (c) 2010 by Álvaro Castro-Castilla, All Rights Reserved.
 ;;; Licensed under the GPLv3 license, see LICENSE file for full description.
 
@@ -60,19 +61,31 @@
 ;;; Move
 
 (define (op:move graph context-tree)
-  (error "unimplemented"))
+  (error "unimplemented op:move"))
 
 ;-------------------------------------------------------------------------------
 ; Topological operations
 ;-------------------------------------------------------------------------------
 
 ;;; The generic CUT operation: given a graph and a set of points with a minimum
-;;; length of 2, first select the 2 walls where those first and last points lay.
-;;; Then split the room if they belong to the same one and the path doesn't
-;;; intersect any other wall.
+;;; length of 2, first select the 2 walls where those first and last points lay
+;;; in case they are not given. Then split the room if they belong to the same
+;;; one and the path doesn't intersect any other wall.
 
-(define (op:cut context-tree)
-  (error "unimplemented cut"))
+(define (op:cut context #!optional points)
+  (if (= (tree:depth context) 1) ; no information about walls
+      (error "unimplemented")
+      (let ((graph (tree:level context 0))
+            (walls (tree:level context 1)))
+        (let ((wall1 (car walls))
+              (wall2 (cadr walls)))
+          (cond
+           ((equal? wall1 wall2)        ; same wall
+            '())
+           ((graph:walls-are-connected? wall1 wall2) ; connected walls
+            '())
+           (else                        ; opposing walls
+            '()))))))
 
 ;;; Split a room
 

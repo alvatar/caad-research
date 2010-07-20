@@ -66,8 +66,8 @@
 
 (define (graph:walls-are-connected? wall1 wall2)
   (pseq:connected-pseq?
-    (wall-pseq wall1)
-    (wall-pseq wall2)))
+   (wall-pseq wall1)
+   (wall-pseq wall2)))
 
 ;;; Is this wall exterior?
 
@@ -229,7 +229,7 @@
 ;;; intersection points
 ;;; Output: 2 values of the same size (intersections and intersected walls)
 
-(define (graph:room-line-intersection graph room line)
+(define (graph:room-relative-line-intersections graph room line)
   (let* ((walls (graph:find.room-walls graph room))
          (intersections (map
                          (lambda (w)
@@ -245,20 +245,20 @@
                            (pseq->segment (wall-pseq (cadr p)))
                            (car p))
                           (cadr p))))
-		 (zip intersections walls)))))
+                 (zip intersections walls)))))
 
 ;;; Returns all the intersections of a line with the graph
 ;;; Output: 2 values of the same size (intersections and intersected walls)
 
-(define (graph:line-intersection graph line)
+(define (graph:relative-line-intersections graph line)
   (fold/values
    (lambda (room intersections walls)
-     (receive (a b)
-              (graph:room-line-intersection graph room line)
+     (receive (new-intr new-wall)
+              (graph:room-relative-line-intersections graph room line)
               (values (append intersections new-intr)
                       (append walls new-wall))))
-   (values '() '())
-   (graph:find-rooms graph)))
+   '(() ())
+   (graph:find.rooms graph)))
 
 ;;; Calculate room area
 

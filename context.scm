@@ -7,7 +7,9 @@
 
 (import (std srfi/1))
 (import graph)
+(import graph-operations)
 (import ds/binary-tree)
+(import dev/debugging)
 
 ;-------------------------------------------------------------------------------
 ; Context tree
@@ -62,11 +64,16 @@
 ;;         '())))
 
 ;;; Takes a graph and an infinite line and builds the context with the
-;;; computation of their intersection
+;;; computation of their intersections
 
 (define (graph+line->context graph line)
-  `(graph
-    ,@())) ; TODO
+  (receive (intersections walls)
+           (graph:relative-line-intersections graph line)
+           `(graph, graph
+                    ,@(zip (make-list (length walls) 'wall) ; BUG: this should be done with a circular-list from SRFI-1
+                           walls
+                           (zip (make-list (length walls) 'intersection)
+                                intersections)))))
 
 ;-------------------------------------------------------------------------------
 ; Context transformers
