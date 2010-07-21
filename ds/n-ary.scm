@@ -28,22 +28,22 @@
 
 ;;; An internal node must satisfy these, otherwise it is considered a leaf
 
-(define (tree-node? obj)
+(define (n-ary-node? obj)
   (and (list? obj)
        (not (car obj))
        (> (length obj) 2)))
 
-(define (tree-leaf? obj)
-  (not (tree-node? obj)))
+(define (n-ary-leaf? obj)
+  (not (n-ary-node? obj)))
 
 ;;; Build a tree taking only up the that depth
 
-(define (tree:take-levels tree level)
+(define (n-ary:take-levels tree level)
   ((letrec
        ((recur-down (lambda (node level)
                       (cond
                        ((null? node) '())
-                       ((tree-leaf? node) node)
+                       ((n-ary-leaf? node) node)
                        ((zero? level) (make-leaf (node-data node)))
                        (else (make-node
                               (node-data node)
@@ -57,9 +57,9 @@
                              (recur-right (cdr nodes) level)))))
      recur-down) tree level))
 
-;; Build a list with a given tree level. Takes an option to deal with shallow leaves
+;;; Build a list with a given tree level. Takes an option to deal with shallow leaves
 
-(define (tree:level tree level #!optional shallow-leaves)
+(define (n-ary:level tree level #!optional shallow-leaves)
   (let/cc
    abort
    (let ((leaf-process (case shallow-leaves
@@ -69,24 +69,40 @@
                           (lambda (leaf) leaf))
                          ((remove #f) ; Doesn't consider leaves that are not in target level
                           (lambda (leaf) #f)))))
-     (let recur-down ((node tree)
-                      (level level))
-       (cond
-        ((null? node)
-         '())
-        ((zero? level)
-         (if (tree-leaf? node)
-             node
-             (node-data node)))
-        ((tree-leaf? node)              ; leaf but not in target level
-         (leaf-process node))
-        (else
-         (let ((new-level (- level 1)))
-           (let recur-children ((children (node-children node)))
-             (if (null? children)
-                 '()
-                 (let ((valid-head (recur-down (car children) new-level)))
-                   (if (not valid-head)
-                       (recur-children (cdr children))
-                       (cons valid-head
-                             (recur-children (cdr children))))))))))))))
+     ((letrec
+          ((recur-down (lambda (node level)
+                         (cond
+                          ((null? node) '())
+                          ((zero? level) (if (n-ary-leaf? node)
+                                             node
+                                             (node-data node)))
+                          ((n-ary-leaf? node) ; leaf but not in target level
+                           (leaf-process node))
+                          (else
+                           (recur-right (node-children node) level)))))
+           (recur-right (lambda (nodes level)
+                          (if (null? nodes)
+                              '()
+                              (let ((valid-head (recur-down (car nodes) (- level 1))))
+                                (if (not valid-head)
+                                    (recur-right (cdr nodes) level)
+                                    (cons valid-head
+                                          (recur-right (cdr nodes) level))))))))
+        recur-down) tree level))))
+
+;;; Calculate the depth of the deepest leaf
+
+(define (n-ary:depth tree)
+  ((letrec
+       ((recur-down (lambda (node level)
+                      (cond
+                       ((null? node) '())
+                       ((n-ary-leaf? node) level)
+                       (else
+                        (recur-right (node-children node) level)))))
+        (recur-right (lambda (nodes level)
+                       (if (null? nodes)
+                           level
+                           (max (recur-down (car nodes) (add1 level))
+                                (recur-right (cdr nodes) level))))))
+     recur-down) tree 0))

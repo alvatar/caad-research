@@ -1,4 +1,3 @@
-
 ;;; Copyright (c) 2010 by Álvaro Castro-Castilla, All Rights Reserved.
 ;;; Licensed under the GPLv3 license, see LICENSE file for full description.
 
@@ -6,7 +5,7 @@
 ;;; Architectural high-level operations on the graph
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(compile-options force-compile: #t)
+;; (compile-options force-compile: #t)
 
 (import (std srfi/1))
 (import (std misc/uuid))
@@ -14,6 +13,8 @@
 (import context)
 (import core/functional)
 (import core/list)
+(import dev/debugging)
+(import ds/n-ary)
 (import geometry/kernel)
 (import math/exact-algebra)
 (import graph-operations)
@@ -73,10 +74,10 @@
 ;;; one and the path doesn't intersect any other wall.
 
 (define (op:cut context #!optional points)
-  (if (= (tree:depth context) 1) ; no information about walls
+  (if (< (n-ary:depth context) 1) ; no information about walls
       (error "unimplemented")
-      (let ((graph (tree:level context 0))
-            (walls (tree:level context 1)))
+      (let ((graph (n-ary:level context 0))
+            (walls (ps (n-ary:level context 1))))
         (let ((wall1 (car walls))
               (wall2 (cadr walls)))
           (cond
