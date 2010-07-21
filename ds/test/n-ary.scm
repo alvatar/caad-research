@@ -11,3 +11,17 @@
                                         (make-leaf '6))
                              (make-leaf 'd)
                              (make-leaf 'e)))
+
+(define test-tree2 (make-node 'a
+                             (make-node 'b
+                                        (make-leaf 'ba)
+                                        (make-leaf '(bb1 bb2 bb3))
+                                        (make-leaf 'bc))
+                             (make-node 'c
+                                        (make-leaf 'ca)
+                                        (make-leaf 'cb))
+                             (make-leaf 'd)
+                             (make-node 'e
+                                        (make-node 'ea
+                                                   (make-leaf 'eaa)
+                                                   (make-leaf 'eab)))))

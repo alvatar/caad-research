@@ -5,6 +5,8 @@
 ;;; n-ary tree
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(import ../core/syntax)
+
 ;;; An internal node
 
 (define (make-node data . children)
@@ -17,7 +19,7 @@
 ;;; Get a node's data
 
 (define (node-data node) ; TODO check node
-  (cadr tree))
+  (cadr node))
 
 ;;; Get a node's children
 
@@ -37,23 +39,23 @@
 ;;; Build a tree taking only up the that depth
 
 (define (tree:take-levels tree level)
-  (let recur ((node tree)
-              (level level))
-   (cond
-    ((null? node)
-     '())
-    ((tree-leaf? node)
-     node)
-    ((zero? level)
-     (make-leaf (node-data node)))
-    (else
-     (make-node (node-data node)
-                (let ((new-level (- level 1)))
-                  (let recur-children ((children (node-children node)))
-                    (if (null? children)
-                        '()
-                        (cons (recur (car children) new-level)
-                              (recur-children (cdr children)))))))))))
+  ((letrec
+       ((recur-down (lambda (node level)
+                      (cond
+                       ((null? node) '())
+                       ((tree-leaf? node) node)
+                       ((zero? level) (make-leaf (node-data node)))
+                       (else (make-node
+                              (node-data node)
+                              (bifurcation (node-children node) level))))))
+        (recur-right (lambda (nodes level)
+                       (if (null? nodes)
+                           '()
+                           (bifurcation nodes level))))
+        (bifurcation (lambda (nodes level)
+                       (cons (recur-down (car nodes) (- level 1))
+                             (recur-right (cdr nodes) level)))))
+     recur-down) tree level))
 
 ;; Build a list with a given tree level. Takes an option to deal with shallow leaves
 
@@ -87,4 +89,4 @@
                    (if (not valid-head)
                        (recur-children (cdr children))
                        (cons valid-head
-                             (recur-children (cdr children)))))))))))))))
+                             (recur-children (cdr children))))))))))))))
