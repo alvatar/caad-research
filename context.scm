@@ -67,13 +67,14 @@
 ;;; computation of their intersections
 
 (define (graph+line->context graph line)
-  (receive (intersections walls)
+  (receive (rooms walls intersections)
            (graph:relative-line-intersections graph line)
-           `(graph, graph
-                    ,@(zip (make-list (length walls) 'wall) ; BUG: this should be done with a circular-list from SRFI-1
-                           walls
-                           (zip (make-list (length walls) 'intersection)
-                                intersections)))))
+           `(#f ,graph          ; #f for the n-ary tree internal nodes
+                (#f ; TODO: DOESN'T WORK WITH MORE THAN ONE
+                 ,rooms
+                 ,@(zip (make-list (length walls) #f)
+                        walls
+                        intersections)))))
 
 ;-------------------------------------------------------------------------------
 ; Context transformers

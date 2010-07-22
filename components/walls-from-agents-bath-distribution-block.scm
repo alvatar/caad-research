@@ -40,11 +40,10 @@
                                              (calculate-corridor-width))
             (visualization:line-now parallel-1)
             (visualization:line-now parallel-2)
-            (compose
-             (op:cut (graph+line->context graph
-                                          parallel-1))
-             (op:cut (graph+line->context graph
-                                          parallel-2))))
+            (op:cut (graph+line->context ; TODO: COMPOSE
+                     (op:cut (graph+line->context graph
+                                                  parallel-1))
+                     parallel-2)))
    world))
 
 (define (step2 graph world) (pp 'step2) (values graph world))

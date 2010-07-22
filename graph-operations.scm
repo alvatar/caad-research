@@ -252,12 +252,13 @@
 
 (define (graph:relative-line-intersections graph line)
   (fold/values
-   (lambda (room intersections walls)
+   (lambda (room rooms walls intersections)
      (receive (new-intr new-wall)
               (graph:room-relative-line-intersections graph room line)
-              (values (append intersections new-intr)
-                      (append walls new-wall))))
-   '(() ())
+              (values (if (not-null? new-wall) (append rooms room) rooms)
+                      (append walls new-wall)
+                      (append intersections new-intr))))
+   '(() () ())
    (graph:find.rooms graph)))
 
 ;;; Calculate room area
