@@ -12,7 +12,6 @@
 (import ../core/syntax)
 (import ../dev/debugging)
 (import ../generation-elements)
-(import ../geometry/kernel)
 (import ../geometry/generation)
 (import ../graph)
 (import ../graph-visualization)
@@ -63,25 +62,6 @@
   ;;     <context>
   ;;     <constraints>
   ;;       (<calculate-point-between-agents> agent-a agent-b)))
-
-  (define (agents-in-room r)
-    (filter
-     (lambda (a)
-       (every
-        (lambda (p)
-          (pseq:point-inside? (room-pseq graph r) p))
-        (agent-positions a))) ; TODO: wrong! if an agent is between two rooms, what to do?
-     agents))
-
-  (define (num-agents-in-room r)
-    (let ((pol (room->pseq graph r)))
-      (fold
-       (lambda (a num)
-         (if (pseq:point-inside? pol (agent-head-position a))
-             (add1 num)
-             num))
-       0
-       agents)))
 
   (define (find-next-room-to-partition)
     (find

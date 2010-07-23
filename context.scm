@@ -76,6 +76,19 @@
                         walls
                         intersections)))))
 
+;;; Takes a graph, a room and an infinite line and builds the context with
+;;; the computation of the intersection between the room and the line
+
+(define (room+line->context graph room line)
+  (receive (walls intersections)
+           (graph:room-relative-line-intersections graph line)
+           `(#f ,graph          ; #f for the n-ary tree internal nodes
+                (#f ;
+                 ,room
+                 ,@(zip (make-list (length walls) #f)
+                        walls
+                        intersections)))))
+
 ;-------------------------------------------------------------------------------
 ; Context transformers
 ;-------------------------------------------------------------------------------
