@@ -52,3 +52,27 @@
               (begin
                 (display "todo: line inspection\n")
                 (error "Assert failed!" proc)))))))))
+
+;;; Test the procedure and issue an error if #f, otherwise continue running
+
+(define-syntax assert
+  (syntax-rules ()
+    ((_ msg test)
+     (if (not test)
+         (error msg)))
+    ((_ msg test . forms)
+     (if test
+         (begin . forms)
+         (error msg)))))
+
+;;; Test the procedure and issue an error if #t, otherwise continue running
+
+(define-syntax assert-false
+  (syntax-rules ()
+    ((_ msg test)
+     (if test
+         (error msg)))
+    ((_ msg test . forms)
+     (if test
+         (error msg)
+         (begin . forms)))))

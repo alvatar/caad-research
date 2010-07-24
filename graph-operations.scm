@@ -245,7 +245,7 @@
                            (pseq->segment (wall-pseq (cadr p)))
                            (car p))
                           (cadr p))))
-                 (zip intersections walls)))))
+                 (zip walls intersections)))))
 
 ;;; Returns all the intersections of a line with the graph
 ;;; Output: 2 values of the same size (intersections and intersected walls)

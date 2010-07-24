@@ -6,6 +6,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1))
+(import core/list)
 (import graph)
 (import graph-operations)
 (import ds/binary-tree)
@@ -81,13 +82,15 @@
 
 (define (room+line->context graph room line)
   (receive (walls intersections)
-           (graph:room-relative-line-intersections graph line)
-           `(#f ,graph          ; #f for the n-ary tree internal nodes
-                (#f ;
-                 ,room
-                 ,@(zip (make-list (length walls) #f)
-                        walls
-                        intersections)))))
+           (graph:room-relative-line-intersections graph room line)
+           (assert-false "no intersections found" (or (null? walls)
+                                                      (null? intersections))
+                    `(#f ,graph ; #f for the n-ary tree internal nodes
+                         (#f
+                          ,room
+                          ,@(zip (make-list (length walls) #f)
+                                 walls
+                                 intersections))))))
 
 ;-------------------------------------------------------------------------------
 ; Context transformers

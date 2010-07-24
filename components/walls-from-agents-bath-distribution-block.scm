@@ -28,57 +28,63 @@
 
 (define (add-bath-corridor-block graph world)
   (define (calculate-corridor-width) 1.0)
-  (values
-   (receive (parallel-1 parallel-2)
-            (~generate.parallels-at-distance (let ((base-point
-                                                    (car (agent-positions
-                                                          (find-agent (world-agents world)
-                                                                      'distribution)))))
-                                               (point+direction->line
-                                                base-point
-                                                (graph:wall-perpendicular
-                                                 (graph:closest-wall graph base-point))))
-                                             (calculate-corridor-width))
-            (visualization:line-now parallel-1)
-            (visualization:line-now parallel-2)
+  (receive (parallel-1 parallel-2)
+           (~generate.parallels-at-distance (let ((base-point
+                                                   (car (agent-positions
+                                                         (find-agent (world-agents world)
+                                                                     'distribution)))))
+                                              (point+direction->line
+                                               base-point
+                                               (graph:wall-perpendicular
+                                                (graph:closest-wall graph base-point))))
+                                            (calculate-corridor-width))
+;           (visualization:line-now parallel-1)
+;           (visualization:line-now parallel-2)
+           (values
             (op:cut
              (graph+line->context (op:cut (graph+line->context graph
                                                                parallel-1))
-                                  parallel-2)))
-   world))
+                                  parallel-2))
+            (cons (line->direction parallel-1) world))))
 
-(define (add-rest-of-rooms graph world)
-  (define (find-next-room-to-partition graph)
-    (find (lambda (r)
-            (> (num-agents-in-room graph (world-agents world) r) 1))
-          (graph:find.rooms graph)))
-  (define (choose-point room)
-    (let* ((agents (binary-shuffle-list (agents-in-room graph
-                                                        (world-agents world)
-                                                        room)))
-           (reference-agent (car agents)))
-      (~generate.random-point/two-points
-       (car (agent-positions reference-agent))
-       (fold (lambda (a min-dist)
-               (min min-dist (~distance.point-point
-                              (car (agent-positions reference-agent))
-                              (car (agent-positions a)))))
-             +inf.0
-             (cdr agents)))))
-  (values (let do-all-rooms ((graph graph)
-                             (room (find-next-room-to-partition graph)))
-            (let* ((new-graph (op:cut (room+line->context graph
-                                                         room
-                                                         (point+direction->line
-                                                          (choose-point room)
-                                                          distribution-direction))))
-                   (next-room (find-next-room-to-partition new-graph)))
-              (if next-room
-                  (do-all-rooms
-                   new-graph
-                   next-room)
-                  new-graph)))
-          world))
+(define (add-rest-of-rooms graph relief)
+  (let ((distribution-direction (car relief))
+        (world (cdr relief)))
+
+    (define (find-next-room-to-partition graph)
+      (find (lambda (r)
+              (> (num-agents-in-room graph (world-agents world) r) 1))
+            (graph:find.rooms graph)))
+
+    (define (choose-point room)
+      (let* ((agents (binary-shuffle-list (agents-in-room graph
+                                                          (world-agents world)
+                                                          room)))
+             (reference-agent (car agents)))
+        (~generate.random-point/two-points
+         (car (agent-positions reference-agent))
+         (fold (lambda (a min-dist)
+                 (min min-dist (~distance.point-point
+                                (car (agent-positions reference-agent))
+                                (car (agent-positions a)))))
+               +inf.0
+               (cdr agents)))))
+
+    (values
+     (let do-all-rooms ((graph graph)
+                        (room (find-next-room-to-partition graph)))
+       (let* ((new-graph (op:cut (room+line->context graph
+                                                     room
+                                                     (visualization:line-now
+                                                      (point+direction->line
+                                                       (choose-point room)
+                                                       distribution-direction)))))
+              (next-room (find-next-room-to-partition new-graph)))
+         (if next-room
+             (do-all-rooms new-graph
+                           next-room)
+             new-graph)))
+     world)))
 
 (define (step3 graph world) (pp 'step3) (values graph world))
 
