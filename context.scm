@@ -11,6 +11,7 @@
 (import graph-operations)
 (import ds/binary-tree)
 (import dev/debugging)
+(import visualization)
 
 ;-------------------------------------------------------------------------------
 ; Context tree
@@ -68,22 +69,26 @@
 ;;; computation of their intersections
 
 (define (graph+line->context graph line)
+  (visualization:line-now line)
   (receive (rooms walls intersections)
            (graph:relative-line-intersections graph line)
-           `(#f ,graph          ; #f for the n-ary tree internal nodes
-                (#f ; TODO: DOESN'T WORK WITH MORE THAN ONE
-                 ,rooms
-                 ,@(zip (make-list (length walls) #f)
-                        walls
-                        intersections)))))
+           (assert-false "no intersections found, can't create context" (or (null? walls)
+                                                      (null? intersections))
+            `(#f ,graph        ; #f for the n-ary tree internal nodes
+                 (#f           ; TODO: DOESN'T WORK WITH MORE THAN ONE
+                  ,rooms
+                  ,@(zip (make-list (length walls) #f)
+                         walls
+                         intersections))))))
 
 ;;; Takes a graph, a room and an infinite line and builds the context with
 ;;; the computation of the intersection between the room and the line
 
 (define (room+line->context graph room line)
+  (visualization:line-now line)
   (receive (walls intersections)
            (graph:room-relative-line-intersections graph room line)
-           (assert-false "no intersections found" (or (null? walls)
+           (assert-false "no intersections found, can't create context" (or (null? walls)
                                                       (null? intersections))
                     `(#f ,graph ; #f for the n-ary tree internal nodes
                          (#f

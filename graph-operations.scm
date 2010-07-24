@@ -227,7 +227,7 @@
 
 ;;; Intersection of room and line returns a list of intersected walls and
 ;;; intersection points
-;;; Output: 2 values of the same size (intersections and intersected walls)
+;;; Output: 2 values of the same size (walls and intersections)
 
 (define (graph:room-relative-line-intersections graph room line)
   (let* ((walls (graph:find.room-walls graph room))
@@ -238,22 +238,26 @@
                             (pseq->segment (wall-pseq w))))
                          walls)))
     (unzip2
-     (filter-map (lambda (p)
-                   (and
-                    (point? (car p))
-                    (list (segment:point->relative-position
-                           (pseq->segment (wall-pseq (cadr p)))
-                           (car p))
-                          (cadr p))))
+     (filter-map (lambda (e)
+                   (let ((wall (car e))
+                         (intersection (cadr e)))
+                    (and
+                     (point? intersection)
+                     (list wall
+                           (segment:point->relative-position
+                            (pseq->segment (wall-pseq wall))
+                            intersection)))))
                  (zip walls intersections)))))
 
 ;;; Returns all the intersections of a line with the graph
-;;; Output: 2 values of the same size (intersections and intersected walls)
+;;; Output: 3 values of the same size (rooms, walls and intersections)
+
+;;; TODO: this functions should be rethought, it's output is not useful like this
 
 (define (graph:relative-line-intersections graph line)
   (fold/values
    (lambda (room rooms walls intersections)
-     (receive (new-intr new-wall)
+     (receive (new-wall new-intr)
               (graph:room-relative-line-intersections graph room line)
               (values (if (not-null? new-wall) (append rooms room) rooms)
                       (append walls new-wall)

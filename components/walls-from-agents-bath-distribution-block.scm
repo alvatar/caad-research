@@ -11,6 +11,7 @@
 (import ../context)
 (import ../core/syntax)
 (import ../core/functional)
+(import ../core/list)
 (import ../core/randomization)
 (import ../dev/debugging)
 (import ../generation-elements)
@@ -25,27 +26,30 @@
 (import ../visualization)
 (import auxiliary-graph-elements)
 
+;;; First step of wall generation
 
 (define (add-bath-corridor-block graph world)
-  (define (calculate-corridor-width) 1.0)
+  (define (calculate-corridor-width) (inexact->exact 1.6))
   (receive (parallel-1 parallel-2)
-           (~generate.parallels-at-distance (let ((base-point
-                                                   (car (agent-positions
-                                                         (find-agent (world-agents world)
-                                                                     'distribution)))))
-                                              (point+direction->line
-                                               base-point
-                                               (graph:wall-perpendicular
-                                                (graph:closest-wall graph base-point))))
-                                            (calculate-corridor-width))
-;           (visualization:line-now parallel-1)
-;           (visualization:line-now parallel-2)
+           (generate.parallels-at-distance (let ((base-point
+                                                  (car (agent-positions
+                                                        (find-agent (world-agents world)
+                                                                    'distribution)))))
+                                             (point+direction->line
+                                              base-point
+                                              (graph:wall-perpendicular
+                                               (graph:closest-wall graph base-point))))
+                                           (/ (calculate-corridor-width) 2))
+                                        ;(visualization:line-now parallel-1)
+                                        ;(visualization:line-now parallel-2)
            (values
             (op:cut
              (graph+line->context (op:cut (graph+line->context graph
                                                                parallel-1))
                                   parallel-2))
             (cons (line->direction parallel-1) world))))
+
+;;; Second step of wall generation
 
 (define (add-rest-of-rooms graph relief)
   (let ((distribution-direction (car relief))
@@ -56,29 +60,34 @@
               (> (num-agents-in-room graph (world-agents world) r) 1))
             (graph:find.rooms graph)))
 
-    (define (choose-point room)
+    (define (choose-point graph room)
       (let* ((agents (binary-shuffle-list (agents-in-room graph
                                                           (world-agents world)
                                                           room)))
-             (reference-agent (car agents)))
-        (~generate.random-point/two-points
-         (car (agent-positions reference-agent))
-         (fold (lambda (a min-dist)
-                 (min min-dist (~distance.point-point
-                                (car (agent-positions reference-agent))
-                                (car (agent-positions a)))))
-               +inf.0
-               (cdr agents)))))
+             (reference-point (car (agent-positions (car agents)))))
+        (generate.random-point/two-points
+         reference-point
+         (car (agent-positions (most (lambda (a b)
+                                       (min (~distance.point-point (car (agent-positions a))
+                                                                   reference-point)
+                                            (~distance.point-point (car (agent-positions b))
+                                                                   reference-point)))
+                                     (cdr agents)))))))
 
     (values
      (let do-all-rooms ((graph graph)
                         (room (find-next-room-to-partition graph)))
+       (visualization:forget-all)
+       (visualize-graph graph)
+       (visualize-world world graph)
+       (visualization:do-now)
        (let* ((new-graph (op:cut (room+line->context graph
                                                      room
                                                      (visualization:line-now
                                                       (point+direction->line
-                                                       (choose-point room)
-                                                       distribution-direction)))))
+                                                       (choose-point graph room)
+                                                       (direction:perpendicular
+                                                        distribution-direction))))))
               (next-room (find-next-room-to-partition new-graph)))
          (if next-room
              (do-all-rooms new-graph
@@ -86,13 +95,29 @@
              new-graph)))
      world)))
 
+;;; Third step of wall generation
+
 (define (step3 graph world) (pp 'step3) (values graph world))
+
+;;; Utility drawing step
+
+(define (draw-result graph world)
+  (visualization:forget-all)
+  (visualize-graph graph)
+  (visualize-world world graph)
+  (visualization:do-now)
+  (pp graph)
+  (step)
+  (values graph world))
+
+;;; The component
 
 (define (walls-from-agents/distribution&bath-block graph world)
   (let ((finished-agents (world-agents world)))
     ((compose-right
       add-bath-corridor-block
       add-rest-of-rooms
+      draw-result
       step3)
      graph
      (make-world finished-agents '()))))

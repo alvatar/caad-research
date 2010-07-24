@@ -37,7 +37,7 @@
     ((_ "do" test proc)
      (if (not test)
          (begin
-           (display "todo: line inspection\n")
+           (display "todo: where did this happen?\n")
            (error "Assert failed!" proc))))))
 
 ;;; run-time checks
@@ -50,7 +50,7 @@
          ((_ test proc)
           (if (not test)
               (begin
-                (display "todo: line inspection\n")
+                (display "todo: where did this happen?\n")
                 (error "Assert failed!" proc)))))))))
 
 ;;; Test the procedure and issue an error if #f, otherwise continue running

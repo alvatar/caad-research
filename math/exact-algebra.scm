@@ -27,6 +27,16 @@
 
 (define (square x) (* x x))
 
+;;; Exact random
+
+(define (random-exact)
+  (inexact->exact (random-real)))
+
+;;; Exact random from -1 to +1
+
+(define (random-exact*)
+  (inexact->exact (fl+ -1.0 (fl* (random-real) 2.0))))
+
 ;-------------------------------------------------------------------------------
 ; Statistic
 ;-------------------------------------------------------------------------------
@@ -172,6 +182,12 @@
           (vect2-x v2))
        (= (vect2-y v1)
           (vect2-y v2))))
+
+;;; Exact conversion
+
+(define (vect2:inexact->exact v)
+  (make-vect2 (inexact->exact (vect2-x v))
+              (inexact->exact (vect2-y v))))
 
 ;;; Zero vector
 

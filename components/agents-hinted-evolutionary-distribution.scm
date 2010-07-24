@@ -48,7 +48,14 @@
 
 (define agents-regenerator
   (lambda (limit-polygon)
-    (let ((slots (~generate.point-mesh-centered (pseq->bbox limit-polygon) 2.0 5.0 5.0))
+    (let ((slots (~?generate.point-mesh-centered (pseq->bbox limit-polygon)
+                                                2.0
+                                                5.0
+                                                5.0
+                                                (lambda (p) (vect2:inexact->exact
+                                                        (make-point
+                                                         (+ (point-x p) (* (random-exact*) 0.5))
+                                                         (+ (point-y p) (* (random-exact*) 0.5)))))))
           (make-agent-simple (cut make-agent <> <> '() '())))
       
       (lambda (graph agents)
