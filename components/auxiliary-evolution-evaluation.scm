@@ -19,7 +19,7 @@
 (import ../graph-operations)
 (import ../math/exact-algebra)
 (import ../math/inexact-algebra)
-(import element-interrelations)
+(import auxiliary-element-interrelations)
 
 
 ;;; Helper function for debugging scores

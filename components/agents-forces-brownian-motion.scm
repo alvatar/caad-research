@@ -14,7 +14,7 @@
 (import ../graph)
 (import ../math/exact-algebra)
 (import ../visualization)
-(import element-interrelations)
+(import auxiliary-element-interrelations)
 
 (define (agents-forces-brownian-motion graph world)
   (let* ((wall-pseq-list (map (lambda (w) (wall-pseq w)) (graph:find-walls graph))))

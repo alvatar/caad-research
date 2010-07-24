@@ -17,7 +17,7 @@
 (import ../graph-operations)
 (import ../graph-visualization)
 (import ../visualization)
-(import evolution-evaluation)
+(import auxiliary-evolution-evaluation)
 
 (export agents-evolutionary-distribution)
 

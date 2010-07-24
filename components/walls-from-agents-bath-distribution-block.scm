@@ -23,7 +23,7 @@
 (import ../graph-operations)
 (import ../output)
 (import ../visualization)
-(import graph-elements-auxiliary)
+(import auxiliary-graph-elements)
 
 
 (define (add-bath-corridor-block graph world)

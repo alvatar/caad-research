@@ -21,8 +21,8 @@
 (import ../graph-visualization)
 (import ../math/exact-algebra)
 (import ../visualization)
-(import evolution-evaluation)
-(import element-interrelations)
+(import auxiliary-evolution-evaluation)
+(import auxiliary-element-interrelations)
 
 (export agents-hinted-evolutionary-distribution)
 
