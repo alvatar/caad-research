@@ -41,7 +41,7 @@
 
 (define (n-ary:take-levels tree level)
   ((letrec
-       ((recur-down (lambda (node level)
+       ((recur-tree (lambda (node level)
                       (cond
                        ((null? node) '())
                        ((n-ary-leaf? node) node)
@@ -49,14 +49,14 @@
                        (else (make-node
                               (node-data node)
                               (bifurcation (node-children node) level))))))
-        (recur-right (lambda (nodes level)
+        (recur-children (lambda (nodes level)
                        (if (null? nodes)
                            '()
                            (bifurcation nodes level))))
         (bifurcation (lambda (nodes level)
-                       (cons (recur-down (car nodes) (- level 1))
-                             (recur-right (cdr nodes) level)))))
-     recur-down) tree level))
+                       (cons (recur-tree (car nodes) (- level 1))
+                             (recur-children (cdr nodes) level)))))
+     recur-tree) tree level))
 
 ;;; Build a list with a given tree level. Takes an option to deal with shallow leaves
 
