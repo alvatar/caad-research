@@ -6,12 +6,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import evolution)
-(import generation)
-(import selection)
-
+(import graph)
 (import graph-visualization)
 (import input)
-(import graph)
 (import output)
 (import visualization)
 
@@ -22,15 +19,15 @@
     (visualization:do-now)
     (visualization:forget-all)
     (visualize-graph graph)
-    (visualization:do-now) ; TODO: this is ugly
+    (visualization:do-now)              ; TODO: this is ugly
     (visualization:forget-all)
-    (let ((output-graphs
-            (evolution-cycle evolver generator selector graph)))
-      (for-each
-        (lambda (g)
-          (step)
-          (output g))
-      output-graphs)))
+   (for-each
+     (lambda (g)
+       (output g))
+     (evolution 'max-iterations
+                'hinted-evolutionary
+                'keep-best
+                graph)))
 
   (exit 0))
 (main)

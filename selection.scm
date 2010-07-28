@@ -5,11 +5,12 @@
 ;;; Selection
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import graph-visualization)
-(import visualization)
-
-(define (selector new pool)
-  (visualization:forget-all)
-  (visualize-graph new)
-  (visualization:do-now)
-  (cons new pool))
+(define (selector type)
+  (case type
+    ((keep-best)
+     (lambda (new pool)
+      (if #t
+          (list new)
+          pool)))
+    (else
+     (error "selector type not implemented"))))

@@ -33,11 +33,9 @@
 ;;; seed-data: the data used for generating (genetic codes or model), used for checking
 ;;;   if the generator can be really used with the seed-data
 
-(define (generator generation-hints seed-data)
-  (define (select-strategy)
-    hinted-evolutionary) ; TODO: expand for more components' types
-  (cond
-    ((and (not generation-hints) (graph? seed-data))
-     (generate-from-graph (select-strategy)))
+(define (generator type #!optional seed-data generation-hints)
+  (case type
+    ((hinted-evolutionary)
+     (generate-from-graph hinted-evolutionary))
     (else
-     (error "generator: No generation algorithm for this kind of seed data"))))
+     (error "generator strategy not implemented"))))
