@@ -95,9 +95,23 @@
              new-graph)))
      world)))
 
-;;; Third step of wall generation
+;;; Give the proper name to rooms
 
-(define (step3 graph world) (pp 'step3) (values graph world))
+(define (name-rooms graph world)
+  (values
+   (fold
+    (lambda (room graph)
+      (op:rename graph
+                 room
+                 (symbol->string
+                  (agent-label
+                   (car (agents-in-room
+                         graph
+                         (world-agents world)
+                         room))))))
+    graph
+    (graph:find.rooms graph))
+   world))
 
 ;;; Utility drawing step
 
@@ -106,8 +120,8 @@
   (visualize-graph graph)
   (visualize-world world graph)
   (visualization:do-now)
-  (pp graph)
-  (step)
+  ;(pp graph)
+  ;(step)
   (values graph world))
 
 ;;; The component
@@ -117,8 +131,8 @@
     ((compose-right
       add-bath-corridor-block
       add-rest-of-rooms
-      draw-result
-      step3)
+      name-rooms
+      draw-result)
      graph
      (make-world finished-agents '()))))
     

@@ -287,8 +287,10 @@
   (rotate.point vec -pi/2)) ; TODO: perpendicular+
 
 ;-------------------------------------------------------------------------------
-; Low-level manipulation of the graph
+; Graph modification
 ;-------------------------------------------------------------------------------
+
+;;; Create a two new walls where one was before, given a splitting point
 
 (define (graph:create-splitted-wall wall split-point-relative uuid1 uuid2)
   (let ((split-point (pseq:relative-position->point (wall-pseq wall) split-point-relative))

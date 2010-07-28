@@ -21,9 +21,6 @@
 (import graph-operations)
 (import graph)
 
-(export op:cut)
-(export op:merge-rooms)
-
 ;-------------------------------------------------------------------------------
 ; Basic operations
 ;-------------------------------------------------------------------------------
@@ -44,10 +41,12 @@
 ;;; Remove element from graph
 
 (define (op:remove graph element)
-  (remove
-    (lambda (e)
-      (equal? e element))
-    graph))
+  (make-graph
+   (graph-uid graph)
+   (graph-environment graph)
+   (remove (lambda (e)
+             (equal? e element))
+           (graph-architecture graph))))
 
 ;;; Remove element-list from graph
 
@@ -63,6 +62,14 @@
 
 (define (op:move graph context-tree)
   (error "unimplemented op:move"))
+
+;;; Rename element
+
+(define (op:rename graph room name)  ; TODO: generalize to any context
+  (op:add
+   (op:remove graph room)
+   (make-room name
+              (room-walls room))))
 
 ;-------------------------------------------------------------------------------
 ; Topological operations
