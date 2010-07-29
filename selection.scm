@@ -5,9 +5,10 @@
 ;;; Selection
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(import core/syntax)
 (import dev/debugging)
 (import math/exact-algebra)
-
+(import graph-operations)
 (import graph-visualization)
 (import visualization)
 
@@ -36,14 +37,26 @@
 
 (define (total-score graph)
   (pv (mean (score-room-sizes graph)
-            (score-room-accesses graph))))
+            (score-room-proportions graph))))
 
 ;;; Score room sizes
 
 (define (score-room-sizes graph)
-  0)
+  (let ((graph-area (graph:total-area graph)))
+    (define (room-minimum) (/ graph-area 12)) ; TODO: 12?
+    (define (room-expected) (/ graph-area 8)) ; TODO: 8 is 6 plus a bit more
+    (let/cc garbage
+            (let ((minimum-area (room-minimum))
+                  (expected-area (room-expected)))
+              (ps (map
+                   (lambda (r)
+                     (let ((room-area (graph:room-area graph r)))
+                       (if (< room-area minimum-area)
+                           (garbage 0)
+                           (abs (- expected-area room-area)))))
+                   (graph:find.rooms graph)))))))
 
-;;; Score room accesses
+;;; Score room proportions
 
-(define (score-room-accesses graph)
+(define (score-room-proportions graph)
   (random-real))

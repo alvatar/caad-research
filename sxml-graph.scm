@@ -95,9 +95,9 @@
 ;;; Get element's uid
 
 (define (sxml:element-uid elem)
-  (assert-false "given element is null" (null? elem)
+  (%deny "given element is null" (null? elem)
    (let ((raw ((sxpath '(@ uid)) elem)))
-     (assert-false "no element uid found" (null? raw))
+     (%deny "no element uid found" (null? raw))
      (cadar raw))))
 
 ;;; Make a list of uids contained in this subgraph

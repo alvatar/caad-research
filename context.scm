@@ -72,7 +72,7 @@
   (visualization:line-now line)
   (receive (rooms walls intersections)
            (graph:relative-line-intersections graph line)
-           (assert-false "no intersections found, can't create context" (or (null? walls)
+           (%deny "no intersections found, can't create context" (or (null? walls)
                                                       (null? intersections))
             `(#f ,graph        ; #f for the n-ary tree internal nodes
                  (#f           ; TODO: DOESN'T WORK WITH MORE THAN ONE
@@ -88,7 +88,7 @@
   (visualization:line-now line)
   (receive (walls intersections)
            (graph:room-relative-line-intersections graph room line)
-           (assert-false "no intersections found, can't create context" (or (null? walls)
+           (%deny "no intersections found, can't create context" (or (null? walls)
                                                       (null? intersections))
                     `(#f ,graph ; #f for the n-ary tree internal nodes
                          (#f

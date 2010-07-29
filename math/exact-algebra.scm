@@ -38,41 +38,6 @@
   (inexact->exact (fl+ -1.0 (fl* (random-real) 2.0))))
 
 ;-------------------------------------------------------------------------------
-; Statistic
-;-------------------------------------------------------------------------------
-
-;;; Takes the smallest value of a list
-
-(define (pick-min l) (apply min l))
-
-;;; Takes the biggest value of a list
-
-(define (pick-max l) (apply max l))
-
-;;; Computes the sum of all values
-
-(define (sum l) (apply + l))
-
-;;; 1 arg: mean of all values in a list
-;;; 2 args: mean of the two values
-
-(define mean ; TODO: Check if optimizes, build specific mean2/mean-list generator
-  (case-lambda
-   ((l) (/ (sum l) (length l))) ; OPTIMIZE
-   ((a b) (/ (+ a b) 2))))
-
-;;; Weighed mean of the values of the first list, the second are the weights
-
-(define (weighted-mean vl wl)
-  (if (not (= (length vl) (length wl)))
-      (error "Values and weights lists are not of the same length")) ; TODO: Change to arg-checks
-  (let ((q (fold (lambda (v w num.den) (list
-                                   (+ (* v w) (car num.den))
-                                   (+ w (cadr num.den))))
-                 '(0 0) vl wl)))
-    (/ (car q) (cadr q))))
-
-;-------------------------------------------------------------------------------
 ; Intervals
 ;-------------------------------------------------------------------------------
 
@@ -130,6 +95,41 @@
   (if (< a b)
       f
       a))
+
+;-------------------------------------------------------------------------------
+; Statistic
+;-------------------------------------------------------------------------------
+
+;;; Takes the smallest value of a list
+
+(define (pick-min l) (apply min l))
+
+;;; Takes the biggest value of a list
+
+(define (pick-max l) (apply max l))
+
+;;; Computes the sum of all values
+
+(define (sum l) (apply + l))
+
+;;; 1 arg: mean of all values in a list
+;;; 2 args: mean of the two values
+
+(define mean ; TODO: Check if optimizes, build specific mean2/mean-list generator
+  (case-lambda
+   ((l) (/ (sum l) (length l))) ; OPTIMIZE
+   ((a b) (/ (+ a b) 2))))
+
+;;; Weighed mean of the values of the first list, the second are the weights
+
+(define (weighted-mean vl wl)
+  (if (not (= (length vl) (length wl)))
+      (error "Values and weights lists are not of the same length")) ; TODO: Change to arg-checks
+  (let ((q (fold (lambda (v w num.den) (list
+                                   (+ (* v w) (car num.den))
+                                   (+ w (cadr num.den))))
+                 '(0 0) vl wl)))
+    (/ (car q) (cadr q))))
 
 ;-------------------------------------------------------------------------------
 ; Vector dimension 2

@@ -55,7 +55,7 @@
 
 ;;; Test the procedure and issue an error if #f, otherwise continue running
 
-(define-syntax assert
+(define-syntax %accept
   (syntax-rules ()
     ((_ msg test)
      (if (not test)
@@ -67,7 +67,7 @@
 
 ;;; Test the procedure and issue an error if #t, otherwise continue running
 
-(define-syntax assert-false
+(define-syntax %deny
   (syntax-rules ()
     ((_ msg test)
      (if test

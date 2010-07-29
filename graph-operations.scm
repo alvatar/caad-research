@@ -179,8 +179,13 @@
 (define (graph:limits graph)
   (graph:wall-list->pseq (graph:find.exterior-walls graph)))
 
+;;; Total area of the graph
+
+(define (graph:total-area graph)
+  (pseq:area (graph:limits graph)))
+
 ;;; Calculate the pseq that describes a list of walls
-;;; TODO: reduce?
+
 (define (graph:wall-list->pseq wlis)
   (cond
    ((null? (cdr wlis))
@@ -267,9 +272,8 @@
 
 ;;; Calculate room area
 
-;; (define (room-area room)
-;;   ;http://www.mathsisfun.com/geometry/area-irregular-polygons.html
-;;   99.9) ; TODO
+(define (graph:room-area graph room)
+  (pseq:area (graph:room->pseq graph room)))
 
 ;;; Calculate south from north direction
 
@@ -284,7 +288,7 @@
 ;;; Calculate east from north direction
 
 (define (graph:north->east vec)
-  (rotate.point vec -pi/2)) ; TODO: perpendicular+
+  (rotate.point vec -pi/2)) ; TODO: perpendicular
 
 ;-------------------------------------------------------------------------------
 ; Graph modification
