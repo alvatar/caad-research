@@ -63,7 +63,7 @@
                 <dim a="0.3" b="0.4"/>
             </structural>
 
-            <wall uid="DB7F49A3-BBF6-40F3-95A1-038CCACE1D88">
+            <wall uid="DB7F49A3-BBF6-40F3-95A1-038CCACE1D88" type="new">
                 <pt x="0.0" y="0.0"/>
                 <pt x="18.0" y="0.0"/>
                 <window from="0.4" to="0.5"/>
@@ -90,9 +90,7 @@
                 <pt x="0.0" y="0.0"/>
             </wall>
 
-            <entry doorNumber="0">
-                <wall uid="B06528DA-C0B9-4583-A7AF-8A3E788DB6EF"/>
-            </entry>
+			<entry wall-uid="B06528DA-C0B9-4583-A7AF-8A3E788DB6EF" door-number="0" pt="0.5"/>
 
             <pipe x="0.3" y="13.0"/>
         </architecture>

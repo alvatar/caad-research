@@ -298,10 +298,12 @@
         (second-point (last (wall-pseq wall))))
     (list ; TODO: make as values and use properly!!!
      (make-wall uuid1
+                '()
                 (list first-point split-point)
                 '()
                 '())
      (make-wall uuid2
+                '()
                 (list split-point second-point)
                 '()
                 '()))))

@@ -11,6 +11,7 @@
 
 (import web/parse/ssax-sxml/sxml-tools/sxpath)
 
+(import core/list)
 (import core/syntax)
 (import dev/debugging)
 (import geometry/kernel)
@@ -94,9 +95,10 @@
 ;;; Get element's uid
 
 (define (sxml:element-uid elem)
-  (if (null? elem)
-      (error "element-uid: Element is null")
-    (cadar ((sxpath '(@ uid)) elem))))
+  (assert-false "given element is null" (null? elem)
+   (let ((raw ((sxpath '(@ uid)) elem)))
+     (assert-false "no element uid found" (null? raw))
+     (cadar raw))))
 
 ;;; Make a list of uids contained in this subgraph
 ;;; TODO: wall??
@@ -173,6 +175,14 @@
 
 (define (sxml:wall-last-point wall)
   ((sxpath '((pt 2) @ *)) wall))
+
+;;; Get wall metadata
+
+(define (sxml:wall-metadata wall) ; TODO: change XML format for general metadata
+  (let ((raw ((sxpath '(@ type)) wall)))
+    (if (null? raw)
+        raw
+        (cadar raw))))
 
 ;;; Convert a wall into a list of points
 
@@ -294,25 +304,32 @@
 ;;; Get the entry point as a list of points corresponding to the door
 
 (define (sxml:entry->pseq graph entry)
-  (let* ((doorNumber (sxml:entry-door-num entry))
-         (wall (sxml:find-wall/uid graph (sxml:entry-wall-uid entry)))
+  (let* ((wall (sxml:find-wall/uid graph (sxml:entry-wall-uid entry)))
          (doors (sxml:wall-doors wall)))
-    (if (> doorNumber (length doors))
-        (error "entry->pseq entry is assigned door number that doesn't exist in the referenced wall"))
-    (sxml:wall-element->pseq
-     (list-ref doors doorNumber)
-     wall)))
+    (let ((door-number (sxml:entry-door-num entry))
+          (entry-point (sxml:entry-point entry)))
+     (if (and (not-null? doors)
+              (not-null? door-number) ; first we try with door reference
+              (< door-number (length doors)))
+         (sxml:wall-element->pseq (list-ref doors door-number)
+                                  wall)
+         (error "entry door creation with a point remains unimplemented")))))
 
 ;;; Get the wall uid where the entry is
 
 (define (sxml:entry-wall-uid entry)
-  (sxml:element-uid ((sxpath '(*)) entry)))
+  (cadar ((sxpath '(@ (wall-uid 1))) entry)))
 
 ;;; Get the door number in the wall where the entry is
 
 (define (sxml:entry-door-num entry)
   (inexact->exact
-   (string->number (car ((sxpath '(@ doorNumber *text*)) entry)))))
+   (string->number (cadar ((sxpath '(@ (door-number 1))) entry)))))
+
+;;; Get the door entry point in case where there is not door reference
+
+(define (sxml:entry-point entry)
+  (cadar ((sxpath '(@ (pt 1))) entry)))
 
 ;-------------------------------------------------------------------------------
 ; Structure

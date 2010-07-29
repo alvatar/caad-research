@@ -85,6 +85,7 @@
                          ;; Splitting wall
                          ,(make-wall
                            new-wall-uid
+                           (wall-metadata 'NEW-TODO)
                            (list
                             (pseq:relative-position->point (wall-pseq first-wall) first-split-point)
                             (pseq:relative-position->point (wall-pseq second-wall) second-split-point))

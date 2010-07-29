@@ -135,13 +135,11 @@
                                      ,new-wall-uid
                                      ,first-wall-uid-2-half))
                        ;; Splitting wall
-                       ,(make-wall
+                       ,(make-wall-plain
                          new-wall-uid
                          (list
                           (pseq:relative-position->point (wall-pseq first-wall) first-split-point)
-                          (pseq:relative-position->point (wall-pseq second-wall) second-split-point))
-                         '()
-                         '())
+                          (pseq:relative-position->point (wall-pseq second-wall) second-split-point)))
                        ;; Split touched walls at the splitting point (add 2 new ones)
                        ,@(let ((create-first-splitted-wall (curry graph:create-splitted-wall
                                                                   first-wall

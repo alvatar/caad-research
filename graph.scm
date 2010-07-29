@@ -35,14 +35,20 @@
   (environment graph-environment)
   (architecture graph-architecture))
 
-;; (define-type wall uid pseq windows doors)
+;; (define-type wall uid metadata pseq windows doors)
 (define-list-record-type wall
-  (make-wall uid pseq windows doors)
+  (make-wall uid metadata pseq windows doors)
   wall?
   (uid wall-uid)
+  (metadata wall-metadata)
   (pseq wall-pseq)
   (windows wall-windows)
   (doors wall-doors))
+
+;;; Make a wall without metadata, doors or windows
+
+(define (make-wall-plain uid pseq)
+  (make-wall uid '() pseq '() '()))
 
 ;; (define-type window pseq from to)
 (define-list-record-type window
@@ -113,6 +119,7 @@
           (make-pipe (sxml:pipe->center-position e)))
          ((equal? type 'wall)
           (make-wall (sxml:element-uid e)
+                     (sxml:wall-metadata e)
                      (sxml:wall->pseq e)
                      (let ((windows (sxml:wall-windows e)))
                        (map (lambda (w)
