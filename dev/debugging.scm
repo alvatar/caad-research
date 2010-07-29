@@ -9,11 +9,49 @@
 
 (define-syntax pv
   (syntax-rules ()
-    ((_ form ...)
+    ((_ text form)
      (call-with-values
-         (lambda () (begin form ...))
+         (lambda () form)
+       (lambda args
+         (display text)
+         (display ": ") ; TODO: concat
+         (for-each display args)
+         (newline)
+         (apply values args))))
+    ((_ form)
+     (call-with-values
+         (lambda () form)
        (lambda args
          (for-each pp args)
+         (apply values args))))))
+
+;;; Debug print making sure that 
+
+(define-syntax piv
+  (syntax-rules ()
+    ((_ text form)
+     (call-with-values
+         (lambda () form)
+       (lambda args
+         (display text)
+         (display ": ")                 ; TODO: concat
+         (for-each (lambda (a)
+                     (if (number? a)
+                         (display (exact->inexact a))
+                         (display a))
+                     (newline))
+                   args)
+         (apply values args))))
+    ((_ form)
+     (call-with-values
+         (lambda () form)
+       (lambda args
+         (for-each (lambda (a)
+                     (if (number? a)
+                         (display (exact->inexact a))
+                         (display a))
+                     (newline))
+                   args)
          (apply values args))))))
 
 ;;; Debug print and step in place

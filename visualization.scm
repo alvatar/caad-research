@@ -380,7 +380,7 @@
    (lambda (backend vis-env)
      (visualization:paint-set-color backend 1.0 0.0 0.0 1.0)
      (visualization:paint-set-line-cap backend 'square)
-     (visualization:paint-set-line-width backend .1)
+     (visualization:paint-set-line-width backend .02)
      (visualization:paint-path backend (segment->pseq (line->segment line -100.0 100.0)))))
   (visualization:layer-depth-set! '%now-helpers 81)
   (visualization:do-now)

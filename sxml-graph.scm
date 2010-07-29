@@ -22,7 +22,7 @@
 ; Constants
 ;-------------------------------------------------------------------------------
 
-(define wall-thickness 0.1)
+(define wall-thickness 0.15)
 (define graph-space-size-x maxx)
 (define graph-space-size-y maxy)
 

@@ -101,14 +101,17 @@
   (values
    (fold
     (lambda (room graph)
-      (op:rename graph
-                 room
-                 (symbol->string
-                  (agent-label
-                   (car (agents-in-room
-                         graph
-                         (world-agents world)
-                         room))))))
+      (let ((agent (agents-in-room
+                    graph
+                    (world-agents world)
+                    room)))
+        (if (null? agent)
+            (begin (display "No agent found in a room!!") graph)
+            (op:rename graph
+                       room
+                       (symbol->string
+                        (agent-label
+                         (car agent)))))))
     graph
     (graph:find.rooms graph))
    world))

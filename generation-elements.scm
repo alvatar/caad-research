@@ -84,9 +84,9 @@
       (for-each
         (lambda (pos)
           (visualization:paint-set-color backend 1.0 1.0 1.0 0.9)
-          (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.4)
+          (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.2)
           (visualization:paint-set-color backend 1.0 0.0 0.0 0.9)
-          (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.25))
+          (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.1))
         (agent-positions a))
       ;; Paint trace
       (map-in-order ; FIXME: this should be for-each with different list lengths
@@ -103,7 +103,7 @@
         (visualization:paint-text backend
                                   (symbol->string (agent-label a))
                                   "Arial"
-                                  0.75
+                                  0.3
                                   (+ (vect2-x pos) 0.6)
                                   (+ (vect2-y pos) 0.2)))))
   (visualization:layer-depth-set! 'agents 90))

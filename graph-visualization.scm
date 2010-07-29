@@ -39,7 +39,7 @@
       (define (paint-wall wall)
         (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
         (visualization:paint-set-line-cap backend 'square)
-        (visualization:paint-set-line-width backend .25)
+        (visualization:paint-set-line-width backend .15)
         (visualization:paint-path backend (wall-pseq wall))
         (paint-windows-in-wall wall)
         (paint-doors-in-wall wall))
@@ -49,10 +49,10 @@
          (lambda (door)
             (visualization:paint-set-line-cap backend 'butt)
             (visualization:paint-set-color backend 1.0 1.0 1.0 1.0)
-            (visualization:paint-set-line-width backend 0.25)
+            (visualization:paint-set-line-width backend 0.15)
             (visualization:paint-path backend (door-pseq door))
             (visualization:paint-set-color backend 1.0 0.1 0.1 1.0)
-            (visualization:paint-set-line-width backend 0.15)
+            (visualization:paint-set-line-width backend 0.1)
             (visualization:paint-path backend (door-pseq door)))
           (wall-doors wall)))
       ;; Paint windows in the wall
@@ -87,13 +87,11 @@
       ;; Paint pipe
       (define (paint-pipe pipe)
         (let ((pos (pipe-position pipe)))
-          (visualization:paint-set-line-width backend 0.02)
-          (visualization:paint-set-color backend 1.0 1.0 1.0 1.0)
-          (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.2)
+          (visualization:paint-set-line-width backend 0.01)
           (visualization:paint-set-color backend 0.0 0.0 0.0 1.0)
-          (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.15)
+          (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.1)
           (visualization:paint-set-color backend 1.0 1.0 1.0 1.0)
-          (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.1)))
+          (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.06)))
 
       (for-each
         (lambda

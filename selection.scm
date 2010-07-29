@@ -8,6 +8,7 @@
 (import core/syntax)
 (import dev/debugging)
 (import math/exact-algebra)
+(import graph)
 (import graph-operations)
 (import graph-visualization)
 (import visualization)
@@ -19,15 +20,19 @@
     ((keep-best)
      (lambda (new pool)
        (if (or (null? pool)
-               (> (total-score new)
-                  (total-score (car pool))))
+               (> (piv "total-score" (total-score new))
+                  0 #;(total-score (car pool))))
            (begin
-             (if (not (null? pool))
-                 (begin      ; temporary for displaying better results
-                   (step)
-                   (visualization:forget-all)
-                   (visualize-graph (car pool))
-                   (visualization:do-now)))
+             (visualization:forget-all)
+             (visualize-graph new)
+             (visualization:do-now)
+             (for-each (lambda (r)
+                         (display (room-uid r))
+                         (display ": ")
+                         (display (exact->inexact (graph:room-area new r)))
+                         (newline))
+                       (graph:find.rooms new))
+             (step)
              (list new))
            pool)))
     (else
@@ -36,27 +41,32 @@
 ;;; Evaluation for selection
 
 (define (total-score graph)
-  (pv (mean (score-room-sizes graph)
-            (score-room-proportions graph))))
+  (score-room-sizes graph))
 
 ;;; Score room sizes
 
 (define (score-room-sizes graph)
   (let ((graph-area (graph:total-area graph)))
-    (define (room-minimum) (/ graph-area 12)) ; TODO: 12?
     (define (room-expected) (/ graph-area 8)) ; TODO: 8 is 6 plus a bit more
     (let/cc garbage
-            (let ((minimum-area (room-minimum))
-                  (expected-area (room-expected)))
-              (ps (map
-                   (lambda (r)
-                     (let ((room-area (graph:room-area graph r)))
-                       (if (< room-area minimum-area)
-                           (garbage 0)
-                           (abs (- expected-area room-area)))))
-                   (graph:find.rooms graph)))))))
+            (let ((expected-area (room-expected))) ; TODO!!!!
+              (mean
+               (map (lambda (r)
+                      (let ((room-area (graph:room-area graph r)))
+                        (if (< room-area
+                               (case (string->symbol (room-uid r))
+                                 ((room)
+                                  (/ graph-area 14)) ; Room minimum area related to total
+                                 ((kitchen)
+                                  (/ graph-area 18)) ; Kitchen minimum area related to total
+                                 ((living)
+                                  (/ graph-area 10)) ; Living-room minimum area related to total
+                                 (else 0)))
+                            (begin (piv "WRONG ROOM AREA" room-area) (garbage 0))
+                            (abs (- expected-area room-area)))))
+                    (graph:find.rooms graph)))))))
 
 ;;; Score room proportions
 
 (define (score-room-proportions graph)
-  (random-real))
+  +inf.0)

@@ -19,7 +19,7 @@
          (case evolver-type
            ((max-iterations)
             (let ((done? (lambda (n)
-                           (>= n 10))))
+                           (>= n 1000)))) ; TODO!!!
               (lambda (seed-data) ; produce the proc
                 (let ((generate (generator generator-type
                                            seed-data))
