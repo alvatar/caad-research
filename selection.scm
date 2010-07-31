@@ -7,11 +7,14 @@
 
 (import core/syntax)
 (import dev/debugging)
+(import dev/logging)
 (import math/exact-algebra)
 (import graph)
 (import graph-operations)
 (import graph-visualization)
 (import visualization)
+
+(%activate-logging)
 
 ;;; Produce a selector function
 
@@ -20,13 +23,13 @@
     ((keep-best)
      (lambda (new pool)
        (if (or (null? pool)
-               (> (piv "total-score" (total-score new))
-                  0 #;(total-score (car pool))))
+               (> (total-score new)
+                  0 #;(total-score (car pool)))) ; TODO: save good ones, sort better-worsen
            (begin
              (visualization:forget-all)
              (visualize-graph new)
              (visualization:do-now)
-             (for-each (lambda (r)
+             #;(for-each (lambda (r)
                          (display (room-uid r))
                          (display ": ")
                          (display (exact->inexact (graph:room-area new r)))
@@ -41,7 +44,9 @@
 ;;; Evaluation for selection
 
 (define (total-score graph)
-  (score-room-sizes graph))
+  (min (score-room-sizes graph)
+       (score-room-proportions graph)
+       (score-room-accesses graph)))
 
 ;;; Score room sizes
 
@@ -62,11 +67,16 @@
                                  ((living)
                                   (/ graph-area 10)) ; Living-room minimum area related to total
                                  (else 0)))
-                            (begin (piv "WRONG ROOM AREA" room-area) (garbage 0))
+                            (%log "Incorrect room sizes!" (garbage 0))
                             (abs (- expected-area room-area)))))
                     (graph:find.rooms graph)))))))
 
 ;;; Score room proportions
 
 (define (score-room-proportions graph)
+  +inf.0)
+
+;;; Score accesses
+
+(define (score-room-accesses graph)
   +inf.0)

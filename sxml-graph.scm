@@ -18,6 +18,8 @@
 (import math/exact-algebra)
 (import visualization)
 
+(%activate-checks)
+
 ;-------------------------------------------------------------------------------
 ; Constants
 ;-------------------------------------------------------------------------------
@@ -44,8 +46,7 @@
 
 (define (sxml:contents graph)
   ;((sxpath '(*)) graph))
-  (if (null? graph)
-      (error "You sent me a null graph. What should I do with this?")
+  (%deny "You sent me a null graph. What should I do with this?" (null? graph)
     (cddr graph)))
 
 ;;; Get all parts of a graph that are of a specific type
