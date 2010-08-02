@@ -17,28 +17,25 @@
 
 (%activate-logging)
 
+(define-structure evaluated-graph graph score)
+
 ;;; Produce a selector function
 
 (define (selector type)
   (case type
     ((keep-best)
-     (lambda (new pool)
-       (if (or (null? pool)
-               (> (total-score new)
-                  0 #;(total-score (car pool)))) ; TODO: save good ones, sort better-worsen
-           (begin
-             (visualization:forget-all)
-             (visualize-graph new)
-             (visualization:do-now)
-             #;(for-each (lambda (r)
-                         (display (room-uid r))
-                         (display ": ")
-                         (display (exact->inexact (graph:room-area new r)))
-                         (newline))
-                       (graph:find.rooms new))
-             (step)
-             (list new))
-           pool)))
+     (lambda (pool-updater pool new-graph)
+       (let ((new-score (total-score new-graph)))
+         (iff (> new-score 0) ; TODO: select only if better than all in the pool
+              (begin
+                (visualization:forget-all)
+                (visualize-graph new-graph)
+                (visualization:do-now)
+                (step)
+                (pool-updater pool
+                              (make-evaluated-graph new-graph
+                                                    (exact->inexact
+                                                     new-score))))))))
     (else
      (error "selector type not implemented"))))
 

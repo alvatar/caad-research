@@ -36,6 +36,16 @@
          iftrue
          iffalse)))))
 
+;;; R5RS standard states that an if with only one branch returns an unspecified
+;;; value if the test is false. This macro places an #f automatically
+
+(define-syntax iff
+  (syntax-rules ()
+    ((_ pred . forms)
+     (if pred
+         (begin . forms)
+         #f))))
+
 ;;; When
 
 (define-syntax when
