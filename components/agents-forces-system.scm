@@ -9,7 +9,7 @@
 
 (import ../graph-operations)
 (import ../core/syntax)
-(import ../dev/debugging)
+(import ../core/debugging)
 (import ../generation-elements)
 (import ../geometry/kernel)
 (import ../graph)

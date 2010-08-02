@@ -5,12 +5,12 @@
 ;;; Main
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import evolution)
-(import graph)
-(import graph-visualization)
-(import input)
-(import output)
-(import visualization)
+(import evolution
+        graph
+        graph-visualization
+        input
+        output
+        visualization)
 
 (define (main)
   (random-source-randomize! default-random-source) ; Randomizes seed
@@ -24,7 +24,7 @@
    (for-each
      (lambda (g)
        (output g))
-     (evolution 'max-iterations
+     (evolution '(best @max-iterations 1000)
                 'hinted-evolutionary
                 'keep-best
                 graph)))

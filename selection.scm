@@ -7,8 +7,8 @@
 
 (import (std srfi/1))
 (import core/syntax
-        dev/debugging
-        dev/logging
+        core/debugging
+        core/logging
         math/exact-algebra
         graph
         graph-operations

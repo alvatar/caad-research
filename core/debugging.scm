@@ -74,7 +74,7 @@
      #f)
     ((_ msg test)
      #f)
-    ((_ msg test . forms)
+    ((_ test msg . forms)
      (begin . forms))))
 
 (define-syntax %deny
@@ -83,7 +83,7 @@
      #f)
     ((_ msg test)
      #f)
-    ((_ msg test . forms)
+    ((_ test msg . forms)
      (begin . forms))))
 
 (define-macro (%activate-checks) ; TODO: port to nested define-checks with new BH
@@ -91,26 +91,38 @@
      ;; Test the procedure and issue an error if #f, otherwise continue running
      (define-syntax %accept
        (syntax-rules ()
-         ((_ test)
+         ((_ form)
           (if (not test)
-              (error "checked value not accepted")))
+              (raise "checked value not accepted")))
          ((_ msg test)
           (if (not test)
-              (error msg)))
-         ((_ msg test . forms)
-          (if test
-              (begin . forms)
-              (error msg)))))
+              (raise msg)))
+         ((_ #t msg . forms)
+          (let ((result (begin . forms)))
+            (if result
+                result
+                (raise msg))))
+         ((_ test  msg . forms)
+          (let ((result (begin . forms)))
+            (if (test result)
+                result
+                (raise msg))))))
      ;; Test the procedure and issue an error if #t, otherwise continue running
      (define-syntax %deny
        (syntax-rules ()
          ((_ test)
           (if test
-              (error "checked value denied")))
+              (raise "checked value denied")))
          ((_ msg test)
           (if test
-              (error msg)))
-         ((_ msg test . forms)
-          (if test
-              (error msg)
-              (begin . forms)))))))
+              (raise msg)))
+         ((_ #t msg . forms)
+          (let ((result (begin . forms)))
+            (if result
+                (raise msg)
+                result)))
+         ((_ test msg . forms)
+          (let ((result (begin . forms)))
+            (if (test result)
+                (raise msg)
+                result)))))))

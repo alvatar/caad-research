@@ -10,7 +10,7 @@
 
 (import ../context)
 (import ../core/syntax)
-(import ../dev/debugging)
+(import ../core/debugging)
 (import ../generation-elements)
 (import ../geometry/generation)
 (import ../graph)

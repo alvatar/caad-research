@@ -11,15 +11,14 @@
 (compile-options force-compile: #t)
 
 (import (std srfi/1))
-
-(import core/list)
-(import core/functional)
-(import core/syntax)
-(import dev/debugging)
-(import geometry/kernel)
-(import math/exact-algebra)
-(import math/inexact-algebra)
-(import graph)
+(import core/list
+        core/functional
+        core/syntax
+        core/debugging
+        geometry/kernel
+        math/exact-algebra
+        math/inexact-algebra
+        graph)
 
 ;-------------------------------------------------------------------------------
 ; Selectors

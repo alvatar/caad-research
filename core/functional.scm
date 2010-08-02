@@ -9,7 +9,7 @@
          (extended-bindings)
          (block)
          (mostly-generic))
-(compile-options force-compile: #t)
+;(compile-options force-compile: #t)
 
 (import (std srfi/1))
 

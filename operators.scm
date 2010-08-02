@@ -8,18 +8,17 @@
 
 ;; (compile-options force-compile: #t)
 
-(import (std srfi/1))
-(import (std misc/uuid))
-
-(import context)
-(import core/functional)
-(import core/list)
-(import dev/debugging)
-(import ds/n-ary)
-(import geometry/kernel)
-(import math/exact-algebra)
-(import graph-operations)
-(import graph)
+(import (std srfi/1
+             misc/uuid))
+(import context
+        core/functional
+        core/list
+        core/debugging
+        ds/n-ary
+        geometry/kernel
+        math/exact-algebra
+        graph-operations
+        graph)
 
 ;-------------------------------------------------------------------------------
 ; Basic operations

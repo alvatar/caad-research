@@ -5,18 +5,17 @@
 ;;; Graph definition and low-level operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1))
-(import (std string/xml-to-sxml))
-(import (std misc/uuid))
+(import (std srfi/1
+             string/xml-to-sxml
+             misc/uuid))
 
-(import web/parse/ssax-sxml/sxml-tools/sxpath)
-
-(import core/list)
-(import core/syntax)
-(import dev/debugging)
-(import geometry/kernel)
-(import math/exact-algebra)
-(import visualization)
+(import web/parse/ssax-sxml/sxml-tools/sxpath
+        core/list
+        core/syntax
+        core/debugging
+        geometry/kernel
+        math/exact-algebra
+        visualization)
 
 (%activate-checks)
 
@@ -46,8 +45,8 @@
 
 (define (sxml:contents graph)
   ;((sxpath '(*)) graph))
-  (%deny "You sent me a null graph. What should I do with this?" (null? graph)
-    (cddr graph)))
+  (%deny "you sent me a null graph. What should I do with this?" (null? graph))
+  (cddr graph))
 
 ;;; Get all parts of a graph that are of a specific type
 
@@ -96,10 +95,10 @@
 ;;; Get element's uid
 
 (define (sxml:element-uid elem)
-  (%deny "given element is null" (null? elem)
-   (let ((raw ((sxpath '(@ uid)) elem)))
-     (%deny "no element uid found" (null? raw))
-     (cadar raw))))
+  (%deny "given element is null" (null? elem))
+  (let ((raw ((sxpath '(@ uid)) elem)))
+    (%deny "no element uid found" (null? raw))
+    (cadar raw)))
 
 ;;; Make a list of uids contained in this subgraph
 ;;; TODO: wall??

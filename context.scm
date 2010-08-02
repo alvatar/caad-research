@@ -6,12 +6,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1))
-(import core/list)
-(import graph)
-(import graph-operations)
-(import ds/binary-tree)
-(import dev/debugging)
-(import visualization)
+(import core/list
+        core/debugging
+        graph
+        graph-operations
+        ds/binary-tree
+        visualization)
 
 (%activate-checks)
 
@@ -74,8 +74,9 @@
   (visualization:line-now line)
   (receive (rooms walls intersections)
            (graph:relative-line-intersections graph line)
-           (%deny "no intersections found, can't create context" (or (null? walls)
-                                                      (null? intersections))
+           (begin
+             (%deny "no intersections found, can't create context" (or (null? walls)
+                                                                       (null? intersections)))
             `(#f ,graph        ; #f for the n-ary tree internal nodes
                  (#f           ; TODO: DOESN'T WORK WITH MORE THAN ONE
                   ,rooms
@@ -90,14 +91,15 @@
   (visualization:line-now line)
   (receive (walls intersections)
            (graph:room-relative-line-intersections graph room line)
-           (%deny "no intersections found, can't create context" (or (null? walls)
-                                                      (null? intersections))
-                    `(#f ,graph ; #f for the n-ary tree internal nodes
-                         (#f
-                          ,room
-                          ,@(zip (make-list (length walls) #f)
-                                 walls
-                                 intersections))))))
+           (begin
+             (%deny "no intersections found, can't create context" (or (null? walls)
+                                                                       (null? intersections)))
+             `(#f ,graph        ; #f for the n-ary tree internal nodes
+                  (#f
+                   ,room
+                   ,@(zip (make-list (length walls) #f)
+                          walls
+                          intersections))))))
 
 ;-------------------------------------------------------------------------------
 ; Context transformers

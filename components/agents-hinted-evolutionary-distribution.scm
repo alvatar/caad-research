@@ -12,7 +12,7 @@
 
 (import ../core/list)
 (import ../core/randomization)
-(import ../dev/debugging)
+(import ../core/debugging)
 (import ../generation-elements)
 (import ../geometry/generation)
 (import ../geometry/kernel)

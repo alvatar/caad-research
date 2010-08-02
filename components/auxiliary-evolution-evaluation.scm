@@ -12,7 +12,7 @@
 
 (import ../core/syntax)
 (import ../core/functional)
-(import ../dev/debugging)
+(import ../core/debugging)
 (import ../generation-elements)
 (import ../geometry/kernel)
 (import ../graph)
