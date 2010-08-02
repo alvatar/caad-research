@@ -5,14 +5,15 @@
 ;;; Selection
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import core/syntax)
-(import dev/debugging)
-(import dev/logging)
-(import math/exact-algebra)
-(import graph)
-(import graph-operations)
-(import graph-visualization)
-(import visualization)
+(import (std srfi/1))
+(import core/syntax
+        dev/debugging
+        dev/logging
+        math/exact-algebra
+        graph
+        graph-operations
+        graph-visualization
+        visualization)
 
 (%activate-logging)
 
@@ -44,17 +45,16 @@
 ;;; Evaluation for selection
 
 (define (total-score graph)
-  (min (score-room-sizes graph)
-       (score-room-proportions graph)
-       (score-room-accesses graph)))
+  (if (correct-room-aspect-ratios? graph)
+      (score-room-sizes graph)
+      0))
 
 ;;; Score room sizes
 
 (define (score-room-sizes graph)
   (let ((graph-area (graph:total-area graph)))
-    (define (room-expected) (/ graph-area 8)) ; TODO: 8 is 6 plus a bit more
-    (let/cc garbage
-            (let ((expected-area (room-expected))) ; TODO!!!!
+    (let/cc unacceptable-room
+            (let ((expected-area (/ graph-area 8)))
               (mean
                (map (lambda (r)
                       (let ((room-area (graph:room-area graph r)))
@@ -67,14 +67,22 @@
                                  ((living)
                                   (/ graph-area 10)) ; Living-room minimum area related to total
                                  (else 0)))
-                            (%log "Incorrect room sizes!" (garbage 0))
+                            (%log "Incorrect room sizes!" (unacceptable-room 0))
                             (abs (- expected-area room-area)))))
                     (graph:find.rooms graph)))))))
 
 ;;; Score room proportions
 
-(define (score-room-proportions graph)
-  +inf.0)
+(define (correct-room-aspect-ratios? graph)
+  (not
+   (find (lambda (r)
+           (let ((room-aspect-ratio (graph:room-aspect-ratio graph r)))
+             (case (string->symbol (room-uid r))
+               ((room) (> room-aspect-ratio 3.5))
+               ((kitchen) (> room-aspect-ratio 3.2))
+               ((living) (> room-aspect-ratio 3.0))
+               (else #f))))
+         (graph:find.rooms graph))))
 
 ;;; Score accesses
 

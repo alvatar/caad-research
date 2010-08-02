@@ -275,6 +275,14 @@
 (define (graph:room-area graph room)
   (pseq:area (graph:room->pseq graph room)))
 
+;;; Calculate room aspect ratio
+
+(define (graph:room-aspect-ratio graph room)
+  (let ((bbxsg (bbox:size-segment
+                (pseq->bbox (graph:room->pseq graph room)))))
+    (max (vect2:x/y bbxsg)
+         (vect2:y/x bbxsg))))
+
 ;;; Calculate south from north direction
 
 (define (graph:north->south vec)

@@ -224,6 +224,18 @@
   (make-vect2 0
               (vect2-y vec)))
 
+;;; Calculate x/y ratio
+
+(define (vect2:x/y vec)
+  (/ (vect2-x vec)
+     (vect2-y vec)))
+
+;;; Calculate y/x ratio
+
+(define (vect2:y/x vec)
+  (/ (vect2-y vec)
+     (vect2-x vec)))
+
 ;;; Absolute vector
 
 (define (vect2:abs vec)
