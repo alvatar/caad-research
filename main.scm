@@ -24,8 +24,7 @@
    (for-each
      (lambda (g)
        (output g))
-     (evolution '(choose-bests @max-iterations 100
-                               @pool-size 1)
+     (evolution '(fill-pool @pool-size 1)
                 'hinted-evolutionary
                 'keep-best
                 graph)))

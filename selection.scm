@@ -24,7 +24,7 @@
 (define (selector type)
   (case type
     ((keep-best)
-     (lambda (pool-updater pool new-graph)
+     (lambda (pool new-graph)
        (let ((new-score (total-score new-graph)))
          (iff (> new-score 0) ; TODO: select only if better than all in the pool
               (begin
@@ -32,10 +32,9 @@
                 (visualize-graph new-graph)
                 (visualization:do-now)
                 (step)
-                (pool-updater pool
-                              (make-evaluated-graph new-graph
-                                                    (exact->inexact
-                                                     new-score))))))))
+                (make-evaluated-graph new-graph
+                                      (exact->inexact
+                                       new-score)))))))
     (else
      (error "selector type not implemented"))))
 
