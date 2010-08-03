@@ -6,7 +6,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std string/xml-to-sxml))
-(import sxml-graph
+(import core/debugging
+        sxml-graph
         web/parse/ssax-sxml/sxml-tools/sxpath)
 
 ;-------------------------------------------------------------------------------
@@ -16,7 +17,7 @@
 ;;; Read XML from file
 
 (define (input-from-xml)
-  (call-with-input-file "xml-input/arch_1.xml"
+  (call-with-input-file "xml-input/porto_cristo.xml"
     (lambda (file)
       (sxml-graph->graph
        (xml->sxml-graph
@@ -27,4 +28,4 @@
 (define (xml->sxml-graph xml-string)
   (let ((sxml (xml-string->sxml xml-string)))
     (car
-     ((sxpath '(ensanche floorPlan architecture)) sxml))))
+     ((sxpath '(ensanche floorplan architecture)) sxml))))

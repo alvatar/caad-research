@@ -4,7 +4,7 @@
         <address>28 calle de las delicias, madrid, spain</address>
         <date year="2010" month="01" day="14"/>
     </client>
-    <floorPlan>
+    <floorplan>
         <representation>
             <boundingBox>
                 <min x="0" y="0"/>
