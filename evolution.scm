@@ -15,6 +15,11 @@
         generation
         selection)
 
+;;; Clean a pool, keeping only the graph, no extra info
+
+(define (clean-pool pool)
+  (map (lambda (eg) (evaluated-graph-graph eg)) pool))
+
 ;;; Main evolution cycle, pulling in all the algorithm parts
 
 (define (evolution evolver-configuration
@@ -44,7 +49,7 @@
                (let loop ((pool '())
                           (n-iterations 0))
                  (if (done? n-iterations)
-                     pool
+                     (clean-pool pool)
                      (loop (aif selected (select pool (generate seed-data))
                                 (pool-update pool selected)
                                 pool)
@@ -59,7 +64,7 @@
              (let loop ((pool '())
                         (pool-size arg-pool-size))
                (if (zero? pool-size)
-                   pool
+                   (clean-pool pool)
                    (aif selected (select pool (generate seed-data))
                         (loop (cons selected pool)
                               (sub1 pool-size))

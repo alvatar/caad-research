@@ -5,8 +5,7 @@
 ;;; A simple, generic approach to serializable commands and arguments
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1
-             srfi/13))
+(import (std srfi/1))
 (import list
         debugging)
 

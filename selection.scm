@@ -41,9 +41,10 @@
 ;;; Evaluation for selection
 
 (define (total-score graph)
-  (if (correct-room-aspect-ratios? graph)
+  #;(if (correct-room-aspect-ratios? graph)
       (score-room-sizes graph)
-      0))
+      0)
+  1)
 
 ;;; Score room sizes
 

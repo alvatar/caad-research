@@ -72,7 +72,7 @@
   (syntax-rules ()
     ((_ test)
      #f)
-    ((_ msg test)
+    ((_ test msg)
      #f)
     ((_ test msg . forms)
      (begin . forms))))
@@ -81,7 +81,7 @@
   (syntax-rules ()
     ((_ test)
      #f)
-    ((_ msg test)
+    ((_ test msg)
      #f)
     ((_ test msg . forms)
      (begin . forms))))
@@ -91,10 +91,10 @@
      ;; Test the procedure and issue an error if #f, otherwise continue running
      (define-syntax %accept
        (syntax-rules ()
-         ((_ form)
+         ((_ test)
           (if (not test)
               (raise "checked value not accepted")))
-         ((_ msg test)
+         ((_ test msg)
           (if (not test)
               (raise msg)))
          ((_ #t msg . forms)
@@ -102,7 +102,7 @@
             (if result
                 result
                 (raise msg))))
-         ((_ test  msg . forms)
+         ((_ test msg . forms)
           (let ((result (begin . forms)))
             (if (test result)
                 result
@@ -113,7 +113,7 @@
          ((_ test)
           (if test
               (raise "checked value denied")))
-         ((_ msg test)
+         ((_ test msg)
           (if test
               (raise msg)))
          ((_ #t msg . forms)

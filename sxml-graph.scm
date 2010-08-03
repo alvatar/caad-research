@@ -46,7 +46,7 @@
 
 (define (sxml:contents graph)
   ;((sxpath '(*)) graph))
-  (%deny "you sent me a null graph. What should I do with this?" (null? graph))
+  (%deny (null? graph) "you sent me a null graph. What should I do with this?")
   (cddr graph))
 
 ;;; Get all parts of a graph that are of a specific type
@@ -96,9 +96,9 @@
 ;;; Get element's uid
 
 (define (sxml:element-uid elem)
-  (%deny "given element is null" (null? elem))
+  (%deny (null? elem) "given element is null")
   (let ((raw ((sxpath '(@ uid)) elem)))
-    (%deny "no element uid found" (null? raw))
+    (%deny (null? raw) "no element uid found")
     (cadar raw)))
 
 ;;; Make a list of uids contained in this subgraph
@@ -135,6 +135,22 @@
 ; Points
 ;-------------------------------------------------------------------------------
 
+;;; Make a SXML point
+
+(define (sxml:make-archpoint x y)
+  `(pt (@ (x ,(number->string
+               (exact->inexact x)))
+          (y ,(number->string
+               (exact->inexact y))))))
+
+;;; Trasnform a point into an archpoint (a point represented as SXML)
+
+(define (sxml:point->archpoint p)
+  `(pt (@ (x ,(number->string
+               (exact->inexact (point-x p))))
+          (y ,(number->string
+               (exact->inexact (point-y p)))))))
+
 ;;; Get coordinate from point
 
 (define (sxml:archpoint-coord coordinate point)
@@ -156,6 +172,31 @@
 ;-------------------------------------------------------------------------------
 ; Wall
 ;-------------------------------------------------------------------------------
+
+;;; Make a SXML wall
+
+(define (sxml:make-wall e)
+  `(wall
+    (@ (uid ,(wall-uid e))
+       (type TODO))
+    ,@(map (lambda (p)
+             (%accept (point? p))
+             (sxml:point->archpoint p))
+           (wall-pseq e))
+    ,@(map (lambda (w)
+             (%accept (window? w))
+             `(window (@ (from ,(number->string
+                                 (exact->inexact (window-from w))))
+                         (to ,(number->string
+                               (exact->inexact (window-to w)))))))
+           (wall-windows e))
+    ,@(map (lambda (d)
+             (%accept (door? d))
+             `(door (@ (from ,(number->string
+                               (exact->inexact (door-from d))))
+                       (to ,(number->string
+                             (exact->inexact (door-to d)))))))
+           (wall-doors e))))
 
 ;;; Get all wall points
 
@@ -194,17 +235,6 @@
 
 (define (sxml:wall-list->pseq-list walls)
   (map (lambda (w) (sxml:wall->pseq w)) walls))
-
-;;; Convert a point list into a wall
-
-(define (sxml:pseq->wall p-list uuid)
-  (let* ((pa (car p-list))
-         (pb (cadr p-list)))
-    `(wall (@ (uid ,uuid))
-           (pt (@ (y ,(inexact->exact (number->string (vect2-y pa))))
-                  (x ,(inexact->exact (number->string (vect2-x pa))))))
-           (pt (@ (y ,(inexact->exact (number->string (vect2-y pb))))
-                  (x ,(inexact->exact (number->string (vect2-x pb)))))))))
 
 ;;; Find the element with that specific uid
 
@@ -270,6 +300,16 @@
 ; Room
 ;-------------------------------------------------------------------------------
 
+;;; Make a SXML room
+
+(define (sxml:make-room e)
+  `(room
+    (@ (uid ,(room-uid e)))
+    ,@(map
+       (lambda (w)
+         `(wall (@ (uid ,w))))
+       (room-walls e))))
+
 ;;; Get a wall in the room by index
 
 (define (sxml:room-wall graph room n)
@@ -288,6 +328,14 @@
 ; Pipes
 ;-------------------------------------------------------------------------------
 
+;;; Make a SXML pipe
+
+(define (sxml:make-pipe e)
+  (let ((pos (pipe-position e)))
+   `(pipe
+     (@ (x ,(point-x pos))
+        (y ,(point-y pos))))))
+
 ;;; Get the pipe's position
 
 (define (sxml:pipe->center-position pipe)
@@ -301,6 +349,14 @@
 ;-------------------------------------------------------------------------------
 ; Entry
 ;-------------------------------------------------------------------------------
+
+;;; Make a SXML entry
+
+(define (sxml:make-entry e)
+  `(entry
+    (@ (wall-uid ,(entry-wall-uid e))
+       (door-number ,(entry-door-number e))
+       (pt TODO))))
 
 ;;; Get the entry point as a list of points corresponding to the door
 
@@ -335,6 +391,18 @@
 ;-------------------------------------------------------------------------------
 ; Structure
 ;-------------------------------------------------------------------------------
+
+;;; Make a SXML structural
+
+(define (sxml:make-structural e)
+  `(structural
+    (@ (uid ,(structural-uid e)))
+    (center
+     (@ (x TODO)
+        (y TODO)))
+    (dim
+     (@ (a TODO)
+        (b TODO)))))
 
 ;;; Get the structural as a list of points
 
@@ -400,17 +468,17 @@
 (define (graph->sxml-graph graph)
   `(architecture
     (@ (uid ,(graph-uid graph)))
-    (map
-     (lambda (e)
-       (cond
-        ((structural? e)
-         (sxml:make-structural e))
-        ((entry? e)
-         (sxml:make-entry ))
-        ((pipe? e)
-         (sxml:make-entry $$$$$))
-        ((wall? e)
-         (sxml:make-wall $$$$))
-        ((room? e)
-         (sxml:make-room $$$$))))
-     graph)))
+    ,(map
+      (lambda (e)
+        (cond                           ; TODO: TRY map-cond!
+         ((structural? e)
+          (sxml:make-structural e))
+         ((entry? e)
+          (sxml:make-entry e))
+         ((pipe? e)
+          (sxml:make-pipe e))
+         ((wall? e)
+          (sxml:make-wall e))
+         ((room? e)
+          (sxml:make-room e))))
+      (graph-architecture graph))))

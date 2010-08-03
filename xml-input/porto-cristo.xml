@@ -1,0 +1,200 @@
+<ensanche>
+    <client>
+        <username>4_calle_de_porto_cristo_alcorcon_madrid</username>
+    </client>
+    <floorplan>
+        <representation>
+            <zoom>1.035000</zoom>
+            <rotation>0.000000</rotation>
+            <position>
+                <x>-218.000031</x>
+                <y>-111.999802</y>
+            </position>
+            <scanFilename>floorPlans/h.jpg</scanFilename>
+            <scale>0.050000</scale>
+            <boundingBox>
+                <x>572.463928</x>
+                <y>492.350891</y>
+                <width>189.853027</width>
+                <height>259.339783</height>
+            </boundingBox>
+            <fpLimits bClosed="1">
+                <pt x="572.587219" y="492.350891"></pt>
+                <pt x="572.463928" y="751.690674"></pt>
+                <pt x="651.690979" y="751.690674"></pt>
+                <pt x="651.690979" y="735.265564"></pt>
+                <pt x="761.776428" y="734.896973"></pt>
+                <pt x="762.316956" y="518.296875"></pt>
+                <pt x="664.479126" y="518.296875"></pt>
+                <pt x="664.479065" y="492.431793"></pt>
+            </fpLimits>
+            <pilar width="9.800000">
+                <pt x="567.991821" y="523.243164"></pt>
+                <pt x="577.791870" y="523.243164"></pt>
+            </pilar>
+            <pilar width="9.800000">
+                <pt x="567.721558" y="602.162048"></pt>
+                <pt x="577.521606" y="602.162048"></pt>
+            </pilar>
+            <pilar width="9.800000">
+                <pt x="577.251343" y="677.297241"></pt>
+                <pt x="567.451294" y="677.297241"></pt>
+            </pilar>
+            <pilar width="9.800000">
+                <pt x="631.775635" y="676.756653"></pt>
+                <pt x="641.575684" y="676.756653"></pt>
+            </pilar>
+            <pilar width="9.800000">
+                <pt x="641.305420" y="601.621521"></pt>
+                <pt x="631.505371" y="601.621521"></pt>
+            </pilar>
+            <pilar width="9.800000">
+                <pt x="641.845947" y="522.972900"></pt>
+                <pt x="632.045898" y="522.972900"></pt>
+            </pilar>
+            <pilar width="9.800000">
+                <pt x="697.721558" y="522.972900"></pt>
+                <pt x="707.521606" y="522.972900"></pt>
+            </pilar>
+            <pilar width="9.800000">
+                <pt x="707.791870" y="601.351257"></pt>
+                <pt x="697.991821" y="601.351257"></pt>
+            </pilar>
+            <pilar width="9.800000">
+                <pt x="707.521606" y="677.026917"></pt>
+                <pt x="697.721558" y="677.026917"></pt>
+            </pilar>
+            <pilar width="9.800000">
+                <pt x="766.710815" y="522.702637"></pt>
+                <pt x="756.910767" y="522.702637"></pt>
+            </pilar>
+            <pilar width="9.800000">
+                <pt x="766.170288" y="601.621521"></pt>
+                <pt x="756.370239" y="601.621521"></pt>
+            </pilar>
+            <pilar width="9.800000">
+                <pt x="756.370239" y="677.297180"></pt>
+                <pt x="766.170288" y="677.297180"></pt>
+            </pilar>
+            <window>
+                <pt x="664.479004" y="499.459351"></pt>
+                <pt x="664.479004" y="514.053955"></pt>
+            </window>
+            <window>
+                <pt x="672.621582" y="518.296875"></pt>
+                <pt x="691.000000" y="518.296875"></pt>
+            </window>
+            <window>
+                <pt x="717.486450" y="518.296875"></pt>
+                <pt x="743.432373" y="518.296875"></pt>
+            </window>
+            <label x="605.314148" y="623.188232" labelID="0" labelName="salón"></label>
+            <label x="614.009827" y="537.197876" labelID="0" labelName="cocina"></label>
+            <label x="644.927673" y="508.212402" labelID="0" labelName="baño"></label>
+            <label x="592.753784" y="691.787292" labelID="0" labelName="terraza"></label>
+            <label x="585.990479" y="485.023987" labelID="0" labelName="entrada"></label>
+            <label x="625.604004" y="560.386292" labelID="0" labelName="agua"></label>
+            <label x="671.980835" y="639.613342" labelID="0" labelName="dormitorio"></label>
+            <label x="729.951843" y="623.188232" labelID="0" labelName="dormitorio"></label>
+            <label x="728.019470" y="556.521606" labelID="0" labelName="dormitorio"></label>
+            <label x="683.575012" y="549.758301" labelID="0" labelName="dormitorio"></label>
+        </representation>
+        <architecture uid="ae863f8c-9e3e-11df-a499-c982df01e4f2">
+            <room uid="ae867c22-9e3e-11df-a499-c982df01e4f2">
+                <wall uid="ae85edde-9e3e-11df-a499-c982df01e4f2"></wall>
+                <wall uid="ae85ee42-9e3e-11df-a499-c982df01e4f2"></wall>
+                <wall uid="ae85ee74-9e3e-11df-a499-c982df01e4f2"></wall>
+                <wall uid="ae85ee9c-9e3e-11df-a499-c982df01e4f2"></wall>
+                <wall uid="ae85eeba-9e3e-11df-a499-c982df01e4f2"></wall>
+                <wall uid="ae85eef6-9e3e-11df-a499-c982df01e4f2"></wall>
+                <wall uid="ae85ef14-9e3e-11df-a499-c982df01e4f2"></wall>
+                <wall uid="ae85ef32-9e3e-11df-a499-c982df01e4f2"></wall>
+            </room>
+            <wall uid="ae85edde-9e3e-11df-a499-c982df01e4f2">
+                <pt x="0.006165" y="0.000000"></pt>
+                <pt x="0.000000" y="12.966990"></pt>
+            </wall>
+            <wall uid="ae85ee42-9e3e-11df-a499-c982df01e4f2"  type="new">
+                <pt x="0.000000" y="12.966990"></pt>
+                <pt x="3.961351" y="12.966990"></pt>
+            </wall>
+            <wall uid="ae85ee74-9e3e-11df-a499-c982df01e4f2"  type="new">
+                <pt x="3.961351" y="12.966990"></pt>
+                <pt x="3.961351" y="12.145734"></pt>
+            </wall>
+            <wall uid="ae85ee9c-9e3e-11df-a499-c982df01e4f2"  type="new">
+                <pt x="3.961351" y="12.145734"></pt>
+                <pt x="9.465624" y="12.127304"></pt>
+            </wall>
+            <wall uid="ae85eeba-9e3e-11df-a499-c982df01e4f2">
+                <pt x="9.465624" y="12.127304"></pt>
+                <pt x="9.492650" y="1.297299"></pt>
+            </wall>
+            <wall uid="ae85eef6-9e3e-11df-a499-c982df01e4f2">
+                <pt x="9.492650" y="1.297299"></pt>
+                <pt x="4.600761" y="1.297299"></pt>
+                <window uid="ae85f248-9e3e-11df-a499-c982df01e4f2" to="0.916776" from="0.271070"></window>
+                <window uid="ae85f28e-9e3e-11df-a499-c982df01e4f2" to="0.458212" from="0.806981"></window>
+            </wall>
+            <wall uid="ae85ef14-9e3e-11df-a499-c982df01e4f2">
+                <pt x="4.600761" y="1.297299"></pt>
+                <pt x="4.600755" y="0.004045"></pt>
+                <window uid="ae85f1ee-9e3e-11df-a499-c982df01e4f2" to="0.728299" from="0.835959"></window>
+            </wall>
+            <wall uid="ae85ef32-9e3e-11df-a499-c982df01e4f2">
+                <pt x="4.600755" y="0.004045"></pt>
+                <pt x="0.006165" y="0.000000"></pt>
+            </wall>
+            <structural uid="ae85f590-9e3e-11df-a499-c982df01e4f2">
+                <center x="0.021396" y="1.544614"></center>
+                <dim a="0.490002" b="0.490000"></dim>
+            </structural>
+            <structural uid="ae85f89c-9e3e-11df-a499-c982df01e4f2">
+                <center x="0.007883" y="5.490558"></center>
+                <dim a="0.490002" b="0.490000"></dim>
+            </structural>
+            <structural uid="ae85f978-9e3e-11df-a499-c982df01e4f2">
+                <center x="-0.005630" y="9.247317"></center>
+                <dim a="0.490002" b="0.490000"></dim>
+            </structural>
+            <structural uid="ae85f9be-9e3e-11df-a499-c982df01e4f2">
+                <center x="3.210588" y="9.220288"></center>
+                <dim a="0.490002" b="0.490000"></dim>
+            </structural>
+            <structural uid="ae85f9fa-9e3e-11df-a499-c982df01e4f2">
+                <center x="3.197075" y="5.463531"></center>
+                <dim a="0.490002" b="0.490000"></dim>
+            </structural>
+            <structural uid="ae85fa4a-9e3e-11df-a499-c982df01e4f2">
+                <center x="3.224101" y="1.531101"></center>
+                <dim a="0.490003" b="0.490000"></dim>
+            </structural>
+            <structural uid="ae85fa86-9e3e-11df-a499-c982df01e4f2">
+                <center x="6.507884" y="1.531101"></center>
+                <dim a="0.490002" b="0.490000"></dim>
+            </structural>
+            <structural uid="ae85fab8-9e3e-11df-a499-c982df01e4f2">
+                <center x="6.521398" y="5.450018"></center>
+                <dim a="0.490003" b="0.490000"></dim>
+            </structural>
+            <structural uid="ae85faf4-9e3e-11df-a499-c982df01e4f2">
+                <center x="6.507884" y="9.233802"></center>
+                <dim a="0.490002" b="0.490000"></dim>
+            </structural>
+            <structural uid="ae85fb44-9e3e-11df-a499-c982df01e4f2">
+                <center x="9.467344" y="1.517587"></center>
+                <dim a="0.490003" b="0.490000"></dim>
+            </structural>
+            <structural uid="ae85fb80-9e3e-11df-a499-c982df01e4f2">
+                <center x="9.440319" y="5.463531"></center>
+                <dim a="0.490003" b="0.490000"></dim>
+            </structural>
+            <structural uid="ae85fbbc-9e3e-11df-a499-c982df01e4f2">
+                <center x="9.440319" y="9.247314"></center>
+                <dim a="0.490003" b="0.490000"></dim>
+            </structural>
+            <entry wall-uid="ae85ef32-9e3e-11df-a499-c982df01e4f2" door-number="0" pt="7.589199"></entry>
+            <pipe x="31.280201" y="28.019316"></pipe>
+        </architecture>
+    </floorplan>
+</ensanche>

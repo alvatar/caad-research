@@ -5,8 +5,13 @@
 ;;; Output procedures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1))
-(import core/list)
+(import (std srfi/1
+             string/sxml-to-xml))
+(import core/debugging
+        core/list
+        sxml-graph)
+
+;;; Relative directory for XML outputs
 
 (define output-dir "xml-output")
 
@@ -27,7 +32,9 @@
                   (call-with-output-file
                       file-path
                     (lambda (file)
-                      (display graph file)))))
+                      (display (sxml->xml-string-fragment
+                                (graph->sxml-graph graph))
+                               file)))))
             (begin
               (create-directory output-dir-path)
               (get-dir (path-normalize output-dir))))))))
