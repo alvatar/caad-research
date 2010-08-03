@@ -6,7 +6,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import evolution
-        sxml-graph
         graph-visualization
         input
         output
@@ -14,17 +13,10 @@
 
 (define (main)
   (random-source-randomize! default-random-source) ; Randomizes seed
-  (let ((graph (sxml-graph->graph (xml->sxml-graph (input)))))
-    (visualize-graph graph)
-    (visualization:do-now)
-    (visualization:forget-all)
-    (visualize-graph graph)
-    (visualization:do-now)              ; TODO: this is ugly
-    (visualization:forget-all)
-    (output-pool
-     (evolution '(fill-pool @pool-size 1)
-                'hinted-evolutionary
-                'keep-best
-                graph)))
+  (output-pool
+   (evolution '(fill-pool @pool-size 1)
+              'hinted-evolutionary
+              'keep-best
+              (input-from-xml)))
   (exit 0))
 (main)

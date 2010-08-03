@@ -6,19 +6,25 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std string/xml-to-sxml))
-
-(import web/parse/ssax-sxml/sxml-tools/sxpath)
+(import sxml-graph
+        web/parse/ssax-sxml/sxml-tools/sxpath)
 
 ;-------------------------------------------------------------------------------
 ; File handling
 ;-------------------------------------------------------------------------------
 
-(define (input)
-  (let*
-    ((xml-file (open-input-file "xml-input/arch_1.xml"))
-     (xml-string (read-line xml-file #f))
-     (close-port xml-file))
-     xml-string))
+;;; Read XML from file
+
+(define (input-from-xml)
+  (let ((xml-file (open-input-file "xml-input/arch_1.xml")))
+    (dynamic-wind
+        (lambda () #f)
+        (lambda ()
+          (sxml-graph->graph
+           (xml->sxml-graph
+            (read-line xml-file #f))))
+        (lambda ()
+          (close-port xml-file)))))
 
 ;-------------------------------------------------------------------------------
 ; Graph importation
