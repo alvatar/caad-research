@@ -14,6 +14,7 @@
         core/syntax
         core/debugging
         geometry/kernel
+        graph
         math/exact-algebra
         visualization)
 
@@ -86,7 +87,7 @@
 ;;; Get the north direction
 
 (define (sxml:north graph)
-  (make-vect2 1 1))
+  (make-vect2 1 1)) ; TODO!!
 
 ;-------------------------------------------------------------------------------
 ; Element references and UID
@@ -349,3 +350,67 @@
      (make-vect2 (+ (vect2-x center) a/2) (- (vect2-y center) b/2))
      (make-vect2 (+ (vect2-x center) a/2) (+ (vect2-y center) b/2))
      (make-vect2 (- (vect2-x center) a/2) (+ (vect2-y center) b/2)))))
+
+;-------------------------------------------------------------------------------
+; Sxml-grap / graph conversion
+;-------------------------------------------------------------------------------
+
+;;; SXML to graph conversion
+
+(define (sxml-graph->graph sxmlgraph)
+  (make-graph
+   (sxml:element-uid sxmlgraph)
+   (list (make-direction #e1 #e1))
+   (map
+    (lambda (e)
+      (let ((type (sxml:element-type e)))
+        (cond
+         ((equal? type 'structural)
+          (make-structural (sxml:element-uid e)
+                           (sxml:structural->pseq sxmlgraph e)))
+         ((equal? type 'entry)
+          (make-entry (sxml:entry->pseq sxmlgraph e)
+                      (sxml:entry-wall-uid e)
+                      (sxml:entry-door-num e)))
+         ((equal? type 'pipe)
+          (make-pipe (sxml:pipe->center-position e)))
+         ((equal? type 'wall)
+          (make-wall (sxml:element-uid e)
+                     (sxml:wall-metadata e)
+                     (sxml:wall->pseq e)
+                     (let ((windows (sxml:wall-windows e)))
+                       (map (lambda (w)
+                              (make-window
+                               (sxml:wall-element->pseq w e)
+                               (sxml:wall-element-relative-points 'from w)
+                               (sxml:wall-element-relative-points 'to w))) windows))
+                     (let ((doors (sxml:wall-doors e)))
+                       (map (lambda (d)
+                              (make-door
+                               (sxml:wall-element->pseq d e)
+                               (sxml:wall-element-relative-points 'from d)
+                               (sxml:wall-element-relative-points 'to d))) doors))))
+         ((equal? type 'room)
+          (make-room (sxml:element-uid e)
+                     (map (lambda (w) (sxml:element-uid w)) (sxml:room-wall-refs e)))))))
+    (sxml:contents sxmlgraph))))
+
+;;; Graph to SXML conversion
+
+(define (graph->sxml-graph graph)
+  `(architecture
+    (@ (uid ,(graph-uid graph)))
+    (map
+     (lambda (e)
+       (cond
+        ((structural? e)
+         (sxml:make-structural e))
+        ((entry? e)
+         (sxml:make-entry ))
+        ((pipe? e)
+         (sxml:make-entry $$$$$))
+        ((wall? e)
+         (sxml:make-wall $$$$))
+        ((room? e)
+         (sxml:make-room $$$$))))
+     graph)))

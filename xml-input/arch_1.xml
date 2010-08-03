@@ -15,7 +15,7 @@
             </anyOtherTagForRepresentation>
         </representation>
 
-		<architecture uid="43CD6949-15FD-401C-BB95-D1D691254283">
+	<architecture uid="43CD6949-15FD-401C-BB95-D1D691254283">
             <room uid="salon">
                 <wall uid="DB7F49A3-BBF6-40F3-95A1-038CCACE1D88"/>
                 <wall uid="B06528DA-C0B9-4583-A7AF-8A3E788DB6EF"/>
@@ -60,7 +60,7 @@
                 <pt x="0.0" y="0.0"/>
             </wall>
 
-			<entry wall-uid="B06528DA-C0B9-4583-A7AF-8A3E788DB6EF" door-number="0" pt="0.5"/>
+	    <entry wall-uid="B06528DA-C0B9-4583-A7AF-8A3E788DB6EF" door-number="0" pt="0.5"/>
 
             <pipe x="0.2" y="6.0"/>
         </architecture>
