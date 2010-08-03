@@ -6,10 +6,40 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1))
+(import core/list)
 
+(define output-dir "xml-output")
 
-(define (output)
-  (raise "File output not implemented"))
+;;; Output a single graph
+
+(define (output graph)
+  (let ((output-dir-path (path-normalize output-dir))
+        (file-path-gen (lambda (dir-path)
+                         (string-append dir-path
+                                        (number->string
+                                         (random-integer 999999999))
+                                        ".xml"))))
+    (if (not (file-exists? output-dir-path))
+        (create-directory output-dir-path))
+    (let file-name ((file-path (file-path-gen output-dir-path)))
+      (if (file-exists? file-path)
+          (file-name (file-path-gen output-dir-path))
+          (call-with-output-file
+              file-path
+            (lambda (file)
+              (display "aaaaaaa\n" file)))))))
+
+;;; Output a graph-pool
+
+(define (output-pool graph-pool)
+  (let loop ((graph-pool graph-pool)
+             (num-graphs 0))
+    (if (null? graph-pool)
+        num-graphs
+        (begin
+          (output (car graph-pool))
+          (loop (cdr graph-pool)
+                (add1 num-graphs))))))
 
 ;-------------------------------------------------------------------------------
 ; Pretty-printing output

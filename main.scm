@@ -21,13 +21,10 @@
     (visualize-graph graph)
     (visualization:do-now)              ; TODO: this is ugly
     (visualization:forget-all)
-   (for-each
-     (lambda (g)
-       (output g))
+    (output-pool
      (evolution '(fill-pool @pool-size 1)
                 'hinted-evolutionary
                 'keep-best
                 graph)))
-
   (exit 0))
 (main)
