@@ -16,15 +16,11 @@
 ;;; Read XML from file
 
 (define (input-from-xml)
-  (let ((xml-file (open-input-file "xml-input/arch_1.xml")))
-    (dynamic-wind
-        (lambda () #f)
-        (lambda ()
-          (sxml-graph->graph
-           (xml->sxml-graph
-            (read-line xml-file #f))))
-        (lambda ()
-          (close-port xml-file)))))
+  (call-with-input-file "xml-input/arch_1.xml"
+    (lambda (file)
+      (sxml-graph->graph
+       (xml->sxml-graph
+        (read-line file #f))))))
 
 ;-------------------------------------------------------------------------------
 ; Graph importation

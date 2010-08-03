@@ -16,4 +16,4 @@ ssax-sxml/*/*.c
 ssax-sxml/*.c
 *.c
 tools/xmlviewer
-output-xml
+xml-output
