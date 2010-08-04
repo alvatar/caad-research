@@ -10,18 +10,15 @@
          (block))
 (compile-options force-compile: #t)
 
-(import (std srfi/1))
-(import (std srfi/95))
-(import ffi/gl)
-(import ffi/sdl)
-(import ffi/cairo)
+(import (std srfi/1
+             srfi/95))
+(import ffi/sdl
+        ffi/cairo
+        geometry/kernel
+        math/exact-algebra
+        math/inexact-algebra)
 
-(import geometry/kernel)
-(import math/exact-algebra)
-(import math/inexact-algebra)
-
-(export maxx)
-(export maxy)
+(export maxx maxy)
 (export visualization:do-later
         visualization:do-now
         visualization:do-now-layers
@@ -58,48 +55,49 @@
 
 (define visualize-loop-with-continuation
   (letrec
-    ((layer-selector #f)
-     (control-state
-       (lambda (return)
-         (let* ((cairo-surface (SDL::set-video-mode maxx maxy 0 (+ SDL::hwsurface
-                                                                   SDL::hwpalette
-                                                                   SDL::doublebuf)))
-                (image-surface (cairo-image-surface-create-for-data
-                                 (SDL::surface-pixels cairo-surface)
+      ((layer-selector #f)
+       (control-state
+        (lambda (return)
+          (let* ((error (SDL::init SDL::init-video))
+                 (sdl-surface (SDL::set-video-mode maxx maxy 0 (+ SDL::hwsurface
+                                                                  SDL::hwpalette
+                                                                  SDL::doublebuf)))
+                 (image-surface (cairo-image-surface-create-for-data
+                                 (SDL::surface-pixels sdl-surface)
                                  CAIRO_FORMAT_RGB24
                                  maxx
                                  maxy
-                                 (SDL::screen-pitch cairo-surface)))
-                (cairo (cairo-create image-surface)))
-           (set! return (call/cc
+                                 (SDL::screen-pitch sdl-surface)))
+                 (cairo (cairo-create image-surface)))
+            (set! return (call/cc
                           (lambda (resume-here)
                             (set! control-state resume-here)
                             (return))))
-           (let loop ()
-             ;; (SDL::delay 20)
-             (let ((event (SDL::event-exit)))
-               (cond
-                ((= event 27) ; 27 = escape TODO!
-                 (begin 
-                   (SDL::exit)
-                   (exit 0)))
-                ((= event 32) ; 32 = space TODO!
-                 (return))))
+            (let loop ()
+              ;; (SDL::delay 20)
+              (let ((event (SDL::event-exit)))
+                (cond
+                 ((= event 27)          ; 27 = escape TODO!
+                  (begin 
+                    (SDL::exit)
+                    (exit 0)))
+                 ((= event 32)          ; 32 = space TODO!
+                  (return))))
+              
+              (cairo-set-source-rgba cairo 1.0 1.0 1.0 1.0)
+              (cairo-rectangle cairo 0.0 0.0 (exact->inexact maxx) (exact->inexact maxy))
+              (cairo-fill cairo)
 
-             (cairo-set-source-rgba cairo 1.0 1.0 1.0 1.0)
-             (cairo-rectangle cairo 0.0 0.0 (exact->inexact maxx) (exact->inexact maxy))
-             (cairo-fill cairo)
-
-             (for-each
+              (for-each
                (lambda (e)
                  (if (layer-selector e)
                      ((painter-procedure e) cairo visualization-environment)))
                external-painters)
 
-             (SDL::flip cairo-surface)
-             (return) ; Comment to avoid exiting drawing loop
+              (SDL::flip sdl-surface)
+              (return)         ; Comment to avoid exiting drawing loop
 
-             (loop))))))
+              (loop))))))
 
     (lambda (lsel)
       (set! layer-selector lsel)

@@ -390,7 +390,7 @@ char *SDL_GetError(void);
 ;;; =============
 
 ;;int SDL_Init(Uint32 flags);
-(define SDL::initialize (c-lambda (unsigned-int32) int "SDL_Init"))
+(define SDL::init (c-lambda (unsigned-int32) int "SDL_Init"))
 
 ;;void SDL_Quit(void);
 (define SDL::exit (c-lambda () void "SDL_Quit"))
@@ -400,7 +400,7 @@ char *SDL_GetError(void);
 
 ;;; (SDL::within-sdl-lifetime sdl-flags thunk)
 (define (SDL::within-sdl-lifetime sdl-flags thunk)
-   (if (zero? (SDL::initialize sdl-flags))
+   (if (zero? (SDL::init sdl-flags))
        (begin
          (dynamic-wind
           (lambda () #f)
@@ -410,6 +410,12 @@ char *SDL_GetError(void);
        #f)
 )
 
+;; SDL_Surface *SDL_CreateRGBSurface(Uint32 flags, int width, int height, int bitsPerPixel, 
+;;                                   Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask)
+(define SDL::create-rgbsurface
+  (c-lambda (unsigned-int32 int int int unsigned-int32 unsigned-int32 unsigned-int32 unsigned-int32)
+            (pointer "SDL_Surface")
+            "SDL_CreateRGBSurface"))
 
 ;;SDL_Surface *SDL_SetVideoMode(int width, int height, int bpp, Uint32 flags)
 (define SDL::set-video-mode
