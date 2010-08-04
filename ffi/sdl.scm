@@ -20,7 +20,6 @@
 #include "SDL.h"
 #include "SDL_keysym.h"
 #include "SDL_events.h"
-#include "SDL_mixer.h"
 
 int must_lock_surface_P(SDL_Surface *screen)
 {
