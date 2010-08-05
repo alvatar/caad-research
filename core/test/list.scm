@@ -15,7 +15,7 @@
 (import ../list)
 
 ;-------------------------------------------------------------------------------
-(test-begin "list" 11)
+(test-begin "list" 13)
 ;-------------------------------------------------------------------------------
 
 (test-equal
@@ -109,6 +109,25 @@
                 (else string?)
                 (number? number->string))
                (list 'a 'b 0 1 2 'z 6))"))
+
+(test-equal
+ "map-cond with selectors"
+ (map-cond ((a <- car)
+            (b <- cdr))
+           (((< 1 a) a)
+            ((zero? a) b))
+           (list (cons 1 2) (cons 2 3) (cons 3 4) (cons 0 5)))
+ (list #f 2 3 5))
+
+(test-equal
+ "map-cond with selectors"
+ (map-cond ((a <- car)
+            (b <- cdr))
+           (((< 1 a) a)
+            ((zero? a) b)
+            (else 'bingo))
+           (list (cons 1 2) (cons 2 3) (cons 3 4) (cons 0 5)))
+ (list 'bingo 2 3 5))
 
 ;-------------------------------------------------------------------------------
 (test-end "list")
