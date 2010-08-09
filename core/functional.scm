@@ -90,8 +90,8 @@
 (define (curry fun arg1 . args)
   (if (pair? args)
       (lambda x
-        (apply fun (append arg1 args x)))
-      (lambda x                              ; Fast path
+        (apply fun (append (cons arg1 args) x)))
+      (lambda x
         (apply fun (cons arg1 x)))))
 
 ;;; Define an automatically curryable function

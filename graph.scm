@@ -38,7 +38,7 @@
 ;;; Make a wall without metadata, doors or windows
 
 (define (make-wall-plain uid pseq)
-  (make-wall uid '() pseq '() '()))
+  (make-wall uid '((type new)) pseq '() '()))
 
 (define-type window pseq from to)
 ;; (define-list-record-type window
@@ -70,13 +70,14 @@
 ;;   (uid structural-uid)
 ;;   (pseq structural-pseq))
 
-(define-type entry pseq wall-uid door-number)
+(define-type entry pseq wall-uid door-number wall-point)
 ;; (define-list-record-type entry
-;;   (make-entry pseq wall-uid door-number)
+;;   (make-entry pseq wall-uid door-number wall-point)
 ;;   entry?
 ;;   (pseq entry-pseq)
 ;;   (wall-uid entry-wall-uid)
-;;   (door-number entry-door-number))
+;;   (door-number entry-door-number)
+;;   (wall-point entry-wall-point)
 
 (define-type pipe position)
 ;; (define-list-record-type pipe

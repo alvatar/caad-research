@@ -303,21 +303,15 @@
 
 ;;; Create a two new walls where one was before, given a splitting point
 
-(define (graph:create-splitted-wall wall split-point-relative uuid1 uuid2)
+(define (graph:split-wall wall split-point-relative uuid1 uuid2)
   (let ((split-point (pseq:relative-position->point (wall-pseq wall) split-point-relative))
         (first-point (first (wall-pseq wall)))
         (second-point (last (wall-pseq wall))))
-    (list ; TODO: make as values and use properly!!!
-     (make-wall uuid1
-                '()
-                (list first-point split-point)
-                '()
-                '())
-     (make-wall uuid2
-                '()
-                (list split-point second-point)
-                '()
-                '()))))
+    (values
+     (make-wall-plain uuid1
+                      (list first-point split-point))
+     (make-wall-plain uuid2
+                      (list split-point second-point)))))
 
 ;;; Update refs to walls in rooms
 
@@ -325,7 +319,6 @@
   (make-graph
    (graph-uid graph)
    (graph-environment graph)
-
    (map (lambda (e)
           (if (room? e)
               (make-room

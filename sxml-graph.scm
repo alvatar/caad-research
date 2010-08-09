@@ -135,13 +135,13 @@
 ; Points
 ;-------------------------------------------------------------------------------
 
-;;; Make a SXML point
+;;; Make a SXML point with custom tags
 
-(define (sxml:make-archpoint x y)
-  `(pt (@ (x ,(number->string
-               (exact->inexact x)))
-          (y ,(number->string
-               (exact->inexact y))))))
+(define (sxml:make-pseudoarchpoint label xlabel x ylabel y)
+  `(,label (@ (,xlabel ,(number->string
+                         (exact->inexact x)))
+              (,ylabel ,(number->string
+                         (exact->inexact y))))))
 
 ;;; Trasnform a point into an archpoint (a point represented as SXML)
 
@@ -178,7 +178,7 @@
 (define (sxml:make-wall e)
   `(wall
     (@ (uid ,(wall-uid e))
-       (type TODO))
+       ,@(wall-metadata e))
     ,@(map (lambda (p)
              (%accept (point? p))
              (sxml:point->archpoint p))
@@ -356,15 +356,14 @@
   `(entry
     (@ (wall-uid ,(entry-wall-uid e))
        (door-number ,(entry-door-number e))
-       (pt TODO))))
+       (pt ,(entry-wall-point e)))))
 
 ;;; Get the entry point as a list of points corresponding to the door
 
 (define (sxml:entry->pseq graph entry)
   (let* ((wall (sxml:find-wall/uid graph (sxml:entry-wall-uid entry)))
          (doors (sxml:wall-doors wall)))
-    (let ((door-number (sxml:entry-door-num entry))
-          (entry-point (sxml:entry-point entry)))
+    (let ((door-number (sxml:entry-door-num entry)))
      (if (and (not-null? doors)
               (not-null? door-number) ; first we try with door reference
               (< door-number (length doors)))
@@ -385,7 +384,7 @@
 
 ;;; Get the door entry point in case where there is not door reference
 
-(define (sxml:entry-point entry)
+(define (sxml:entry-wall-point entry)
   (cadar ((sxpath '(@ (pt 1))) entry)))
 
 ;-------------------------------------------------------------------------------
@@ -393,16 +392,24 @@
 ;-------------------------------------------------------------------------------
 
 ;;; Make a SXML structural
+;;; TODO: this is a bad format. It should be stored as pseq directly.
 
 (define (sxml:make-structural e)
-  `(structural
-    (@ (uid ,(structural-uid e)))
-    (center
-     (@ (x TODO)
-        (y TODO)))
-    (dim
-     (@ (a TODO)
-        (b TODO)))))
+  (let ((bb (pseq->bbox (structural-pseq e))))
+    (let ((center (bbox:centroid bb))
+          (dim (bbox:size-segment bb)))
+      `(structural
+        (@ (uid ,(structural-uid e)))
+        ,(sxml:make-pseudoarchpoint 'center
+                                    'x
+                                    (point-x center)
+                                    'y
+                                    (point-y center))
+        ,(sxml:make-pseudoarchpoint 'dim
+                                    'a
+                                    (point-x dim)
+                                    'b
+                                    (point-y dim))))))
 
 ;;; Get the structural as a list of points
 
@@ -437,7 +444,8 @@
               ((equal? type 'entry)
                (make-entry (sxml:entry->pseq sxmlgraph e)
                            (sxml:entry-wall-uid e)
-                           (sxml:entry-door-num e)))
+                           (sxml:entry-door-num e)
+                           (sxml:entry-wall-point e)))
               ((equal? type 'pipe)
                (make-pipe (sxml:pipe->center-position e)))
               ((equal? type 'wall)
