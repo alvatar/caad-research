@@ -13,7 +13,7 @@
 (define (main)
   (random-source-randomize! default-random-source) ; Randomizes seed
   (output-pool
-   (evolution '(only-show-graph);'(fill-pool @pool-size 1)
+   (evolution '(fill-pool @pool-size 1)
               'hinted-evolutionary
               'keep-best
               (input-from-xml)))

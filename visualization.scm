@@ -12,7 +12,8 @@
 
 (import (std srfi/1
              srfi/95))
-(import ffi/sdl
+(import core/syntax
+        ffi/sdl
         ffi/cairo
         geometry/kernel
         math/exact-algebra
@@ -58,64 +59,49 @@
 ;;; Visualization control routine
 
 (define visualization-control
-  (letrec
-      ((layer-selector #f)
-       (mode #f)
-       (control-state
-        (lambda (return)
-          (let* ((error (begin (pp "ASDFASDF") (SDL::init SDL::init-video)))
-                 (sdl-surface (SDL::set-video-mode maxx maxy 0 (+ SDL::hwsurface
-                                                                  SDL::hwpalette
-                                                                  SDL::doublebuf)))
-                 (image-surface (cairo-image-surface-create-for-data
-                                 (SDL::surface-pixels sdl-surface)
-                                 CAIRO_FORMAT_RGB24
-                                 maxx
-                                 maxy
-                                 (SDL::screen-pitch sdl-surface)))
-                 (cairo (cairo-create image-surface))
-                 (draw-proc (lambda ()
-                              (cairo-set-source-rgba cairo 1.0 1.0 1.0 1.0)
-                              (cairo-rectangle cairo 0.0 0.0 (exact->inexact maxx) (exact->inexact maxy))
-                              (cairo-fill cairo)
+  (let* ((error (SDL::init SDL::init-video)) ; TODO: check this error
+         (sdl-surface (SDL::set-video-mode maxx maxy 0 (+ SDL::hwsurface
+                                                          SDL::hwpalette
+                                                          SDL::doublebuf)))
+         (image-surface (cairo-image-surface-create-for-data
+                         (SDL::surface-pixels sdl-surface)
+                         CAIRO_FORMAT_RGB24
+                         maxx
+                         maxy
+                         (SDL::screen-pitch sdl-surface)))
+         (cairo (cairo-create image-surface))
+         (draw-frame (lambda (layer-selector)
+                       (cairo-set-source-rgba cairo 1.0 1.0 1.0 1.0)
+                       (cairo-rectangle cairo 0.0 0.0 (exact->inexact maxx) (exact->inexact maxy))
+                       (cairo-fill cairo)
 
-                              (for-each
-                               (lambda (e)
-                                 (if (layer-selector e)
-                                     ((painter-procedure e) cairo visualization-environment)))
-                               external-painters)
+                       (for-each
+                        (lambda (e)
+                          (if (layer-selector e)
+                              ((painter-procedure e) cairo visualization-environment)))
+                        external-painters)
 
-                              (SDL::flip sdl-surface))))
-            (draw-proc)
-            (set! return (call/cc
-                          (lambda (resume-here)
-                            (set! control-state resume-here)
-                            return)))
-            (let loop ()
-              ;; (SDL::delay 20)
-              (let ((event (SDL::event-exit)))
+                       (SDL::flip sdl-surface))))
+    (lambda (layer-selector mode)
+      (let/cc leave
+              (let loop ()
+                ;; (SDL::delay 20)
+                (let ((event (SDL::event-exit)))
+                  (cond
+                   ((= event 27)        ; 27 = escape TODO!
+                    (begin 
+                      (SDL::exit)
+                      (exit 0)))
+                   ((= event 32)        ; 32 = space TODO!
+                    (leave))))
+                (draw-frame layer-selector)
                 (cond
-                 ((= event 27)          ; 27 = escape TODO!
-                  (begin 
-                    (SDL::exit)
-                    (exit 0)))
-                 ((= event 32)          ; 32 = space TODO!
-                  (return))))
-              
-              (draw-proc)
-
-              (cond
-               ((equal? mode 'single-frame)
-                (return))
-               ((equal? mode 'loop)
-                (loop))
-               (else
-                (error "wrong draw mode specified"))))))))
-
-    (lambda (layer-selector-arg mode-arg)
-      (set! layer-selector layer-selector-arg)
-      (set! mode mode-arg)
-      (call/cc control-state))))
+                 ((equal? mode 'single-frame)
+                  '())
+                 ((equal? mode 'loop)
+                  (loop))
+                 (else
+                  (error "wrong draw mode specified"))))))))
 
 ;-------------------------------------------------------------------------------
 ; Visualization environment

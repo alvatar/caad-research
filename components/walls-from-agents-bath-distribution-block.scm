@@ -106,7 +106,7 @@
                     (world-agents world)
                     room)))
         (if (null? agent)
-            (begin (display "No agent found in a room!!") graph)
+            (begin (display "No agent found in a room!!\n") graph)
             (op:rename graph
                        room
                        (symbol->string

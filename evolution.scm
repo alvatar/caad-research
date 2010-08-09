@@ -76,10 +76,6 @@
        ((only-show-graph)
         (lambda (graph)
           (visualize-graph graph)
-          (visualization:do-now)
-          (visualization:forget-all)
-          (step)
-          (visualize-graph graph)
           (visualization:do-loop)
           (list graph)))
        (else

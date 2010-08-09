@@ -28,10 +28,10 @@
        (let ((new-score (total-score new-graph)))
          (iff (> new-score 0) ; TODO: select only if better than all in the pool
               (begin
+                (display "Solution selected!\n")
                 (visualization:forget-all)
                 (visualize-graph new-graph)
-                (visualization:do-now)
-                (step)
+                (visualization:do-loop)
                 (make-evaluated-graph new-graph
                                       (exact->inexact
                                        new-score)))))))
