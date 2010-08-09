@@ -26,6 +26,8 @@
 
 (export agents-hinted-evolutionary-distribution)
 
+(%activate-checks)
+
 
 (define (score agents graph limits)
   (+ (score-agent-illumination agents graph)
@@ -79,11 +81,12 @@
                                           (map (lambda (pipe)
                                                  (~distance.point-point s (pipe-position pipe)))
                                                (graph:find.pipes graph)))
-                                         8.0)) ; closer than 8 m.
+                                         80.0)) ; is it closer than this?
                                     foldedslots)
                        (values (make-agent-simple
                                 (agent-label a)
-                                (list p))
+                                (list (%accept #t "agents-regenerator couldn't find a place for the kichen agent"
+                                               p)))
                                rslots)))
              (else
               (receive (p rslots)

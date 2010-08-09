@@ -178,7 +178,7 @@
 (define (sxml:make-wall e)
   `(wall
     (@ (uid ,(wall-uid e))
-       ,@(wall-metadata e))
+       ,(assoc 'type (wall-metadata e)))
     ,@(map (lambda (p)
              (%accept (point? p))
              (sxml:point->archpoint p))
@@ -224,7 +224,7 @@
   (let ((raw ((sxpath '(@ type)) wall)))
     (if (null? raw)
         raw
-        (cadar raw))))
+        `((type ,(cadar raw))))))
 
 ;;; Convert a wall into a list of points
 
@@ -363,13 +363,18 @@
 (define (sxml:entry->pseq graph entry)
   (let* ((wall (sxml:find-wall/uid graph (sxml:entry-wall-uid entry)))
          (doors (sxml:wall-doors wall)))
-    (let ((door-number (sxml:entry-door-num entry)))
+    (let ((door-number (sxml:entry-door-num entry))) ; first we try with door ref
      (if (and (not-null? doors)
-              (not-null? door-number) ; first we try with door reference
+              (not-null? door-number)
               (< door-number (length doors)))
          (sxml:wall-element->pseq (list-ref doors door-number)
                                   wall)
-         (error "entry door creation with a point remains unimplemented")))))
+         (let ((entry-point (string->number (sxml:entry-wall-point entry)))
+               (wallp (sxml:wall->pseq wall)))
+           (let ((center (pseq:relative-position->point wallp entry-point))
+                 (direction (pseq:~normalized-tangent-in-relative wallp entry-point))) ; TODO: WRONG! normalized!
+             (list (vect2+ center (vect2:*scalar direction #e0.4))
+                   (vect2+ center (vect2:*scalar (direction:reverse direction) #e0.4)))))))))
 
 ;;; Get the wall uid where the entry is
 

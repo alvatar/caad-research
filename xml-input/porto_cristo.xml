@@ -143,7 +143,8 @@
             </wall>
             <wall uid="ae85ef32-9e3e-11df-a499-c982df01e4f2">
                 <pt x="4.600755" y="0.004045"></pt>
-                <pt x="0.006165" y="0.000000"></pt>
+				<pt x="0.006165" y="0.000000"></pt>
+				<door from="0.4" to="0.5"/>
             </wall>
             <structural uid="ae85f590-9e3e-11df-a499-c982df01e4f2">
                 <center x="0.021396" y="1.544614"></center>
@@ -194,7 +195,7 @@
                 <dim a="0.490003" b="0.490000"></dim>
             </structural>
             <entry wall-uid="ae85ef32-9e3e-11df-a499-c982df01e4f2" door-number="0" pt="7.589199"></entry>
-            <pipe x="31.280201" y="28.019316"></pipe>
+            <pipe x="3.280201" y="2.019316"></pipe>
         </architecture>
     </floorplan>
 </ensanche>

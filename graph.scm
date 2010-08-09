@@ -38,7 +38,7 @@
 ;;; Make a wall without metadata, doors or windows
 
 (define (make-wall-plain uid pseq)
-  (make-wall uid '((type new)) pseq '() '()))
+  (make-wall uid '((type "new")) pseq '() '()))
 
 (define-type window pseq from to)
 ;; (define-list-record-type window
