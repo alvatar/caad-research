@@ -71,25 +71,23 @@
 ;;; computation of their intersections
 
 (define (graph+line->context graph line)
-  (visualization:line-now line)
   (receive (rooms walls intersections)
            (graph:relative-line-intersections graph line)
            (begin
              (%deny (or (null? walls)
                         (null? intersections))
                     "no intersections found, can't create context")
-            `(#f ,graph        ; #f for the n-ary tree internal nodes
-                 (#f           ; TODO: DOESN'T WORK WITH MORE THAN ONE
-                  ,rooms
-                  ,@(zip (make-list (length walls) #f)
-                         walls
-                         intersections))))))
+             `(#f ,graph       ; #f for the n-ary tree internal nodes
+                  (#f          ; TODO: DOESN'T WORK WITH MORE THAN ONE
+                   ,rooms
+                   ,@(zip (make-list (length walls) #f)
+                          walls
+                          intersections))))))
 
 ;;; Takes a graph, a room and an infinite line and builds the context with
 ;;; the computation of the intersection between the room and the line
 
 (define (room+line->context graph room line)
-  (visualization:line-now line)
   (receive (walls intersections)
            (graph:room-relative-line-intersections graph room line)
            (begin
@@ -102,6 +100,11 @@
                    ,@(zip (make-list (length walls) #f)
                           walls
                           intersections))))))
+
+;;; Builds the context from two rooms
+
+(define (room+room->context graph r1 r2)
+  (error " unimplemented"))
 
 ;-------------------------------------------------------------------------------
 ; Context transformers

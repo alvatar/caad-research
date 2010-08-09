@@ -104,8 +104,8 @@
                                   (symbol->string (agent-label a))
                                   "Arial"
                                   0.3
-                                  (+ (vect2-x pos) 0.6)
-                                  (+ (vect2-y pos) 0.2))))
+                                  (+ (vect2-x pos) 0.3)
+                                  (+ (vect2-y pos) 0.1))))
     90))
 
 ;;; World visualization

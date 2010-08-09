@@ -77,23 +77,39 @@
     (values
      (let do-all-rooms ((graph graph)
                         (room (find-next-room-to-partition graph)))
-       (visualization:forget-all)
-       (visualize-graph graph)
-       (visualize-world world graph)
-       (visualization:do-now)
+       ;; (visualization:forget-all)
+       ;; (visualize-graph graph)
+       ;; (visualize-world world graph)
+       ;; (visualization:do-now)
        (let* ((new-graph (op:cut (room+line->context graph
                                                      room
-                                                     (visualization:line-now
-                                                      (point+direction->line
-                                                       (choose-point graph room)
-                                                       (direction:perpendicular
-                                                        distribution-direction))))))
+                                                     (point+direction->line
+                                                      (choose-point graph room)
+                                                      (direction:perpendicular
+                                                       distribution-direction)))))
               (next-room (find-next-room-to-partition new-graph)))
          (if next-room
              (do-all-rooms new-graph
                            next-room)
              new-graph)))
      world)))
+
+;;; Check if there is the proper relationship between agents and rooms, fix if needed
+
+(define (merge-residual-space graph world)
+  (define (choose-merge-room room)
+    (error "unimplemented"))
+  (let loop-until-fixed ((graph graph))
+    (aif wrong-room
+         (find
+          (lambda (r)
+            (not (= (num-agents-in-room graph (world-agents world) r) 1)))
+          (graph:find.rooms graph))
+         (values graph world) ;; TODO!!!!!!!!!!!!!!!!!!!!!!!!!
+         #;(loop-until-fixed '(op:merge-rooms
+                             (room+room->context wrong-room
+                                                 (choose-merge-room wrong-room))))
+         (values graph world))))
 
 ;;; Give the proper name to rooms
 
@@ -106,7 +122,17 @@
                     (world-agents world)
                     room)))
         (if (null? agent)
-            (begin (display "No agent found in a room!!\n") graph)
+            (begin (display "No agent found in a room!!\n")
+                   ;; TODO!!!!!!!!!!!!!!!!
+                   ;; (find (lambda (r)
+                   ;;         (> (pv (num-agents-in-room graph (world-agents world) r)) 1))
+                   ;;       (graph:find.rooms graph))
+                   ;; (visualization:forget-all)
+                   ;; (visualize-graph graph)
+                   ;; (visualize-world world graph)
+                   ;; (visualization:do-now)
+                   ;; (step)
+                   graph)
             (op:rename graph
                        room
                        (symbol->string
@@ -123,8 +149,6 @@
   (visualize-graph graph)
   (visualize-world world graph)
   (visualization:do-now)
-  ;(pp graph)
-  ;(step)
   (values graph world))
 
 ;;; The component
@@ -134,6 +158,7 @@
     ((compose-right
       add-bath-corridor-block
       add-rest-of-rooms
+      merge-residual-space
       name-rooms
       draw-result)
      graph

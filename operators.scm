@@ -185,7 +185,8 @@
 
 ;;; Merge two rooms
 
-(define (op:merge-rooms graph context-selector constraints)
+(define (op:merge-rooms context)
+  (error "op:merge-rooms pending review")
   (if (null-list? (context-selector graph)) ; TODO: TEMP!!!
       graph
       

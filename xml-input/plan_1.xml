@@ -174,7 +174,7 @@
                 <center x="5.258489" y="7.423174"></center>
                 <dim a="0.295482" b="0.295482"></dim>
             </structural>
-            <entry wall-uid="f38b4dde-a13b-11df-a499-c982df01e4f2" pt="0.758561"></entry>
+            <entry wall-uid="f38b4dde-a13b-11df-a499-c982df01e4f2" pt="0.958561"></entry>
             <pipe x="22.049557" y="8.887499"></pipe>
         </architecture>
     </floorplan>
