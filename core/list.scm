@@ -165,7 +165,7 @@
      (map (lambda (e) (if (p e) (f e) e)) l))
     ((_ p ft ff l)
      (map (lambda (e) (if (p e) (ft e) (ff e))) l))))
-		 
+         
 ;;; Map and cond combined: maps applying a function to the elements that
 ;;; satisfy each predicate. It can contain an else clause
 
@@ -173,75 +173,70 @@
   (syntax-rules (else)
     ;; Implicit with selector
     ((_ ((?letb <- ?s) ...) ((?p ?f) ...) ?l . ?lt) ; entry for implicit vars with selector
-     (map-cond "make-expl/sel" ((?letb ?s) ...) () ((?p ?f) ...) () (?l . ?lt)))
-    ((_ "make-expl/sel" ?let-block (?vars ...) ((?p ?f) ...) (?l ...) (?lh . ?lls)) ; recur
-     (map-cond "make-expl/sel" ?let-block (?vars ... x) ((?p ?f) ...) (?l ... ?lh) ?lls))
-    ((_ "make-expl/sel" ?let-block (?vars ...) ((?p ?f) ...) (?l ...) ()) ; finalize
-     (map-cond "make-expl/sel-init-let" (?vars ...) ?let-block ((?p ?f) ...) (?l ...)))
+     (map-cond "expl/sel" ((?letb ?s) ...) () ((?p ?f) ...) () (?l . ?lt)))
+    ((_ "expl/sel" ?let-block (?vars ...) ((?p ?f) ...) (?l ...) (?lh . ?lls)) ; recur
+     (map-cond "expl/sel" ?let-block (?vars ... x) ((?p ?f) ...) (?l ... ?lh) ?lls))
+    ((_ "expl/sel" ?let-block (?vars ...) ((?p ?f) ...) (?l ...) ()) ; finalize
+     (map-cond "expl/sel-init-let" (?vars ...) ?let-block ((?p ?f) ...) (?l ...)))
 
-    ((_ "make-expl/sel-init-let" ?vars ((?bind ?s) . ?ct) ?cond-block (?l ...)) ; init let
-     (map-cond "make-expl/sel-let" ?vars ?ct ((?bind (?s . ?vars))) ?cond-block (?l ...)))    
-    ((_ "make-expl/sel-let" ?vars ((?bind ?s) . ?ct) (?bind-list ...) ?cond-block (?l ...)) ; recur let
-     (map-cond "make-expl/sel-let" ?vars ?ct (?bind-list ... (?bind (?s . ?vars))) ?cond-block (?l ...)))
-    ((_ "make-expl/sel-let" ?vars () (?bind-list ...) ?cond-block (?l ...)) ; finalize let
-     (map-cond "make-expl/sel-init-cond" ?cond-block ?vars (?bind-list ...) (?l ...)))
+    ((_ "expl/sel-init-let" ?vars ((?bind ?s) . ?ct) ?cond-block (?l ...)) ; init let
+     (map-cond "expl/sel-let" ?vars ?ct ((?bind (?s . ?vars))) ?cond-block (?l ...)))    
+    ((_ "expl/sel-let" ?vars ((?bind ?s) . ?ct) (?bind-list ...) ?cond-block (?l ...)) ; recur let
+     (map-cond "expl/sel-let" ?vars ?ct (?bind-list ... (?bind (?s . ?vars))) ?cond-block (?l ...)))
+    ((_ "expl/sel-let" ?vars () (?bind-list ...) ?cond-block (?l ...)) ; finalize let
+     (map-cond "expl/sel-init-cond" ?cond-block ?vars (?bind-list ...) (?l ...)))
     
-    ((_ "make-expl/sel-init-cond" ((else ?f) . ?ct) ?vars ?let-block  (?l ...)) ; error: else is first
+    ((_ "expl/sel-init-cond" ((else ?f) . ?ct) ?vars ?let-block  (?l ...)) ; error: else is first
      (error "Syntax error: else clause can't be first"))
-    ((_ "make-expl/sel-init-cond" ((?p ?f) . ?ct) ?vars ?let-block (?l ...)) ; init
-     (map-cond "make-vars/sel-cond" ?ct ((?p ?f)) ?vars ?let-block (?l ...)))    
-    ((_ "make-vars/sel-cond" ((else ?f)) (?conds ...) ?vars ?let-block (?l ...)) ; catch given 'else'
-     (map-cond "make-vars/sel-cond-else" ?f (?conds ...) ?vars ?let-block (?l ...)))
-    ((_ "make-vars/sel-cond" ((else ?f) . ?ct) (?conds ...) ?vars ?let-block (?l ...)) ; error: else is not last
+    ((_ "expl/sel-init-cond" ((?p ?f) . ?ct) ?vars ?let-block (?l ...)) ; init
+     (map-cond "expl/sel-cond" ?ct ((?p ?f)) ?vars ?let-block (?l ...)))    
+    ((_ "expl/sel-cond" ((else ?f)) (?conds ...) ?vars ?let-block (?l ...)) ; catch given 'else'
+     (map (lambda ?vars (let ?let-block (cond ?conds ... (else ?f)))) ?l ...))
+    ((_ "expl/sel-cond" ((else ?f) . ?ct) (?conds ...) ?vars ?let-block (?l ...)) ; error: else is not last
      (error "Syntax error: else clause must be last"))
-    ((_ "make-vars/sel-cond" ((?p ?f) . ?ct) (?conds ...) ?vars ?let-block (?l ...)) ; recur
-     (map-cond "make-vars/sel-cond" ?ct (?conds ... (?p ?f)) ?vars ?let-block (?l ...)))
-
-    ((_ "make-vars/sel-cond" () (?conds ...) ?vars ?let-block (?l ...)) ; finalize cond
+    ((_ "expl/sel-cond" ((?p ?f) . ?ct) (?conds ...) ?vars ?let-block (?l ...)) ; recur
+     (map-cond "expl/sel-cond" ?ct (?conds ... (?p ?f)) ?vars ?let-block (?l ...)))
+    ((_ "expl/sel-cond" () (?conds ...) ?vars ?let-block (?l ...)) ; finalize cond
      (map (lambda ?vars (let ?let-block (cond ?conds ... (else #f)))) ?l ...))
-    ((_ "make-vars/sel-cond-else" ?ef (?conds ...) ?vars ?let-block (?l ...)) ; finalize cond with given else
-     (map (lambda ?vars (let ?let-block (cond ?conds ... (else ?ef)))) ?l ...))    
 
     ;; Explicit
     ((_ (?vars ...) ((?p ?f ...) ...) ?l ...) ; entry for explicit vars case
-     (map-cond "make-explicit-vars-init" (?vars ...) ((?p ?f ...) ...) ?l ... ))
+     (map-cond "expl-init" (?vars ...) ((?p ?f ...) ...) ?l ... ))
     
-    ((_ "make-explicit-vars-init" (?vars ...) ((else ?f ...) . ?ct) ?l ...) ; error: else is first
+    ((_ "expl-init" (?vars ...) ((else ?f ...) . ?ct) ?l ...) ; error: else is first
      (error "Syntax error: else clause can't be first"))
-    ((_ "make-explicit-vars-init" (?vars ...) (((?p ...) ?f ...) . ?ct) ?l ...) ; init make-explicit-vars
-     (map-cond "make-explicit-vars" (?vars ...) ?ct (((?p ...) ?f ...)) (?l ...)))
+    ((_ "expl-init" (?vars ...) (((?p ...) ?f ...) . ?ct) ?l ...) ; init explicit-vars
+     (map-cond "expl-cond" (?vars ...) ?ct (((?p ...) ?f ...)) (?l ...)))
 
-    ((_ "make-explicit-vars" (?vars ...) ((else ?f . ?ft)) (?conds ...) (?l ...)) ; catch given 'else'
+    ((_ "expl-cond" (?vars ...) ((else ?f . ?ft)) (?conds ...) (?l ...)) ; catch given 'else'
      (map (lambda (?vars ...) (cond ?conds ... (else ?f . ?ft))) ?l ...))
-    ((_ "make-explicit-vars" (?vars ...) ((else ?f . ?ft) . ?ct) (?conds ...) (?l ...)) ; error: else is not last
+    ((_ "expl-cond" (?vars ...) ((else ?f . ?ft) . ?ct) (?conds ...) (?l ...)) ; error: else is not last
      (error "Syntax error: else clause must be last"))
-    ((_ "make-explicit-vars" (?vars ...) (((?p ...) ?f ...) . ?ct) (?conds ...) (?l ...)) ; recur make-explicit-vars
-     (map-cond "make-explicit-vars" (?vars ...) ?ct (?conds ... ((?p ...) ?f ...)) (?l ...)))
-    ((_ "make-explicit-vars" (?vars ...) () (?conds ...) (?l ...)) ; finalize with default 'else'
+    ((_ "expl-cond" (?vars ...) (((?p ...) ?f ...) . ?ct) (?conds ...) (?l ...)) ; recur explicit-vars
+     (map-cond "expl-cond" (?vars ...) ?ct (?conds ... ((?p ...) ?f ...)) (?l ...)))
+    ((_ "expl-cond" (?vars ...) () (?conds ...) (?l ...)) ; finalize with default 'else'
      (map (lambda (?vars ...) (cond ?conds ... (else #f))) ?l ...))
 
     ;; Implicit
     ((_ ((?p ?f) ...) ?l . ?lt) ; entry for given vars case
-     (map-cond "make-vars" () ((?p ?f) ...) () (?l . ?lt)))
-    ((_ "make-vars" (?vars ...) ((?p ?f) ...) (?l ...) (?lh . ?lls)) ; recur make-vars
-     (map-cond "make-vars" (?vars ... x) ((?p ?f) ...) (?l ... ?lh) ?lls))
-    ((_ "make-vars" (?vars ...) ((?p ?f) ...) (?l ...) ()) ; finalize make-vars
-     (map-cond "make-cond-init" (?vars ...) ((?p ?f) ...) (?l ...)))
+     (map-cond "impl" () ((?p ?f) ...) () (?l . ?lt)))
+    ((_ "impl" (?vars ...) ((?p ?f) ...) (?l ...) (?lh . ?lls)) ; recur vars
+     (map-cond "impl" (?vars ... x) ((?p ?f) ...) (?l ... ?lh) ?lls))
+    ((_ "impl" (?vars ...) ((?p ?f) ...) (?l ...) ()) ; finalize vars
+     (map-cond "impl-cond-init" (?vars ...) ((?p ?f) ...) (?l ...)))
 
-    ((_ "make-cond-init" ?vars ((else ?f) . ?ct) (?l ...)) ; error: else is first
+    ((_ "impl-cond-init" ?vars ((else ?f) . ?ct) (?l ...)) ; error: else is first
      (error "Syntax error: else clause can't be first"))
-    ((_ "make-cond-init" ?vars ((?p ?f) . ?ct) (?l ...)) ; init make-cond
-     (map-cond "make-cond" ?vars ?ct (((?p . ?vars) (?f . ?vars))) (?l ...)))    
-    ((_ "make-cond" ?vars ((else ?f)) (?conds ...) (?l ...)) ; catch given 'else' in make-cond
-     (map-cond "make-cond-else" ?vars ?f (?conds ...) (?l ...)))
-    ((_ "make-cond" ?vars ((else ?f) . ?ct) (?conds ...) (?l ...)) ; error: else is not last
+    ((_ "impl-cond-init" ?vars ((?p ?f) . ?ct) (?l ...)) ; init cond
+     (map-cond "impl-cond" ?vars ?ct (((?p . ?vars) (?f . ?vars))) (?l ...)))    
+    ((_ "impl-cond" ?vars ((else ?f)) (?conds ...) (?l ...)) ; catch given 'else' in cond
+     (map (lambda ?vars (cond ?conds ... (else (?f . ?vars)))) ?l ...))
+    ((_ "impl-cond" ?vars ((else ?f) . ?ct) (?conds ...) (?l ...)) ; error: else is not last
      (error "Syntax error: else clause must be last"))
-    ((_ "make-cond" ?vars ((?p ?f) . ?ct) (?conds ...) (?l ...)) ; recur make-cond
-     (map-cond "make-cond" ?vars ?ct (?conds ... ((?p . ?vars) (?f . ?vars))) (?l ...)))
-    ((_ "make-cond" ?vars () (?conds ...) (?l ...)) ; finalize make-cond with default 'else'
+    ((_ "impl-cond" ?vars ((?p ?f) . ?ct) (?conds ...) (?l ...)) ; recur cond
+     (map-cond "impl-cond" ?vars ?ct (?conds ... ((?p . ?vars) (?f . ?vars))) (?l ...)))
+    ((_ "impl-cond" ?vars () (?conds ...) (?l ...)) ; finalize cond with default 'else'
      (map (lambda ?vars (cond ?conds ... (else #f))) ?l ...))
-    ((_ "make-cond-else" ?vars ?ef (?conds ...) (?l ...)) ; finalize with given else
-     (map (lambda ?vars (cond ?conds ... (else (?ef . ?vars)))) ?l ...))
 
     ;; Global wrong syntax cases
     ((_ ((any ...) ...) thing ...) ; detect wrong syntax
@@ -666,3 +661,4 @@
   (lambda ()
     (begin0 (car l)
             (set! l (cdr l)))))
+
