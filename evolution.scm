@@ -13,7 +13,9 @@
         core/syntax
         core/debugging
         generation
-        selection)
+        graph-visualization
+        selection
+        visualization)
 
 ;;; Clean a pool, keeping only the graph, no extra info
 
@@ -70,5 +72,15 @@
                               (sub1 pool-size))
                         (loop pool
                               pool-size))))))))
+       ;; Just show the graph
+       ((only-show-graph)
+        (lambda (graph)
+          (visualize-graph graph)
+          (visualization:do-now)
+          (visualization:forget-all)
+          (step)
+          (visualize-graph graph)
+          (visualization:do-loop)
+          (list graph)))
        (else
         (error "evolver type not implemented"))) seed-data)))

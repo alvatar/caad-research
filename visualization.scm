@@ -19,9 +19,11 @@
         math/inexact-algebra)
 
 (export maxx maxy)
-(export visualization:do-later
+(export visualization:exit
+        visualization:do-later
         visualization:do-now
         visualization:do-now-layers
+        visualization:do-loop
         visualization:forget-layers
         visualization:forget-all
         visualization:layer-depth-set!
@@ -48,17 +50,20 @@
 (define maxx 500)
 (define maxy 500)
 
-(define (representation-cleanup)
+;;; Force visualization cleanup
+
+(define (visualization:exit)
   (SDL::exit))
 
-;;; Visualization loop, controlled with continuations
+;;; Visualization control routine
 
-(define visualize-loop-with-continuation
+(define visualization-control
   (letrec
       ((layer-selector #f)
+       (mode #f)
        (control-state
         (lambda (return)
-          (let* ((error (SDL::init SDL::init-video))
+          (let* ((error (begin (pp "ASDFASDF") (SDL::init SDL::init-video)))
                  (sdl-surface (SDL::set-video-mode maxx maxy 0 (+ SDL::hwsurface
                                                                   SDL::hwpalette
                                                                   SDL::doublebuf)))
@@ -68,11 +73,24 @@
                                  maxx
                                  maxy
                                  (SDL::screen-pitch sdl-surface)))
-                 (cairo (cairo-create image-surface)))
+                 (cairo (cairo-create image-surface))
+                 (draw-proc (lambda ()
+                              (cairo-set-source-rgba cairo 1.0 1.0 1.0 1.0)
+                              (cairo-rectangle cairo 0.0 0.0 (exact->inexact maxx) (exact->inexact maxy))
+                              (cairo-fill cairo)
+
+                              (for-each
+                               (lambda (e)
+                                 (if (layer-selector e)
+                                     ((painter-procedure e) cairo visualization-environment)))
+                               external-painters)
+
+                              (SDL::flip sdl-surface))))
+            (draw-proc)
             (set! return (call/cc
                           (lambda (resume-here)
                             (set! control-state resume-here)
-                            (return))))
+                            return)))
             (let loop ()
               ;; (SDL::delay 20)
               (let ((event (SDL::event-exit)))
@@ -84,29 +102,20 @@
                  ((= event 32)          ; 32 = space TODO!
                   (return))))
               
-              (cairo-set-source-rgba cairo 1.0 1.0 1.0 1.0)
-              (cairo-rectangle cairo 0.0 0.0 (exact->inexact maxx) (exact->inexact maxy))
-              (cairo-fill cairo)
+              (draw-proc)
 
-              (for-each
-               (lambda (e)
-                 (if (layer-selector e)
-                     ((painter-procedure e) cairo visualization-environment)))
-               external-painters)
+              (cond
+               ((equal? mode 'single-frame)
+                (return))
+               ((equal? mode 'loop)
+                (loop))
+               (else
+                (error "wrong draw mode specified"))))))))
 
-              (SDL::flip sdl-surface)
-              (return)         ; Comment to avoid exiting drawing loop
-
-              (loop))))))
-
-    (lambda (lsel)
-      (set! layer-selector lsel)
+    (lambda (layer-selector-arg mode-arg)
+      (set! layer-selector layer-selector-arg)
+      (set! mode mode-arg)
       (call/cc control-state))))
-
-;;; Entry point for visualization with layer selection
-
-(define (immediate-visualization-selector layer-selector)
-  (visualize-loop-with-continuation layer-selector))
 
 ;-------------------------------------------------------------------------------
 ; Visualization environment
@@ -125,26 +134,37 @@
 ;;; Execute now the sequence of representation of the selected layers
 
 (define (visualization:do-now-layers layers)
-  (immediate-visualization-selector
-    (lambda (e)
-      (any (lambda (l) (equal? (painter-layer e) l))
-           layers))))
+  (visualization-control
+   (lambda (e)
+     (any (lambda (l)
+            (equal? (painter-layer e) l))
+          layers))
+   'single-frame))
 
 ;;; Execute now the full sequence of representation of the all the layers
 
 (define (visualization:do-now)
-  (immediate-visualization-selector
-    (lambda (e) #t)))
+  (visualization-control
+   (lambda (e) #t)
+   'single-frame))
+
+;;; Execute now the representation sequence in a loop, controlled by SDL
+
+(define (visualization:do-loop)
+  (visualization-control
+   (lambda (e) #t)
+   'loop))
 
 ;;; Remove layer
 
 (define (visualization:forget-layers layers)
   (set! external-painters
-    (remove
-      (lambda (e)
-      (any (lambda (l) (equal? (painter-layer e) l))
-           layers))
-      external-painters)))
+        (remove
+         (lambda (e)
+           (any (lambda (l)
+                  (equal? (painter-layer e) l))
+                layers))
+         external-painters)))
 
 ;;; Cleans all the external visualization procedures pending of execution
 
@@ -155,31 +175,31 @@
 
 (define (visualization:layer-exists? layer)
   (any
-    (lambda (p)
-      (equal? (painter-layer p) layer))
-    external-painters))
+   (lambda (p)
+     (equal? (painter-layer p) layer))
+   external-painters))
 
 ;;; Layer depth
 
 (define (visualization:layer-depth layer)
-  (painter-depth (find ; Only looks at first occurence of layer
-                   (lambda (p)
-                     (equal? (painter-layer p) layer))
-                   external-painters)))
+  (painter-depth (find        ; Only looks at first occurence of layer
+                  (lambda (p)
+                    (equal? (painter-layer p) layer))
+                  external-painters)))
 
 ;;; Layer depth set
 
 (define (visualization:layer-depth-set! layer depth)
   (for-each
-    (lambda (p)
-      (if (equal? (painter-layer p) layer)
-        (painter-depth-set! p depth)
-        p))
-    external-painters)
+   (lambda (p)
+     (if (equal? (painter-layer p) layer)
+         (painter-depth-set! p depth)
+         p))
+   external-painters)
   (sort!
-    external-painters
-    (lambda (p1 p2)
-      (< (painter-depth p1) (painter-depth p2)))))
+   external-painters
+   (lambda (p1 p2)
+     (< (painter-depth p1) (painter-depth p2)))))
 
 ;;; Receive a procedure for visualization from another module, so it can be
 ;;; executed at its right time
@@ -188,18 +208,18 @@
 
 (define (visualization:do-later layer new-procedure)
   (append-painter! external-painters (make-painter
-                                       layer
-                                       (if (visualization:layer-exists? layer)
-                                           (visualization:layer-depth layer)
-                                         0)
-                                       new-procedure)))
+                                      layer
+                                      (if (visualization:layer-exists? layer)
+                                          (visualization:layer-depth layer)
+                                          0)
+                                      new-procedure)))
 
 (define external-painters (list (make-painter '%0 0 (lambda (backend env-vis) '())))) ; Why should I add something so it is a list?
 
 (define (append-painter! list-procs proc)
   (if (null? (cdr list-procs))
       (set-cdr! list-procs (list proc))
-    (append-painter! (cdr list-procs) proc)))
+      (append-painter! (cdr list-procs) proc)))
 
 ;-------------------------------------------------------------------------------
 ; High-level procedures for painting
@@ -215,11 +235,11 @@
                  (exact->inexact (vect2-x (car points)))
                  (exact->inexact (vect2-y (car points))))
   (for-each
-    (lambda (point)
-      (cairo-line-to cairo
-                     (exact->inexact (vect2-x point))
-                     (exact->inexact (vect2-y point))))
-    (cdr points))
+   (lambda (point)
+     (cairo-line-to cairo
+                    (exact->inexact (vect2-x point))
+                    (exact->inexact (vect2-y point))))
+   (cdr points))
   (cairo-stroke cairo))
 
 ;;; Paint a polygon given a list of 2d points
@@ -232,11 +252,11 @@
                  (exact->inexact (vect2-x (car points)))
                  (exact->inexact (vect2-y (car points))))
   (for-each
-    (lambda (point)
-      (cairo-line-to cairo
-                     (exact->inexact (vect2-x point))
-                     (exact->inexact (vect2-y point))))
-    (cdr points))
+   (lambda (point)
+     (cairo-line-to cairo
+                    (exact->inexact (vect2-x point))
+                    (exact->inexact (vect2-y point))))
+   (cdr points))
   (cairo-close-path cairo)
   (cairo-fill cairo))
 
@@ -265,10 +285,10 @@
 
 (define (visualization:paint-set-line-cap cairo style)
   (cond
-    ((equal? style 'square)
-     (cairo-set-line-cap cairo CAIRO_LINE_CAP_SQUARE))
-    ((equal? style 'butt)
-     (cairo-set-line-cap cairo CAIRO_LINE_CAP_BUTT))))
+   ((equal? style 'square)
+    (cairo-set-line-cap cairo CAIRO_LINE_CAP_SQUARE))
+   ((equal? style 'butt)
+    (cairo-set-line-cap cairo CAIRO_LINE_CAP_BUTT))))
 
 ;;; Set line width
 
@@ -280,7 +300,7 @@
 (define (visualization:paint-set-line-style cairo style-as-list)
   (if (null? style-as-list)
       (cairo-restore-line-style cairo)
-    (cairo-set-line-style cairo style-as-list)))
+      (cairo-set-line-style cairo style-as-list)))
 
 ;;; Paint text
 
