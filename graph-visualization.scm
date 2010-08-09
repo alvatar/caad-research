@@ -8,7 +8,7 @@
 (declare (standard-bindings)
          (extended-bindings)
          (block))
-(compile-options force-compile: #t)
+;(compile-options force-compile: #t)
 
 (import core/list)
 (import geometry/kernel)
@@ -96,20 +96,16 @@
        (for-each
         (lambda (elem)
           (if (null? elem)
-              (raise "Malformed SXML")
+              (error "Malformed SXML")
               (cond
-               ((wall? elem)
-                (paint-wall elem))
-               ((structural? elem)
-                (paint-structural elem))
-               ((room? elem)
-                (paint-room elem))
-               ((entry? elem)
-                (paint-entry elem))
-               ((pipe? elem)
-                (paint-pipe elem)))))
-        (graph-architecture graph))))
-    (visualization:layer-depth-set! 'graph 80)
+               ((wall? elem) (paint-wall elem))
+               ((structural? elem) (paint-structural elem))
+               ((room? elem) (paint-room elem))
+               ((entry? elem) (paint-entry elem))
+               ((pipe? elem) (paint-pipe elem))
+               (else (error "sxml architecture list contains an alien element")))))
+        (graph-architecture graph)))
+     80)
 
     (visualization:do-later
      'visual-aids
@@ -123,8 +119,8 @@
          (visualization:paint-set-color backend 0.0 0.0 0.0 0.4)
          (visualization:paint-path backend x-dir-mark)
          (visualization:paint-path backend y-dir-mark)
-         (visualization:paint-set-line-style backend '()))))
-    (visualization:layer-depth-set! 'visual-aids 70)
+         (visualization:paint-set-line-style backend '())))
+     70)
   
     (visualization:do-later
      '%framing
@@ -134,12 +130,31 @@
        (visualization:translate
         backend
         (make-vect2
-         (/ (* (- maxx (* vis-scale (vect2-x size-vec))) 0.5) vis-scale)
-         (/ (* (- maxy (* vis-scale (vect2-y size-vec))) 0.5) vis-scale))))) ; 0.5 stands for half the displacement
-    (visualization:layer-depth-set! '%framing 0)
+         (/ (* (- maxx (* vis-scale (vect2-x size-vec))) 0.5) vis-scale)  ; 0.5 stands for half the displacement
+         (/ (* (- maxy (* vis-scale (vect2-y size-vec))) 0.5) vis-scale))))
+     0)
 
     (visualization:do-later
      '%cleanup
      (lambda (backend vis-env)
-       (visualization:reset-transformations backend)))
-    (visualization:layer-depth-set! '%cleanup 99)))
+       (visualization:reset-transformations backend))
+     99)))
+
+;;; Visualize rooms' labels
+
+(define (visualize-room-uids graph)
+  (for-each
+   (lambda (room)
+     (visualization:do-later
+      'room-uids
+      (lambda (backend vis-env)
+        (let ((pos (pseq:centroid (graph:room->pseq graph room))))
+          (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
+          (visualization:paint-text backend
+                                    (room-uid room)
+                                    "Arial"
+                                    0.3
+                                    (vect2-x pos)
+                                    (vect2-y pos))))
+      90))
+   (graph:find.rooms graph)))

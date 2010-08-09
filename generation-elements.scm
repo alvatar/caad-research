@@ -105,8 +105,8 @@
                                   "Arial"
                                   0.3
                                   (+ (vect2-x pos) 0.6)
-                                  (+ (vect2-y pos) 0.2)))))
-  (visualization:layer-depth-set! 'agents 90))
+                                  (+ (vect2-y pos) 0.2))))
+    90))
 
 ;;; World visualization
 

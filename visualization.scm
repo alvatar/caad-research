@@ -96,12 +96,9 @@
                     (leave))))
                 (draw-frame layer-selector)
                 (cond
-                 ((equal? mode 'single-frame)
-                  '())
-                 ((equal? mode 'loop)
-                  (loop))
-                 (else
-                  (error "wrong draw mode specified"))))))))
+                 ((equal? mode 'single-frame) mode)
+                 ((equal? mode 'loop) (loop))
+                 (else (error "wrong draw mode specified"))))))))
 
 ;-------------------------------------------------------------------------------
 ; Visualization environment
@@ -192,13 +189,14 @@
 
 (define-structure painter layer depth procedure)
 
-(define (visualization:do-later layer new-procedure)
+(define (visualization:do-later layer new-procedure #!optional depth)
   (append-painter! external-painters (make-painter
                                       layer
                                       (if (visualization:layer-exists? layer)
                                           (visualization:layer-depth layer)
                                           0)
-                                      new-procedure)))
+                                      new-procedure))
+  (if depth (visualization:layer-depth-set! layer depth)))
 
 (define external-painters (list (make-painter '%0 0 (lambda (backend env-vis) '())))) ; Why should I add something so it is a list?
 
