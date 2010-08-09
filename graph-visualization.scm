@@ -78,7 +78,7 @@
         (visualization:paint-polygon backend (graph:room->pseq graph room)))
       ;; Paint entry
       (define (paint-entry entry)
-        (let ((door-mid-point (segment:mid-point (entry-pseq entry))))
+        (let ((door-mid-point (segment:mid-point (pseq->segment (entry-pseq entry)))))
           (visualization:paint-set-color backend 1.0 0.45 0.45 0.4)
           (visualization:paint-circle-fill backend
                                            (vect2-x door-mid-point)
@@ -94,8 +94,7 @@
           (visualization:paint-circle-fill backend (vect2-x pos) (vect2-y pos) 0.06)))
 
       (for-each
-        (lambda
-          (elem)
+        (lambda (elem)
           (if (null? elem)
               (raise "Malformed SXML")
             (cond
@@ -106,8 +105,7 @@
               ((room? elem)
                (paint-room elem))
               ((entry? elem)
-               ;(paint-entry elem))
-               '())
+               (paint-entry elem))
               ((pipe? elem)
                (paint-pipe elem)))))
         (graph-architecture graph))))

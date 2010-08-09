@@ -364,8 +364,8 @@
   (let* ((wall (sxml:find-wall/uid graph (sxml:entry-wall-uid entry)))
          (doors (sxml:wall-doors wall)))
     (let ((door-number (sxml:entry-door-num entry))) ; first we try with door ref
-     (if (and (not-null? doors)
-              (not-null? door-number)
+     (if (and door-number
+              (not-null? doors)
               (< door-number (length doors)))
          (sxml:wall-element->pseq (list-ref doors door-number)
                                   wall)
@@ -384,13 +384,17 @@
 ;;; Get the door number in the wall where the entry is
 
 (define (sxml:entry-door-num entry)
-  (inexact->exact
-   (string->number (cadar ((sxpath '(@ (door-number 1))) entry)))))
+  (aif dnsxml null? ((sxpath '(@ (door-number 1))) entry)
+       #f
+       (inexact->exact
+        (string->number (cadar dnsxml)))))
 
 ;;; Get the door entry point in case where there is not door reference
 
 (define (sxml:entry-wall-point entry)
-  (cadar ((sxpath '(@ (pt 1))) entry)))
+  (aif wpsxml null? ((sxpath '(@ (pt 1))) entry)
+       #f
+       (cadar wpsxml)))
 
 ;-------------------------------------------------------------------------------
 ; Structure
