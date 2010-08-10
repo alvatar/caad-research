@@ -104,7 +104,9 @@
 ;;; Builds the context from two rooms
 
 (define (room+room->context graph r1 r2)
-  (error " unimplemented"))
+  `(#f ,graph
+       ,r1
+       ,r2))
 
 ;-------------------------------------------------------------------------------
 ; Context transformers

@@ -8,15 +8,20 @@
 (declare (standard-bindings)
          (extended-bindings)
          (block))
-;(compile-options force-compile: #t)
+(compile-options force-compile: #t)
 
-(import core/list)
-(import geometry/kernel)
-(import math/exact-algebra)
+(import core/list
+        geometry/kernel
+        math/exact-algebra
+        graph-operations
+        graph
+        visualization)
 
-(import graph-operations)
-(import graph)
-(import visualization)
+(export visualization:do-now
+        visualization:do-loop
+        visualization:forget-all
+        visualize-graph
+        visualize-room-uids)
 
 ;-------------------------------------------------------------------------------
 ; Visualization output

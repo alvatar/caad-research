@@ -98,49 +98,8 @@
   (syntax-rules ()
     ((_ n producer)
      (call-with-values
-       (lambda () producer)
+         (lambda () producer)
        (lambda v (list-ref v n))))))
-
-;;; Demultiplex a list in 2
-
-(define (demultiplex2 f l)
-  (let recur ((l l))
-    (if (null? l)
-        (values l l)
-        (let ((h (car l)))
-          (call-with-values
-              (lambda () (recur (cdr l)))
-            (lambda (a b)
-              (call-with-values
-                  (lambda () (f h))
-                (lambda (p1 p2) (values (cons p1 a)
-                                   (cons p2 b))))))))))
-
-;;; Demultiplex a list
-;;; (demultiplex (lambda (x) (values (car x) (cadr x))) '((a 1) (b 2) (c 3)))
-;;; => (a b c)
-;;;    (1 2 3)
-
-(define (demultiplex f lis)
-  (if (null? lis)
-      '()
-      (let recur ((l lis))
-        (if (null? l)
-            (apply values
-                   (make-list
-                    (values-length (f (car lis)))
-                    '()))
-            (let ((h (car l)))
-              (call-with-values
-                  (lambda () (recur (cdr l)))
-                (lambda tails
-                  (call-with-values
-                      (lambda () (f h))
-                    (lambda produced-vals
-                      (apply values
-                             (map (lambda (p t) (cons p t))
-                                  produced-vals
-                                  tails)))))))))))
 
 ;-------------------------------------------------------------------------------
 ; Map/fold variants
@@ -150,10 +109,8 @@
 
 (define (map* f l)
   (cond
-   ((null? l)
-    '())
-   ((atom? l)
-    (f l))
+   ((null? l) '())
+   ((atom? l) (f l))
    (else
     (cons (map* f (car l)) (map* f (cdr l))))))
 
@@ -165,7 +122,7 @@
      (map (lambda (e) (if (p e) (f e) e)) l))
     ((_ p ft ff l)
      (map (lambda (e) (if (p e) (ft e) (ff e))) l))))
-         
+
 ;;; Map and cond combined: maps applying a function to the elements that
 ;;; satisfy each predicate. It can contain an else clause
 
@@ -180,16 +137,16 @@
      (map-cond "expl/sel-init-let" (?vars ...) ?let-block ((?p ?f) ...) (?l ...)))
 
     ((_ "expl/sel-init-let" ?vars ((?bind ?s) . ?ct) ?cond-block (?l ...)) ; init let
-     (map-cond "expl/sel-let" ?vars ?ct ((?bind (?s . ?vars))) ?cond-block (?l ...)))    
+     (map-cond "expl/sel-let" ?vars ?ct ((?bind (?s . ?vars))) ?cond-block (?l ...)))
     ((_ "expl/sel-let" ?vars ((?bind ?s) . ?ct) (?bind-list ...) ?cond-block (?l ...)) ; recur let
      (map-cond "expl/sel-let" ?vars ?ct (?bind-list ... (?bind (?s . ?vars))) ?cond-block (?l ...)))
     ((_ "expl/sel-let" ?vars () (?bind-list ...) ?cond-block (?l ...)) ; finalize let
      (map-cond "expl/sel-init-cond" ?cond-block ?vars (?bind-list ...) (?l ...)))
-    
+
     ((_ "expl/sel-init-cond" ((else ?f) . ?ct) ?vars ?let-block  (?l ...)) ; error: else is first
      (error "Syntax error: else clause can't be first"))
     ((_ "expl/sel-init-cond" ((?p ?f) . ?ct) ?vars ?let-block (?l ...)) ; init
-     (map-cond "expl/sel-cond" ?ct ((?p ?f)) ?vars ?let-block (?l ...)))    
+     (map-cond "expl/sel-cond" ?ct ((?p ?f)) ?vars ?let-block (?l ...)))
     ((_ "expl/sel-cond" ((else ?f)) (?conds ...) ?vars ?let-block (?l ...)) ; catch given 'else'
      (map (lambda ?vars (let ?let-block (cond ?conds ... (else ?f)))) ?l ...))
     ((_ "expl/sel-cond" ((else ?f) . ?ct) (?conds ...) ?vars ?let-block (?l ...)) ; error: else is not last
@@ -202,7 +159,7 @@
     ;; Explicit
     ((_ (?vars ...) ((?p ?f ...) ...) ?l ...) ; entry for explicit vars case
      (map-cond "expl-init" (?vars ...) ((?p ?f ...) ...) ?l ... ))
-    
+
     ((_ "expl-init" (?vars ...) ((else ?f ...) . ?ct) ?l ...) ; error: else is first
      (error "Syntax error: else clause can't be first"))
     ((_ "expl-init" (?vars ...) (((?p ...) ?f ...) . ?ct) ?l ...) ; init explicit-vars
@@ -228,7 +185,7 @@
     ((_ "impl-cond-init" ?vars ((else ?f) . ?ct) (?l ...)) ; error: else is first
      (error "Syntax error: else clause can't be first"))
     ((_ "impl-cond-init" ?vars ((?p ?f) . ?ct) (?l ...)) ; init cond
-     (map-cond "impl-cond" ?vars ?ct (((?p . ?vars) (?f . ?vars))) (?l ...)))    
+     (map-cond "impl-cond" ?vars ?ct (((?p . ?vars) (?f . ?vars))) (?l ...)))
     ((_ "impl-cond" ?vars ((else ?f)) (?conds ...) (?l ...)) ; catch given 'else' in cond
      (map (lambda ?vars (cond ?conds ... (else (?f . ?vars)))) ?l ...))
     ((_ "impl-cond" ?vars ((else ?f) . ?ct) (?conds ...) (?l ...)) ; error: else is not last
@@ -246,6 +203,18 @@
 ;;; (map/values (lambda (x y z) (values x y z)) '(a 1) '(b 2) '(c 3))
 ;;; => (a b c)
 ;;;    (1 2 3)
+;;;
+;;;     A          B          C
+;;;     +----+     +----+     +----+lists
+;;;  ---+----+-----+----+-----+----+--------> (f A0 B0 C0) ----> val1
+;;;     |0   |     |0   |     |0   |
+;;;     +----+     +----+     +----+
+;;;  ---+----+-----+----+-----+----+--------> (f A1 B1 C1) ----> val2
+;;;     |1   |     |1   |     |1   |
+;;;     +----+     +----+     +----+
+;;;  ---+----+-----+----+-----+----+--------> (f A2 B2 C2) ----> val3
+;;;     |2   |     |2   |     |2   |
+;;;     +----+     +----+     +----+
 
 (define (map/values f . ls)
   (list->values
@@ -255,6 +224,9 @@
 ;;; (fold/values (lambda (x a b) (values (cons (+ 1 x) a) (cons x b))) '(() ()) '(1 2 3 4 5))
 ;;; => (6 5 4 3 2)
 ;;;    (5 4 3 2 1)
+;;; (fold/values (lambda (x a b) (values (cons (car x) a) (cons (cadr x) b))) '(() ()) '((a 1) (b 2) (c 3)))
+;;; => (c b a)
+;;;    (3 2 1)
 
 (define (fold/values kons knil . ls)
   (list->values
@@ -263,7 +235,86 @@
             (let ((rev (reverse args))) ; (x . y (a . b)) -> (x . y . a . b)
               (values->list (apply kons (append (cdr rev) (car rev))))))
           knil
-          ls)))
+          (reverse ls))))
+
+;;; Demultiplex a list
+;;; (demux (lambda (x) (values (car x) (cadr x))) '((a 1) (b 2) (c 3)))
+;;; => (a b c)
+;;;    (1 2 3)
+;;;
+;;;                                 +---+---+---+---+---+list
+;;;                                 |0A |1A |2A |3A |4A |------> val1
+;;;    +---+list            A-->    +-o-+-o-+-o-+---+---+
+;;;    |0  o------+        /         |   |   |
+;;;    +---+      |---> f*  - - - - -+ - + - +
+;;;    |1  o------+        \         |   |   |
+;;;    +---+      |         B-->    +-o-+-o-+-o-+---+---+list
+;;;    |2  o------+                 |0B |1B |2B |3B |4B |------> val2
+;;;    +---+                        +---+---+---+---+---+
+;;;    |3  | - - -+
+;;;    +---+
+;;;    |4  | - - -+ 
+;;;    +---+
+
+(define (demux f lis1 . lists)
+  (if (pair? lists)
+      (cons lis1 lists)
+      (let recur ((l lis1))
+        (if (null? l)
+            (apply values
+                   (make-list
+                    (values-length (f (car lis1)))
+                    '()))
+            (let ((h (car l)))
+              (call-with-values
+                  (lambda () (recur (cdr l)))
+                (lambda tails
+                  (call-with-values
+                      (lambda () (f h))
+                    (lambda produced-vals
+                      (apply values
+                             (map (lambda (p t) (cons p t))
+                                  produced-vals
+                                  tails)))))))))))
+
+;;; Apply a function to values, interleaving multiple sources
+;;; (apply/values (lambda (x y) (cons x y)) (values 'a 'b 'c 'd) (values 1 2 3 4))
+;;;
+;;;              g1 -------+
+;;;             /          |
+;;;            /           |
+;;;           /            |
+;;;          /             +--------> (f g1 h1) --> val1
+;;; g* -->  o--- g2 ----------+
+;;;          \             |  |
+;;;   |       \            |  |
+;;;   |        \           |  |
+;;;   |         \          |  |
+;;;   |          g3 ----+  |  |
+;;; values              |  |  +-----> (f g2 h2) --> val2
+;;;   |          h1 -------+  |
+;;;   |         /       |     |
+;;;   |        /        |     |
+;;;   |       /         |     |
+;;;          /          |     |
+;;; h* -->  o--- h2 ----------+
+;;;          \          +-----------> (f g3 h3) --> val3
+;;;           \         |
+;;;            \        |                            ...
+;;;             \       |
+;;;              h3 ----+
+
+(define-syntax apply/values
+  (syntax-rules ()
+    ((_ "init-transformation" ?l . ?ls)
+     (apply/values "transformation" ((values->list ?l)) . ?ls))
+    ((_ "transformation" (?tr ...))
+     (list ?tr ...))
+    ((_ "transformation" (?tr ...) ?l . ?ls)
+     (apply/values "transformation" (?tr ... (values->list ?l)) . ?ls))
+    ((_ ?f ?ls ...)
+     (list->values
+      (map (lambda (e) (apply ?f e)) (apply zip (apply/values "init-transformation" ?ls ...)))))))
 
 ;;; map+fold combines them two, returning the map and the fold
 ;;; (map+fold (lambda (a b) (values (+ a b) (+ b 1))) 0 '(1 2 3 4))
@@ -297,7 +348,7 @@
 
 ;; TODO: WHY THIS DOESN'T WORK??
 (define (leave-come-back)
-  (let ((L (lambda (k) 
+  (let ((L (lambda (k)
              (let recur ((n 0))
                (if (= n 5)
                    (begin (call/cc (lambda (back) (k n back)))
@@ -499,7 +550,7 @@
         (f (car x:xs)) (f (cdr x:xs)))
        (else
         (set-cdr! last-elt (cons (car x:xs) '()))
-        (set! last-elt (cdr last-elt)) 
+        (set! last-elt (cdr last-elt))
         (f (cdr x:xs)))))
     (f x:xs)
     (cdr result)))
@@ -619,7 +670,7 @@
 (define (slice! l start end)
   (take! (drop l start)
          (- end start)))
- 
+
 ;;; Return two lists of lengths differing with at most one
 
 (define (split-in-halves l) ; TODO: currently reverses first list

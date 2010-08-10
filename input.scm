@@ -16,8 +16,8 @@
 
 ;;; Read XML from file
 
-(define (input-from-xml)
-  (call-with-input-file "xml-input/plan_1.xml"
+(define (input-from-xml filename)
+  (call-with-input-file filename
     (lambda (file)
       (sxml-graph->graph
        (xml->sxml-graph

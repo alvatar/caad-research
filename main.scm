@@ -10,13 +10,12 @@
         output
         visualization)
 
-(define (main)
-  (random-source-randomize! default-random-source) ; Randomizes seed
-  (output-pool
-   (evolution '(fill-pool @pool-size 1)
-              'hinted-evolutionary
-              'keep-best
-              (input-from-xml)))
-  (visualization:exit)
-  (exit 0))
-(main)
+((lambda ()
+   (random-source-randomize! default-random-source)
+   (output-pool
+    (evolution '(fill-pool @pool-size 1)
+               'hinted-evolutionary
+               'keep-best
+               (input-from-xml "xml-input/plan_1.xml")))
+   (visualization:exit)
+   (exit 0)))
