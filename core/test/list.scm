@@ -5,17 +5,44 @@
 ;;; Tests for geometry package
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declare (standard-bindings)
-         (extended-bindings)
-         (block)
-         (mostly-generic))
-(compile-options force-compile: #t)
-
 (import (std srfi/64))
 (import ../list)
 
 ;-------------------------------------------------------------------------------
-(test-begin "list" 13)
+(test-begin "list" 21)
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
+; List/values
+;-------------------------------------------------------------------------------
+
+(test-assert
+ "eqv?+"
+ (let ((str-location "asdf")
+       (proc-location (lambda () 'asdf)))
+   (eqv?+ (values #t #f 'a #\a 1 0.1 8/9 '() str-location proc-location)
+          (values #t #f 'a #\a 1 0.1 8/9 '() str-location proc-location))))
+
+(test-assert
+ "eq?+"
+ (let ((str-location "asdf")
+       (proc-location (lambda () 'asdf)))
+   (eq?+ (values #t #f 'a '() str-location proc-location)
+         (values #t #f 'a '() str-location proc-location))))
+
+(test-assert
+ "equal?+"
+ (equal?+ (values #t #f 'a '(a) 1 0.1 8/9 '() "asdf")
+          (values #t #f 'a '(a) 1 0.1 8/9 '() "asdf")))
+
+(test-assert
+ "pred2?+"
+ (pred2?+ >
+          (values 2 3)
+          (values 1 2)))
+
+;-------------------------------------------------------------------------------
+; Map/fold variants
 ;-------------------------------------------------------------------------------
 
 (test-equal
@@ -130,5 +157,50 @@
  (list 'bingo 2 3 5))
 
 ;-------------------------------------------------------------------------------
+; Map/fold variants
+;-------------------------------------------------------------------------------
+
+(test-assert
+ "map/values"
+ (and
+  (equal?+
+   (map/values (lambda (x y z) (values x y z)) '(a 1) '(b 2) '(c 3))
+   (values '(a b c) '(1 2 3)))
+  (equal?+
+   (map/values (lambda (x y) (cons x y)) '(a b c) '(1 2 3))
+   (values '((a . 1)) '((b . 2)) '((c . 3))))))
+
+(test-assert
+ "fold/values"
+ (and
+  (equal?+
+   (fold/values (lambda (x a b) (values (cons (+ 1 x) a) (cons x b))) '(() ()) '(1 2 3 4 5))
+   (values '(6 5 4 3 2) '(5 4 3 2 1)))
+  (equal?+
+   (fold/values (lambda (x a b) (values (cons (car x) a) (cons (cadr x) b))) '(() ()) '((a 1) (b 2) (c 3)))
+   (values '(c b a) '(3 2 1)))))
+
+(test-assert
+ "demux"
+ (and
+  (equal?+
+   (demux (lambda (x) (values (car x) (cadr x))) '((a 1) (b 2) (c 3)))
+   (values '(a b c) '(1 2 3)))
+  (equal?+
+   (demux (lambda (x y) (values y (cadr x))) '((a 1) (b 2) (c 3)) '(1 2 3 4))
+   (values '(1 2 3) '(1 2 3)))))
+
+(test-assert
+ "apply/values"
+ (and
+  (equal?+
+   (apply/values (lambda (x y) (cons x y)) (values 'a 'b 'c 'd) (values 1 2 3 4))
+   (values '(a . 1) '(b . 2) '(c . 3) '(d . 4)))
+  (equal?+
+   (apply/values (lambda (x) (* x x)) (values 1 2 3 4))
+   (values 1 4 9 16))))
+
+;-------------------------------------------------------------------------------
 (test-end "list")
 ;-------------------------------------------------------------------------------
+ 

@@ -52,21 +52,6 @@
 ; List/values
 ;-------------------------------------------------------------------------------
 
-;;; All cars and all cdrs
-
-(define (cars+cdrs ls)
-  (call/cc
-   (lambda (abort)
-     (let recur ((ls ls))
-       (if (pair? ls)
-           (receive (hl tl) (car+cdr ls)
-                    (if (null-list? hl) (abort '() '())
-                        (receive (a d) (car+cdr hl)
-                                 (receive (cars cdrs) (recur tl)
-                                          (values (cons a cars)
-                                                  (cons d cdrs))))))
-           (values '() '()))))))
-
 ;;; Values to list
 
 (define-syntax values->list
@@ -82,6 +67,49 @@
   (syntax-rules ()
     ((_ l)
      (apply values l))))
+
+;;; Produce a number of identical values
+
+(define (make-values l v)
+  (list->values (make-list l v)))
+
+;;; All values pairs must satisfy the given 2-predicate
+
+(define-syntax pred2?+
+  (syntax-rules ()
+    ((_ ?pred ?a ?b)
+     (let ((la (values->list ?a))
+           (lb (values->list ?b)))
+      (let recur ((la la)
+                  (lb lb))
+        (cond
+         ((null? la) (if (null? lb) #t #f))
+         ((null? lb) (if (null? la) #t #f))
+         (else
+          (and (?pred (car la) (car lb))
+               (recur (cdr la)
+                      (cdr lb))))))))))
+
+;;; All values pairs must satisfy eq?
+
+(define-syntax eq?+
+  (syntax-rules ()
+    ((_ ?a ?b)
+     (pred2?+ eq? ?a ?b))))
+
+;;; All values pairs must satisfy eqv?
+
+(define-syntax eqv?+
+  (syntax-rules ()
+    ((_ ?a ?b)
+     (pred2?+ eqv? ?a ?b))))
+
+;;; All values pairs must satisfy equal?
+
+(define-syntax equal?+
+  (syntax-rules ()
+    ((_ ?a ?b)
+     (pred2?+ equal? ?a ?b))))
 
 ;;; Number of values produced
 
@@ -100,6 +128,21 @@
      (call-with-values
          (lambda () producer)
        (lambda v (list-ref v n))))))
+
+;;; All cars and all cdrs
+
+(define (cars+cdrs ls)
+  (call/cc
+   (lambda (abort)
+     (let recur ((ls ls))
+       (if (pair? ls)
+           (receive (hl tl) (car+cdr ls)
+                    (if (null-list? hl) (abort '() '())
+                        (receive (a d) (car+cdr hl)
+                                 (receive (cars cdrs) (recur tl)
+                                          (values (cons a cars)
+                                                  (cons d cdrs))))))
+           (values '() '()))))))
 
 ;-------------------------------------------------------------------------------
 ; Map/fold variants
@@ -274,13 +317,23 @@
 
 (define (demux f lis1 . lists)
   (if (pair? lists)
-      (cons lis1 lists)
-      (let recur ((l lis1))
+      (let ((all-ls (cons lis1 lists)))
+        (let recur ((ls all-ls))
+          (receive (hs ts)
+                   (cars+cdrs ls)
+                   (if (null? hs)
+                       (make-values (values-length (apply f all-ls)) '())
+                       (call-with-values
+                           (lambda () (recur ts))
+                         (lambda tails
+                           (call-with-values
+                               (lambda () (apply f hs))
+                             (lambda produced-vals
+                               (list->values
+                                (map (lambda (p t) (cons p t)) produced-vals tails))))))))))
+      (let recur ((l lis1)) ; faster
         (if (null? l)
-            (apply values
-                   (make-list
-                    (values-length (f (car lis1)))
-                    '()))
+            (make-values (values-length (f (car lis1))) '())
             (let ((h (car l)))
               (call-with-values
                   (lambda () (recur (cdr l)))
@@ -288,13 +341,13 @@
                   (call-with-values
                       (lambda () (f h))
                     (lambda produced-vals
-                      (apply values
-                             (map (lambda (p t) (cons p t))
-                                  produced-vals
-                                  tails)))))))))))
+                      (list->values
+                       (map (lambda (p t) (cons p t)) produced-vals tails)))))))))))
 
 ;;; Apply a function to values, interleaving multiple sources
-;;; (apply/values (lambda (x y) (cons x y)) (values 'a 'b 'c 'd) (values 1 2 3 4))
+;;; (apply/values (lambda (x y) (cons x y)) (values 'a 'b) (values 1 2))
+;;; => (a . 1)
+;;;    (b . 2)
 ;;;
 ;;;              g1 -------+
 ;;;             /          |
@@ -334,8 +387,8 @@
 
 ;;; map+fold combines them two, returning the map and the fold
 ;;; (map+fold (lambda (a b) (values (+ a b) (+ b 1))) 0 '(1 2 3 4))
-;;; (1 3 5 7)
-;;; 3
+;;; => (1 3 5 7)
+;;;    3
 
 (define (map+fold kons knil lis1 . lists)
   (if (pair? lists)
@@ -379,7 +432,7 @@
 ;;; (map-fold (lambda (a b) (values (+ a b) (+ b 1))) 0 '(1 2 3 4))
 ;;; (1 3 5 7)
 
-(define (map-fold kons knil lis1 . lists) ; OPTIMIZE: meause if better than fold+map specialization
+(define (map-fold kons knil lis1 . lists) ; OPTIMIZE: test if better than fold+map extraction
   (if (pair? lists)
       (let recur ((lists (cons lis1 lists))
                   (fold-ans knil))
