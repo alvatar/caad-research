@@ -457,11 +457,11 @@
 
 ;;; Remove first instance
 
-(define (rember a l) ; TODO: change everywhere to predicate
+(define (rember pred l)
   ((letrec ((R (lambda (l)
                  (cond
                   ((null? l) '())
-                  ((eq? (car l) a) (cdr l))
+                  ((pred (car l)) (cdr l))
                   (else (cons (car l)
                               (R (cdr l)))))))) R) l))
 
