@@ -11,20 +11,63 @@
              srfi/1)
         ../context
         ../input
+        ../geometry/kernel
+        ../geometry/generation
         ../graph-visualization
         ../graph-operations
-        ../operators)
+        ../math/exact-algebra
+        ../operators
+        ../visualization)
+
+(random-source-randomize! default-random-source)
+
+(define (visualize-title text)
+  (visualization:do-later
+   'title
+   (lambda (backend vis-env)
+     (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
+     (visualization:paint-text backend text "Arial" 0.5 0.1 -0.5))
+   50))
+
+((lambda ()
+   (let ((graph (input-from-xml "xml-input/one_room.xml")))
+     (pp graph)
+     (visualize-graph graph)
+     (visualize-title "op:cut (original graph)")
+     (visualization:do-loop)
+
+     (let* ((graph-limits (graph:wall-list->pseq
+                           (graph:find.exterior-walls graph)))
+            (transformed-graph
+             (op:cut (graph+line->context
+                      graph
+                      (point+point->line
+                       (pseq:centroid graph-limits)
+                       (vect2:*scalar (generate.random-point)
+                                      (vect2:max-component
+                                       (bbox:size-segment (pseq->bbox graph-limits)))))))))
+       (pp transformed-graph)
+       (visualization:forget-all)
+       (visualize-graph transformed-graph)
+       (visualize-title "op:cut (transformed graph)")
+       (visualization:do-loop))
+     (visualization:forget-all))))
 
 ((lambda ()
    (let ((graph (input-from-xml "xml-input/two_rooms.xml")))
+     (pp graph)
      (visualize-graph graph)
-     (visualization:do-now)
+     (visualize-title "op:merge (original graph)")
+     (visualization:do-loop)
 
      (let ((transformed-graph
-            (op:merge-rooms (apply room+room->context
-                                   graph
-                                   (graph:find.rooms graph)))))
+            (op:merge (apply room+room->context
+                             graph
+                             (graph:find.rooms graph)))))
+       (pp transformed-graph)
        (visualization:forget-all)
        (visualize-graph transformed-graph)
-       (visualization:do-loop)))
-   (exit 0)))
+       (visualize-title "op:merge (transformed graph)")
+       (visualization:do-loop)
+       (visualization:forget-all))
+     (visualization:forget-all))))

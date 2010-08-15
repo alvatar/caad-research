@@ -329,19 +329,19 @@
 
 ;;; Try and merge into one wall if the two given are parallel
 
-(define (graph:try-and-merge-if-parallel-walls wall-list new-uid)
-  (let ((wall-a-points (wall-pseq (car wall-list))) ; TODO: try to generalize
+(define (graph:try-to-merge-if-parallel-walls wall-list new-uid)
+  (let ((wall-a-points (wall-pseq (car wall-list))) ; TODO: generalize for more than 2
         (wall-b-points (wall-pseq (cadr wall-list))))
-    (if (parallel? wall-a-points wall-b-points)
-        (let ((first-point (if (segment:is-end-point? wall-b-points (car wall-a-points))
+    (if (pseq:parallel-pseq? wall-a-points wall-b-points)
+        (let ((first-point (if (pseq:is-end-point? wall-b-points (car wall-a-points))
                                (cadr wall-a-points)
                                (car wall-a-points)))
-              (second-point (if (segment:is-end-point? wall-a-points (car wall-b-points))
+              (second-point (if (pseq:is-end-point? wall-a-points (car wall-b-points))
                                 (cadr wall-b-points)
                                 (car wall-b-points))))
-          (list (pseq->wall
-                 (list first-point second-point)
-                 new-uid)))
+          (list (make-wall-plain
+                 new-uid
+                 (list first-point second-point))))
         wall-list)))
 
 ;;; Break in two lists from where a wall was found

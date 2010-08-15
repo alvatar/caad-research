@@ -1,0 +1,68 @@
+<ensanche>
+    <client session="madrid bellas artes">
+        <username>chris</username>
+        <address>28 calle de las delicias, madrid, spain</address>
+        <date year="2010" month="01" day="14"/>
+    </client>
+    <floorplan>
+        <representation>
+            <boundingBox>
+                <min x="0" y="0"/>
+                <max x="200" y="200"/>
+            </boundingBox>
+
+            <anyOtherTagForRepresentation>
+            </anyOtherTagForRepresentation>
+        </representation>
+
+	<architecture uid="43CD6949-15FD-401C-BB95-D1D691254283">
+            <room uid="salon">
+                <wall uid="DB7F49A3-BBF6-40F3-95A1-038CCACE1D88"/>
+                <wall uid="B06528DA-C0B9-4583-A7AF-8A3E788DB6EF"/>
+                <wall uid="7F23F0B9-7797-4672-AD65-FC8352F92A24"/>
+                <wall uid="CA106583-D604-4012-BA9D-DD7BFE704ACB"/>
+            </room>
+
+            <structural uid="">
+                <center x="4.0" y="4.0"/>
+                <dim a="0.3" b="0.4"/>
+            </structural>
+
+            <structural uid="">
+                <center x="4.0" y="8.0"/>
+                <dim a="0.3" b="0.4"/>
+            </structural>
+
+            <wall uid="DB7F49A3-BBF6-40F3-95A1-038CCACE1D88" type="new">
+                <pt x="0.0" y="0.0"/>
+                <pt x="8.0" y="0.0"/>
+                <window from="0.4" to="0.5"/>
+                <window from="0.6" to="0.7"/>
+                <window from="0.8" to="0.9"/>
+            </wall>
+
+            <wall uid="B06528DA-C0B9-4583-A7AF-8A3E788DB6EF">
+                <pt x="8.0" y="0.0"/>
+                <pt x="8.0" y="12.0"/>
+                <door from="0.45" to="0.55"/>
+            </wall>
+
+            <wall uid="7F23F0B9-7797-4672-AD65-FC8352F92A24">
+                <pt x="8.0" y="12.0"/>
+                <pt x="0.0" y="12.0"/>
+                <window from="0.4" to="0.5"/>
+                <window from="0.6" to="0.7"/>
+                <window from="0.8" to="0.9"/>
+            </wall>
+
+            <wall uid="CA106583-D604-4012-BA9D-DD7BFE704ACB">
+                <pt x="0.0" y="12.0"/>
+                <pt x="0.0" y="0.0"/>
+            </wall>
+
+	    <entry wall-uid="B06528DA-C0B9-4583-A7AF-8A3E788DB6EF" door-number="0" pt="0.5"/>
+
+            <pipe x="0.2" y="6.0"/>
+        </architecture>
+    </floorplan>    
+</ensanche>

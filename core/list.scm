@@ -457,13 +457,27 @@
 
 ;;; Remove first instance
 
-(define (rember a l)
+(define (rember a l) ; TODO: change everywhere to predicate
   ((letrec ((R (lambda (l)
                  (cond
                   ((null? l) '())
                   ((eq? (car l) a) (cdr l))
                   (else (cons (car l)
                               (R (cdr l)))))))) R) l))
+
+;;; Remove if the predicate is satisfied with any element given in a list
+
+(define (remove-any any-pred any-lis lis)
+  (remove (lambda (e)
+            (any (lambda (a) (any-pred a e)) any-lis))
+          lis))
+
+;;; Remove if the predicate is satisfied with every element given in a list
+
+(define (remove-every every-pred every-lis lis)
+  (remove (lambda (x)
+            (every (lambda (e) (every-pred e x)) every-lis))
+          lis))
 
 ;;; Try to find an element and remove it, yields #f if not found
 
@@ -563,16 +577,6 @@
 
 ;;; Recursive substitution in a list
 
-(define (subst* new old l)
-  (xsubst* cons new old l))
-
-;;; Recursive substitution with multiple insertion
-
-(define (msubst* lnew old l)
-  (xsubst* append lnew old l))
-
-;;; Recursive substitution in a list
-
 (define (xsubst* f new old l)
   ((letrec ((X (lambda (l)
     (cond
@@ -592,6 +596,16 @@
         (cons
           (X (car l))
           (X (cdr l)))))))) X) l))
+
+;;; Recursive substitution in a list
+
+(define (subst* new old l)
+  (xsubst* cons new old l))
+
+;;; Recursive substitution with multiple insertion
+
+(define (msubst* lnew old l)
+  (xsubst* append lnew old l))
 
 ;-------------------------------------------------------------------------------
 ; Skeleton/shape

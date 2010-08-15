@@ -224,6 +224,18 @@
   (make-vect2 0
               (vect2-y vec)))
 
+;;; Get the component that is max
+
+(define (vect2:max-component vec)
+  (max (vect2-x vec)
+       (vect2-y vec)))
+
+;;; Get the component that is min
+
+(define (vect2:min-component vec)
+  (min (vect2-x vec)
+       (vect2-y vec)))
+
 ;;; Calculate x/y ratio
 
 (define (vect2:x/y vec)
