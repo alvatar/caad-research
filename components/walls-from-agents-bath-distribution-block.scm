@@ -98,17 +98,18 @@
 
 (define (merge-residual-space graph world)
   (define (choose-merge-room room)
-    (error "unimplemented"))
+    (find (lambda (r)
+            (graph:find.common-room-walls r room))
+          (graph:find.rooms graph)))
   (let loop-until-fixed ((graph graph))
     (aif wrong-room
-         (find
-          (lambda (r)
-            (not (= (num-agents-in-room graph (world-agents world) r) 1)))
-          (graph:find.rooms graph))
-         (values graph world) ;; TODO!!!!!!!!!!!!!!!!!!!!!!!!!
-         #;(loop-until-fixed '(op:merge-rooms
-                             (room+room->context wrong-room
-                                                 (choose-merge-room wrong-room))))
+         (find (lambda (r)
+                 (not (= (num-agents-in-room graph (world-agents world) r) 1)))
+               (graph:find.rooms graph))
+         (loop-until-fixed (op:merge
+                            (room+room->context graph
+                                                wrong-room
+                                                (choose-merge-room wrong-room))))
          (values graph world))))
 
 ;;; Give the proper name to rooms
@@ -158,6 +159,7 @@
     ((compose-right
       add-bath-corridor-block
       add-rest-of-rooms
+      draw-result
       merge-residual-space
       name-rooms
       draw-result)

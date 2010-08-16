@@ -11,6 +11,7 @@
 (import components/agents-place-randomly)
 (import components/agents-evolutionary-distribution)
 (import components/agents-hinted-evolutionary-distribution)
+(import components/check-and-fix-input)
 (import components/walls-from-agents-bath-distribution-block)
 
 (define fully-evolutionary
@@ -19,5 +20,6 @@
 
 (define hinted-evolutionary
   (list
+   check-and-fix-input
    agents-hinted-evolutionary-distribution
    walls-from-agents/distribution&bath-block))

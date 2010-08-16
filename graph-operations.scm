@@ -107,17 +107,6 @@
 ; Finders/selectors
 ;-------------------------------------------------------------------------------
 
-;; (define (find-walls/point graph point)
-;;   (define (iter wall-list connected-walls)
-;;     (if (null? wall-list)
-;;         connected-walls
-;;         (iter
-;;          (cdr wall-list)
-;;          (if (is-end-point? (wall->pseq (car wall-list)) point)
-;;              (append connected-walls (list (car wall-list)))
-;;              connected-walls))))
-;;   (iter (graph:find-walls graph) '()))
-
 ;;; Find walls to a given one
 
 (define (graph:find.walls-connected-to graph wall)
@@ -194,6 +183,21 @@
       (wall-pseq (car wlis))
       (graph:wall-list->pseq (cdr wlis))))))
 
+;;; Walls common point
+
+(define (graph:walls-common-point wall1 wall2)
+  (aif cp (pseq:common-point?
+            (wall-pseq wall1)
+            (wall-pseq wall2))
+       cp
+       (begin (pp (wall-pseq wall1))
+              (pp (wall-pseq wall2))
+              (error "Given walls don't have any common point"))))
+
+;;; Wall distances from end points
+
+(define (graph:walls-distance/endpoints graph r1 r2)
+  (error "unimplemented"))
 
 ;;; Calculate a wall's perpendicular through a point
 
@@ -218,16 +222,10 @@
 (define (graph:room->pseq graph room)
   (graph:wall-list->pseq (graph:find.room-walls graph room)))
 
-;;; Walls common point
+;;; Calculate room area
 
-(define (graph:walls-common-point wall1 wall2)
-  (aif cp (pseq:common-point?
-            (wall-pseq wall1)
-            (wall-pseq wall2))
-       cp
-       (begin (pp (wall-pseq wall1))
-              (pp (wall-pseq wall2))
-              (error "Given walls don't have any common point"))))
+(define (graph:room-area graph room)
+  (pseq:area (graph:room->pseq graph room)))
 
 ;;; Intersection of room and line returns a list of intersected walls and
 ;;; intersection points
@@ -256,7 +254,7 @@
 ;;; Returns all the intersections of a line with the graph
 ;;; Output: 3 values of the same size (rooms, walls and intersections)
 
-;;; TODO: this functions should be rethought, it's output is not useful like this
+;;; TODO: this functions should be rethought, it's output is not well-structured
 
 (define (graph:relative-line-intersections graph line)
   (fold/values
@@ -268,11 +266,6 @@
                       (append intersections new-intr))))
    '(() () ())
    (graph:find.rooms graph)))
-
-;;; Calculate room area
-
-(define (graph:room-area graph room)
-  (pseq:area (graph:room->pseq graph room)))
 
 ;;; Calculate room aspect ratio
 
@@ -330,19 +323,26 @@
 ;;; Try and merge into one wall if the two given are parallel
 
 (define (graph:try-to-merge-if-parallel-walls wall-list new-uid)
-  (let ((wall-a-points (wall-pseq (car wall-list))) ; TODO: generalize for more than 2
-        (wall-b-points (wall-pseq (cadr wall-list))))
-    (if (pseq:parallel-pseq? wall-a-points wall-b-points)
-        (let ((first-point (if (pseq:is-end-point? wall-b-points (car wall-a-points))
-                               (cadr wall-a-points)
-                               (car wall-a-points)))
-              (second-point (if (pseq:is-end-point? wall-a-points (car wall-b-points))
-                                (cadr wall-b-points)
-                                (car wall-b-points))))
-          (list (make-wall-plain
-                 new-uid
-                 (list first-point second-point))))
-        wall-list)))
+  (let ((wlen (length wall-list)))
+    (cond
+     ((= wlen 1)
+      wall-list)
+     ((= wlen 2)
+      (let ((wall-a-points (wall-pseq (car wall-list)))
+            (wall-b-points (wall-pseq (cadr wall-list))))
+        (if (pseq:parallel-pseq? wall-a-points wall-b-points)
+            (let ((first-point (if (pseq:is-end-point? wall-b-points (car wall-a-points))
+                                   (cadr wall-a-points)
+                                   (car wall-a-points)))
+                  (second-point (if (pseq:is-end-point? wall-a-points (car wall-b-points))
+                                    (cadr wall-b-points)
+                                    (car wall-b-points))))
+              (list (make-wall-plain
+                     new-uid
+                     (list first-point second-point))))
+            wall-list)))
+     (else
+      (error "unimplemented for more than 2 walls")))))
 
 ;;; Break in two lists from where a wall was found
 ;;; Warning! This assumes that rooms contain topologically connected walls
@@ -388,3 +388,13 @@
   (if (null? wall-list)
       (error "Argument #2 (wall-list) is null")
     (iter (list (car wall-list)) (cdr wall-list))))
+
+;;; Snap room walls, in case they are close enough, so the room can be a closed shape
+
+(define (graph:snap.room-walls graph room delta)
+  (fold2
+   (lambda (e1 e2 accu)
+     (if (> (graph:walls-distance/endpoints graph e1 e2) delta)
+         (error "implement wall fix")
+         e1))
+   (error "AQUI")))

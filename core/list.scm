@@ -451,6 +451,19 @@
                               (kons lh fold-ans)
                               (cons mapv (recur lt foldv))))))))
 
+;;; Fold 2 allows access to current plus next elements in the folded list
+
+(define (fold2 kons knil lis1 . lists)
+  (error "implement!!")
+  (if (pair? lists)
+      (let lp ((lists (cons lis1 lists)) (ans knil)) ; N-ary case
+	(receive (cars+ans cdrs) (%cars+cdrs+ lists ans)
+                 (if (null? cars+ans) ans ; Done.
+                     (lp cdrs (apply kons cars+ans)))))
+      (let lp ((lis lis1) (ans knil))   ; Fast path
+	(if (null-list? lis) ans
+	    (lp (cdr lis) (kons (car lis) ans))))))
+
 ;-------------------------------------------------------------------------------
 ; Find, remove, substitute
 ;-------------------------------------------------------------------------------
