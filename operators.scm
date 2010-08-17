@@ -191,15 +191,18 @@
     (let ((room-a (car rooms))
           (room-b (cadr rooms)))
       (let ((common-wall-uid-lis
-             (graph:find.common-room-walls room-a room-b)))
+             (graph:filter.common-room-walls room-a room-b)))
         (%deny (null? common-wall-uid-lis) "The rooms to merge don't have common walls")
-        (let ((common-wall-uid (car common-wall-uid-lis))) ; TODO: consider when more than one wall is common
+        (let ((common-wall-uid (if (> (length common-wall-uid-lis) 2)
+                                   (error "trying to merge rooms that share more than one wall")
+                                   (car common-wall-uid-lis)))) ; TODO: consider when more than one wall is common
           (receive
            (wall-bifurcations-1 wall-bifurcations-2)
            (apply/values
             (lambda (wall-list)
-              (filter (lambda (w) (or (graph:room-wall-uid? room-a (wall-uid w))
-                                 (graph:room-wall-uid? room-b (wall-uid w))))
+              (filter (lambda (w) (let ((wuid (wall-uid w)))
+                               (or (graph:room-wall-uid? room-a wuid)
+                                   (graph:room-wall-uid? room-b wuid))))
                       wall-list))
             (graph:find.walls-connected-to graph
                                            (graph:find.wall/uid graph
@@ -217,27 +220,28 @@
                       (lambda (room) (remove-any equal? modified-walls-uids (room-walls room))))))
                ;; The common wall and its bifurcations are removed anyway and the later re-added once fixed,
                ;; also the merged rooms are removed
-               (make-graph
-                (graph-uid graph)
-                (graph-environment graph)
-                `(,@(remove-any (lambda (a e)
-                                  (or (and (room? e)
-                                           (equal? a e))
-                                      (and (wall? e)
-                                           (equal? a (wall-uid e)))))
-                                `(,@(map (lambda (w) (wall-uid w)) wall-bifurcations-1)
-                                  ,@(map (lambda (w) (wall-uid w)) wall-bifurcations-2)
-                                  ,common-wall-uid
-                                  ,@rooms)
-                                (graph-architecture graph))
-                  ;; Add the fixed bifurcations (if parallel) and the room taking new walls into account
-                  ,@context-walls-1
-                  ,@context-walls-2
-                  ,(make-room (make-uuid)
-                              (append (map (lambda (w) (wall-uid w)) context-walls-1)
-                                      (identify-invariant-walls-in-room room-a)
-                                      (map (lambda (w) (wall-uid w)) context-walls-2)
-                                      (identify-invariant-walls-in-room room-b)))))))))))))
+               (op:fix-wall-order
+                (make-graph
+                 (graph-uid graph)
+                 (graph-environment graph)
+                 `(,@(remove-any (lambda (a e)
+                                   (or (and (room? e)
+                                            (equal? a e))
+                                       (and (wall? e)
+                                            (equal? a (wall-uid e)))))
+                                 `(,@(map (lambda (w) (wall-uid w)) wall-bifurcations-1)
+                                   ,@(map (lambda (w) (wall-uid w)) wall-bifurcations-2)
+                                   ,common-wall-uid
+                                   ,@rooms)
+                                 (graph-architecture graph))
+                   ;; Add the fixed bifurcations (if parallel) and the room taking new walls into account
+                   ,@context-walls-1
+                   ,@context-walls-2
+                   ,(make-room (make-uuid)
+                               (append (map (lambda (w) (wall-uid w)) context-walls-1)
+                                       (identify-invariant-walls-in-room room-a)
+                                       (map (lambda (w) (wall-uid w)) context-walls-2)
+                                       (identify-invariant-walls-in-room room-b))))))))))))))
 
 ;-------------------------------------------------------------------------------
 ; Boundary modifications
@@ -285,4 +289,4 @@
   (make-graph
    (graph-uid graph)
    (graph-environment graph)
-   (map-if room? (lambda (e) (graph:snap.room-walls graph e)) (graph-architecture graph)))
+   (map-if room? (lambda (r) (graph:snap.room-walls graph r 0)) (graph-architecture graph))))

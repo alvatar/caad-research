@@ -451,18 +451,26 @@
                               (kons lh fold-ans)
                               (cons mapv (recur lt foldv))))))))
 
-;;; Fold 2 allows access to current plus next elements in the folded list
+;;; foldx is like pair-fold, but stops folding when the cdr is of a given length
 
-(define (fold2 kons knil lis1 . lists)
-  (error "implement!!")
-  (if (pair? lists)
-      (let lp ((lists (cons lis1 lists)) (ans knil)) ; N-ary case
-	(receive (cars+ans cdrs) (%cars+cdrs+ lists ans)
-                 (if (null? cars+ans) ans ; Done.
-                     (lp cdrs (apply kons cars+ans)))))
-      (let lp ((lis lis1) (ans knil))   ; Fast path
-	(if (null-list? lis) ans
-	    (lp (cdr lis) (kons (car lis) ans))))))
+(define (pair-fold-x x kons knil lists) ; TODO: implement without pair-fold
+  (pair-fold
+   (lambda args
+     (let ((rev-args (reverse args)))
+       (if (any (lambda (e) (< (length e) x)) (cdr rev-args))
+           (last args)
+           (receive (cars cdrs)
+                    (cars+cdrs (reverse (cdr rev-args)))
+                                        ; TODO: append: figure out something better than the hack in SRFI-1
+                    (apply kons (append (map (lambda (a b) (cons a b)) cars cdrs)
+                                        (list (car rev-args))))))))
+   knil
+   lists))
+
+;;; fold2 is a foldx specialization for 2
+
+(define (pair-fold-2 kons knil lists)
+  (pair-fold-x 2 kons knil lists))
 
 ;-------------------------------------------------------------------------------
 ; Find, remove, substitute

@@ -55,7 +55,6 @@
        (begin (display "UID: ")(display uid)(newline)
               (error "Wall with such UID not found"))))
 
-;;; TODO: memoize?
 (define (graph:find.room-walls graph room)
   (map (lambda (r) (graph:find.wall/uid graph r)) (room-walls room)))
 
@@ -131,13 +130,6 @@
       (car walls)
       (cdr walls))))
 
-;;; Find common wall
-
-(define (graph:find.common-room-walls room-a room-b)
-  (filter
-   (lambda (a) (any (lambda (b) (equal? a b)) (room-walls room-b)))
-   (room-walls room-a)))
-
 ;;; Find the exterior walls
 
 (define (graph:find.exterior-walls graph)
@@ -150,6 +142,12 @@
      (else
       (iter exterior-walls (cdr rest-walls)))))
   (graph:sort.wall-list-connected graph (iter '() (graph:find.walls graph))))
+
+;;; Filter common walls
+
+(define (graph:filter.common-room-walls room-a room-b)
+  (filter (lambda (a) (any (lambda (b) (equal? a b)) (room-walls room-b)))
+          (room-walls room-a)))
 
 ;-------------------------------------------------------------------------------
 ; Geometrical calculations
@@ -185,19 +183,21 @@
 
 ;;; Walls common point
 
-(define (graph:walls-common-point wall1 wall2)
+(define (graph:walls-common-point w1 w2)
   (aif cp (pseq:common-point?
-            (wall-pseq wall1)
-            (wall-pseq wall2))
+            (wall-pseq w1)
+            (wall-pseq w2))
        cp
-       (begin (pp (wall-pseq wall1))
-              (pp (wall-pseq wall2))
+       (begin (pp (wall-pseq w1))
+              (pp (wall-pseq w2))
               (error "Given walls don't have any common point"))))
 
 ;;; Wall distances from end points
 
-(define (graph:walls-distance/endpoints graph r1 r2)
-  (error "unimplemented"))
+(define (graph:~walls-distance/endpoints w1 w2)
+  (let ((ws1 (wall-pseq w1))
+        (ws2 (wall-pseq w2)))
+    (~distance.pseq-pseq/endpoints ws1 ws2)))
 
 ;;; Calculate a wall's perpendicular through a point
 
@@ -325,6 +325,8 @@
 (define (graph:try-to-merge-if-parallel-walls wall-list new-uid)
   (let ((wlen (length wall-list)))
     (cond
+     ((null? wall-list)
+      (error "trying to merge a null list of walls"))
      ((= wlen 1)
       wall-list)
      ((= wlen 2)
@@ -392,9 +394,13 @@
 ;;; Snap room walls, in case they are close enough, so the room can be a closed shape
 
 (define (graph:snap.room-walls graph room delta)
-  (fold2
-   (lambda (e1 e2 accu)
-     (if (> (graph:walls-distance/endpoints graph e1 e2) delta)
-         (error "implement wall fix")
-         e1))
-   (error "AQUI")))
+  (pair-fold-2
+   (lambda (e a)
+     (if (> (graph:~walls-distance/endpoints (graph:find.wall/uid graph (car e))
+                                             (graph:find.wall/uid graph (cadr e)))
+            delta)
+         (error "implement wall snapping fix") ; will need PAIR-MAP
+         a))
+   (void)
+   (room-walls room))
+  room) ; TODO: obiously this is not doing anything now

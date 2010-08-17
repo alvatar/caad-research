@@ -99,8 +99,14 @@
 (define (merge-residual-space graph world)
   (define (choose-merge-room room)
     (find (lambda (r)
-            (graph:find.common-room-walls r room))
-          (graph:find.rooms graph)))
+            (aif res
+                 null?
+                 (graph:filter.common-room-walls r room)
+                 #f
+                 res))
+          (remove
+           (lambda (x) (equal? x room))
+           (graph:find.rooms graph))))
   (let loop-until-fixed ((graph graph))
     (aif wrong-room
          (find (lambda (r)

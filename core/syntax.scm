@@ -25,11 +25,16 @@
 
 (define-syntax aif
   (syntax-rules ()
-    ((_ var expr iftrue iffalse)
+    ((_ var expr iftrue)
      (let ((var expr))
        (if var
          iftrue
-         iffalse)))
+         #f)))
+    ((_ var expr iftrue iffalse)
+     (let ((var expr))
+       (if var
+           iftrue
+           iffalse)))
     ((_ var pred expr iftrue iffalse)
      (let ((var expr))
        (if (pred var)
