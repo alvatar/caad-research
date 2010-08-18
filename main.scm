@@ -14,7 +14,7 @@
    (random-source-randomize! default-random-source)
    (output-pool
     (evolution '(fill-pool @pool-size 1)
-               'hinted-evolutionary
+               'bath-block
                'keep-best
                (input-from-xml "xml-input/plan_1.xml")))
    (visualization:exit)

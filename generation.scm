@@ -7,25 +7,39 @@
 
 (import (std srfi/1))
 
-(import graph)
-(import generation-elements)
-(import strategies)
+(import core/syntax
+        generation-elements
+        graph
+        strategies)
 
-;-------------------------------------------------------------------------------
-; General procedures
-;-------------------------------------------------------------------------------
+;;; Generate using a graph as input
 
 (define (generate-from-graph steps)
-  (define (execute-step rest-steps graph world)
-    (cond
-     ((null? rest-steps)
-      graph)
-     (else
-      (receive (g w)
-        ((car rest-steps) graph world)
-        (execute-step (cdr rest-steps) g w)))))
-  (lambda (graph)
-    (execute-step steps graph '())))
+  
+  (letrec ((execute-step
+            (lambda (steps graph world)
+              (cond
+               ((null? steps) graph)
+               (else
+                (receive (g w)
+                         ((car steps) graph world)
+                         (execute-step (cdr steps) g w)))))))
+    (lambda (input)
+      (execute-step steps input #f))))
+
+;;; Generate simply following the steps, no input
+
+(define (generate//input steps)
+  (letrec ((execute-step
+            (lambda (steps graph world)
+              (cond
+               ((null? steps) graph)
+               (else
+                (receive (g w)
+                         ((car steps) graph world)
+                         (execute-step (cdr steps) g w)))))))
+    (lambda (input)
+      (execute-step steps #f #f))))
 
 ;;; Generator: creates a procedure for generating graphs
 ;;; generation-hints: gives information to help choosing generation algorithms
@@ -33,8 +47,12 @@
 ;;;   if the generator can be really used with the seed-data
 
 (define (generator type #!optional seed-data generation-hints)
-  (case type
-    ((hinted-evolutionary)
-     (generate-from-graph hinted-evolutionary))
-    (else
-     (error "generator strategy not implemented"))))
+  (if seed-data
+      (cond
+       ((graph? seed-data)
+        (aif aelm (assq type procedures-alist)
+             (generate-from-graph (cadr aelm))
+             (error "unkown strategy asked to generator")))
+       (else
+        (error "unknown seed data type fed into generator")))
+      (generate//input type)))

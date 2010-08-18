@@ -130,15 +130,6 @@
                     room)))
         (if (null? agent)
             (begin (display "No agent found in a room!!\n")
-                   ;; TODO!!!!!!!!!!!!!!!!
-                   ;; (find (lambda (r)
-                   ;;         (> (pv (num-agents-in-room graph (world-agents world) r)) 1))
-                   ;;       (graph:find.rooms graph))
-                   ;; (visualization:forget-all)
-                   ;; (visualize-graph graph)
-                   ;; (visualize-world world graph)
-                   ;; (visualization:do-now)
-                   ;; (step)
                    graph)
             (op:rename graph
                        room
@@ -171,4 +162,3 @@
       draw-result)
      graph
      (make-world finished-agents '()))))
-    

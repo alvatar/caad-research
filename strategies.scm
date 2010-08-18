@@ -6,20 +6,24 @@
 ;;; positions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1))
-
-(import components/agents-place-randomly)
-(import components/agents-evolutionary-distribution)
-(import components/agents-hinted-evolutionary-distribution)
-(import components/check-and-fix-input)
-(import components/walls-from-agents-bath-distribution-block)
+(import (std srfi/1)
+        components/agents-place-randomly
+        components/agents-evolutionary-distribution
+        components/agents-hinted-evolutionary-distribution
+        components/check-and-fix-input
+        components/walls-from-agents-bath-distribution-block)
 
 (define fully-evolutionary
   (list
    agents-evolutionary-distribution))
 
-(define hinted-evolutionary
+(define bath-block
   (list
    check-and-fix-input
    agents-hinted-evolutionary-distribution
    walls-from-agents/distribution&bath-block))
+
+;;; A-list of symbols and strategies
+
+(define procedures-alist
+  `((bath-block ,bath-block)))
