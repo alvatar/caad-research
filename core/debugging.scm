@@ -126,3 +126,43 @@
             (if (test result)
                 (raise msg)
                 result)))))))
+
+;;; Value tracing for checking identified value evolution over the program
+
+(define %%traced-vals '())
+
+(define-syntax %register/id
+  (syntax-rules ()
+    ((_ ?id ?v)
+     (set! %%traced-vals
+           (cons
+            (cons
+             ?id
+             (call-with-values
+                 (lambda () ?v)
+               (lambda vs (apply list vs))))
+            %%traced-vals)))))
+
+(define-syntax %compare/id
+  (syntax-rules ()
+    ((_ ?id ?comparator ?v)
+     (?comparator
+      (cdr (assq ?id %%traced-vals))
+      (call-with-values
+          (lambda () ?v)
+        (lambda vs (apply list vs)))))))
+
+(define (%show-trace/id id)
+  (let ((id-string (symbol->string id)))
+    (let loop ((traced %%traced-vals)
+               (n 0))
+      (cond
+       ((null? traced) (void))
+       ((eq? (caar traced) id)
+        (begin (display "$:") (display n) (display " ")
+               (pv id-string (cdar traced))
+               (loop (cdr traced) (- n 1))))))
+    (void)))
+
+(define (%untrace-vals)
+  (set! %%traced-vals '()))

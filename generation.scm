@@ -15,7 +15,6 @@
 ;;; Generate using a graph as input
 
 (define (generate-from-graph steps)
-  
   (letrec ((execute-step
             (lambda (steps graph world)
               (cond
