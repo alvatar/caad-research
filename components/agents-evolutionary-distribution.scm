@@ -5,19 +5,18 @@
 ;;; Component: evolutionary algorithm for agents distribution
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1))
-(import (std srfi/26))
-
-(import ../core/functional)
-(import ../core/list)
-(import ../generation-elements)
-(import ../geometry/generation)
-(import ../geometry/kernel)
-(import ../graph)
-(import ../graph-operations)
-(import ../graph-visualization)
-(import ../visualization)
-(import auxiliary-evolution-evaluation)
+(import (std srfi/1)
+        (std srfi/26)
+        ../core/functional
+        ../core/list
+        ../geometry/kernel
+        ../geometry/generation
+        ../graph
+        ../graph-operations
+        ../graph-visualization
+        ../visualization
+        auxiliary-evolution-evaluation
+        generation-elements)
 
 (export agents-evolutionary-distribution)
 

@@ -5,18 +5,17 @@
 ;;; Component: Forces system with agents
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1))
-
-(import ../graph-operations)
-(import ../core/syntax)
-(import ../core/debugging)
-(import ../generation-elements)
-(import ../geometry/kernel)
-(import ../graph)
-(import ../math/exact-algebra)
-(import ../math/inexact-algebra)
-(import ../visualization)
-(import auxiliary-element-interrelations)
+(import (std srfi/1)
+        ../graph-operations
+        ../core/syntax
+        ../core/debugging
+        ../geometry/kernel
+        ../graph
+        ../math/exact-algebra
+        ../math/inexact-algebra
+        ../visualization
+        auxiliary-element-interrelations
+        generation-elements)
 
 
 (define (agents-forces-system graph world)

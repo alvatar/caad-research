@@ -5,16 +5,15 @@
 ;;; Component: Agent forces system with some brownian motion
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1))
-
-(import ../core/syntax)
-(import ../core/debugging)
-(import ../generation-elements)
-(import ../geometry/kernel)
-(import ../graph)
-(import ../math/exact-algebra)
-(import ../visualization)
-(import auxiliary-element-interrelations)
+(import (std srfi/1)
+        ../core/syntax
+        ../core/debugging
+        ../geometry/kernel
+        ../graph
+        ../math/exact-algebra
+        ../visualization
+        auxiliary-element-interrelations
+        generation-elements)
 
 (define (agents-forces-brownian-motion graph world)
   (let* ((wall-pseq-list (map (lambda (w) (wall-pseq w)) (graph:find-walls graph))))

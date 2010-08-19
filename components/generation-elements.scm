@@ -5,14 +5,13 @@
 ;;; Elements used by generations algorithms and strategies
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1))
-
-(import graph-operations)
-(import core/list)
-(import geometry/kernel)
-(import graph)
-(import math/exact-algebra)
-(import visualization)
+(import (std srfi/1)
+        ../graph-operations
+        ../core/list
+        ../geometry/kernel
+        ../graph
+        ../math/exact-algebra
+        ../visualization)
 
 ;-------------------------------------------------------------------------------
 ; Agents
@@ -21,6 +20,14 @@
 ;;; Agent type
 
 (define-structure agent label positions memory proc)
+
+;;; Move agent
+
+(define (move-agent a new-pos)
+  (make-agent (agent-label a)
+              new-pos
+              (agent-memory a)
+              (agent-proc a)))
 
 ;;; Agent head position
 
@@ -37,9 +44,7 @@
 ;;; Find an agent given a list
 
 (define (find-agent agents label)
-  (find
-    (lambda (a) (equal? label (agent-label a)))
-    agents))
+  (find (lambda (a) (equal? label (agent-label a))) agents))
 
 ;-------------------------------------------------------------------------------
 ; World

@@ -6,23 +6,22 @@
 ;;; some positions predefined or hinted
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1))
-(import (std srfi/11))
-(import (std srfi/26))
-
-(import ../core/list)
-(import ../core/randomization)
-(import ../core/debugging)
-(import ../generation-elements)
-(import ../geometry/generation)
-(import ../geometry/kernel)
-(import ../graph)
-(import ../graph-operations)
-(import ../graph-visualization)
-(import ../math/exact-algebra)
-(import ../visualization)
-(import auxiliary-evolution-evaluation)
-(import auxiliary-element-interrelations)
+(import (std srfi/1)
+        (std srfi/11)
+        (std srfi/26)
+        ../core/list
+        ../core/randomization
+        ../core/debugging
+        ../geometry/generation
+        ../geometry/kernel
+        ../graph
+        ../graph-operations
+        ../graph-visualization
+        ../math/exact-algebra
+        ../visualization
+        auxiliary-evolution-evaluation
+        auxiliary-element-interrelations
+        generation-elements)
 
 (export agents-hinted-evolutionary-distribution)
 

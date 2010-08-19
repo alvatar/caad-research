@@ -5,14 +5,15 @@
 ;;; Graph and element auxiliary procedures common to various components
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1))
+(import (std srfi/1)
+        ../core/list
+        ../geometry/kernel
+        ../graph-operations
+        generation-elements)
 
-(import ../core/list)
-(import ../generation-elements)
-(import ../geometry/kernel)
-(import ../graph-operations)
+;;; Find agents in a room
 
-(define (agents-in-room graph agents room)
+(define (find.agents-in-room graph agents room)
   (filter
    (lambda (a)
      (every
@@ -21,7 +22,9 @@
       (agent-positions a))) ; TODO: wrong! if an agent is between two rooms, what to do?
    agents))
 
-(define (num-agents-in-room graph agents r)
+;;; Cound the agents in a room
+
+(define (count.agents-in-room graph agents r)
   (let ((pol (graph:room->pseq graph r)))
     (fold
      (lambda (a num)
@@ -30,3 +33,11 @@
            num))
      0
      agents)))
+
+;;; Find the room that contains an agent
+
+(define (find.room/agent graph agents agentl)
+  (find
+   (lambda (r)
+     (find (lambda (a) (equal? (agent-label a) agentl)) (find.agents-in-room graph agents r)))
+   (graph:find.rooms graph)))

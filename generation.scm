@@ -5,10 +5,8 @@
 ;;; Generation algorithms for graphs
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1))
-
-(import core/syntax
-        generation-elements
+(import (std srfi/1)
+        core/syntax
         graph
         strategies)
 

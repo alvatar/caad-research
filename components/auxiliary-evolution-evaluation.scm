@@ -5,21 +5,20 @@
 ;;; Evaluation system for the evolutionary algorithm
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1))
-(import (std srfi/26))
-(import (std srfi/69))
-(import (std srfi/95))
-
-(import ../core/syntax)
-(import ../core/functional)
-(import ../core/debugging)
-(import ../generation-elements)
-(import ../geometry/kernel)
-(import ../graph)
-(import ../graph-operations)
-(import ../math/exact-algebra)
-(import ../math/inexact-algebra)
-(import auxiliary-element-interrelations)
+(import (std srfi/1)
+        (std srfi/26)
+        (std srfi/69)
+        (std srfi/95)
+        ../core/syntax
+        ../core/functional
+        ../core/debugging
+        ../geometry/kernel
+        ../graph
+        ../graph-operations
+        ../math/exact-algebra
+        ../math/inexact-algebra
+        auxiliary-element-interrelations
+        generation-elements)
 
 
 ;;; Helper function for debugging scores

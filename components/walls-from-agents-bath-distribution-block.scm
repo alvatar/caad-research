@@ -6,93 +6,119 @@
 ;;; positive agent, participating in distribution from the beginning
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1))
-
-(import ../context)
-(import ../core/syntax)
-(import ../core/functional)
-(import ../core/list)
-(import ../core/randomization)
-(import ../core/debugging)
-(import ../generation-elements)
-(import ../geometry/kernel)
-(import ../geometry/generation)
-(import ../graph)
-(import ../graph-visualization)
-(import ../math/exact-algebra)
-(import ../operators)
-(import ../graph-operations)
-(import ../output)
-(import ../visualization)
-(import auxiliary-graph-elements)
+(import (std srfi/1)
+        ../context
+        ../core/syntax
+        ../core/functional
+        ../core/list
+        ../core/randomization
+        ../core/debugging
+        ../geometry/kernel
+        ../geometry/generation
+        ../graph
+        ../graph-visualization
+        ../math/exact-algebra
+        ../operators
+        ../graph-operations
+        ../output
+        ../visualization
+        auxiliary-graph-elements
+        generation-elements)
 
 ;;; First step of wall generation
 
 (define (add-bath-corridor-block graph world)
-  (define (calculate-corridor-width) (inexact->exact 1.6))
-  (receive (parallel-1 parallel-2)
-           (generate.parallels-at-distance (let ((base-point
-                                                  (car (agent-positions
-                                                        (find-agent (world-agents world)
-                                                                    'distribution)))))
-                                             (point+direction->line
-                                              base-point
-                                              (graph:wall-perpendicular
-                                               (graph:closest-wall graph base-point))))
-                                           (/ (calculate-corridor-width) 2))
+  (let ((corridor-width #e1.6)
+        (push-away-non-corridor-agents
+         (lambda (graph)
+           (let ((agents (world-agents world)))
+             (aif wrong-agents
+                  null?
+                  (remove
+                   (lambda (a) (eq? (agent-label a) 'distribution))
+                   (find.agents-in-room graph
+                                        agents
+                                        (find.room/agent graph agents 'distribution)))
+                  world
+                  (make-world
+                   (map-if (lambda (a) (any (lambda (wa) (eq? (agent-label wa) (agent-label a))) wrong-agents))
+                           (lambda (a) (move-agent a
+                                              (agent-positions a)))
+                           agents)
+                   '()))))))
+    (receive (parallel-1 parallel-2)
+             (generate.parallels-at-distance (let ((base-point
+                                                    (car (agent-positions
+                                                          (find-agent (world-agents world)
+                                                                      'distribution)))))
+                                               (point+direction->line
+                                                base-point
+                                                (graph:wall-perpendicular
+                                                 (graph:closest-wall graph base-point))))
+                                             (/ corridor-width 2))
                                         ;(visualization:line-now parallel-1)
                                         ;(visualization:line-now parallel-2)
-           (values
-            (op:cut
-             (graph+line->context (op:cut (graph+line->context graph
-                                                               parallel-1))
-                                  parallel-2))
-            (cons (line->direction parallel-1) world))))
+             ;; TODO: if too close to a wall, add only one
+             (let ((new-graph
+                    (op:cut
+                     (graph+line->context (op:cut (graph+line->context graph
+                                                                       parallel-1))
+                                          parallel-2))))
+               (values
+                new-graph
+                ;; Passes also the distribution direction
+                (cons (line->direction parallel-1)
+                      ;; Push away all agents that fall inside the corridor
+                      (push-away-non-corridor-agents new-graph)))))))
 
 ;;; Second step of wall generation
 
 (define (add-rest-of-rooms graph relief)
   (let ((distribution-direction (car relief))
         (world (cdr relief)))
+    (let ((find-next-room-to-partition
+           (lambda (graph)
+             (find (lambda (r)
+                     (> (count.agents-in-room graph (world-agents world) r) 1))
+                   (graph:find.rooms graph))))
 
-    (define (find-next-room-to-partition graph)
-      (find (lambda (r)
-              (> (num-agents-in-room graph (world-agents world) r) 1))
-            (graph:find.rooms graph)))
+          (choose-point
+           (lambda (graph room)
+             (let* ((agents (binary-shuffle-list (find.agents-in-room graph
+                                                                      (world-agents world)
+                                                                      room)))
+                    (reference-point (car (agent-positions (car agents)))))
+               (generate.random-point/two-points
+                reference-point
+                (car (agent-positions (most (lambda (a b)
+                                              (min (~distance.point-point (car (agent-positions a))
+                                                                          reference-point)
+                                                   (~distance.point-point (car (agent-positions b))
+                                                                          reference-point)))
+                                            (cdr agents)))))))))
 
-    (define (choose-point graph room)
-      (let* ((agents (binary-shuffle-list (agents-in-room graph
-                                                          (world-agents world)
-                                                          room)))
-             (reference-point (car (agent-positions (car agents)))))
-        (generate.random-point/two-points
-         reference-point
-         (car (agent-positions (most (lambda (a b)
-                                       (min (~distance.point-point (car (agent-positions a))
-                                                                   reference-point)
-                                            (~distance.point-point (car (agent-positions b))
-                                                                   reference-point)))
-                                     (cdr agents)))))))
-
-    (values
-     (let do-all-rooms ((graph graph)
+      (values
+       (let room-cycle ((graph graph)
                         (room (find-next-room-to-partition graph)))
-       ;; (visualization:forget-all)
-       ;; (visualize-graph graph)
-       ;; (visualize-world world graph)
-       ;; (visualization:do-now)
-       (let* ((new-graph (op:cut (room+line->context graph
-                                                     room
-                                                     (point+direction->line
-                                                      (choose-point graph room)
-                                                      (direction:perpendicular
-                                                       distribution-direction)))))
-              (next-room (find-next-room-to-partition new-graph)))
-         (if next-room
-             (do-all-rooms new-graph
+         ;; (visualization:forget-all)
+         ;; (visualize-graph graph)
+         ;; (visualize-world world graph)
+         ;; (visualization:do-now)
+         
+         ;; 
+         
+         (let* ((new-graph (op:cut (room+line->context graph
+                                                       room
+                                                       (point+direction->line
+                                                        (choose-point graph room)
+                                                        (direction:perpendicular
+                                                         distribution-direction)))))
+                (next-room (find-next-room-to-partition new-graph)))
+           (if next-room
+               (room-cycle new-graph
                            next-room)
-             new-graph)))
-     world)))
+               new-graph)))
+       world))))
 
 ;;; Check if there is the proper relationship between agents and rooms, fix if needed
 
@@ -110,7 +136,7 @@
   (let loop-until-fixed ((graph graph))
     (aif wrong-room
          (find (lambda (r)
-                 (not (= (num-agents-in-room graph (world-agents world) r) 1)))
+                 (not (= (count.agents-in-room graph (world-agents world) r) 1)))
                (graph:find.rooms graph))
          (loop-until-fixed (op:merge
                             (room+room->context graph
@@ -124,7 +150,7 @@
   (values
    (fold
     (lambda (room graph)
-      (let ((agent (agents-in-room
+      (let ((agent (find.agents-in-room
                     graph
                     (world-agents world)
                     room)))

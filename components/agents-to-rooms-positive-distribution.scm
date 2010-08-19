@@ -6,21 +6,20 @@
 ;;; positive agent, participating in distribution from the beginning
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1))
-
-(import ../context)
-(import ../core/syntax)
-(import ../core/debugging)
-(import ../generation-elements)
-(import ../geometry/generation)
-(import ../graph)
-(import ../graph-visualization)
-(import ../math/exact-algebra)
-(import ../math/inexact-algebra) ; TODO: Could be removed!
-(import ../operators)
-(import ../graph-operations)
-(import ../output)
-(import ../visualization)
+(import (std srfi/1)
+        ../context
+        ../core/syntax
+        ../core/debugging
+        ../geometry/generation
+        ../graph
+        ../graph-visualization
+        ../math/exact-algebra
+        ../math/inexact-algebra         ; TODO: Could be removed!
+        ../operators
+        ../graph-operations
+        ../output
+        ../visualization
+        generation-elements)
 
 
 (define (agents-to-rooms-positive-distribution graph world)
