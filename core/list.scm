@@ -137,12 +137,20 @@
      (let recur ((ls ls))
        (if (pair? ls)
            (receive (hl tl) (car+cdr ls)
-                    (if (null-list? hl) (abort '() '())
+                    (if (null? hl) (abort '() '())
                         (receive (a d) (car+cdr hl)
                                  (receive (cars cdrs) (recur tl)
                                           (values (cons a cars)
                                                   (cons d cdrs))))))
            (values '() '()))))))
+
+;;; All cars
+
+(define (cars ls) (map car ls))
+
+;;; All cdrs
+
+(define (cdrs ls) (map cdr ls))
 
 ;-------------------------------------------------------------------------------
 ; Map/fold variants
@@ -385,6 +393,21 @@
      (list->values
       (map (lambda (e) (apply ?f e)) (apply zip (apply/values "init-transformation" ?ls ...)))))))
 
+;;; pair-map applies map to the entire sublist, unlike map, which applies to the head
+
+(define (pair-map f lis1 . lists)
+  (if (pair? lists)
+      (let recur ((lists (cons lis1 lists)))
+	(receive (cars cdrs) (cars+cdrs lists)
+                 (if (pair? cars)
+                     (let ((x (apply f lists)))
+                       (cons x (recur cdrs)))
+                     '())))
+      (let recur ((lis lis1))
+	(if (null? lis) lis
+	    (cons (f lis) (recur (cdr lis)))))))
+
+
 ;;; map+fold combines them two, returning the map and the fold
 ;;; (map+fold (lambda (a b) (values (+ a b) (+ b 1))) 0 '(1 2 3 4))
 ;;; => (1 3 5 7)
@@ -467,7 +490,7 @@
    knil
    lists))
 
-;;; fold2 is a foldx specialization for 2
+;;; fold2 is a foldx specialization for x=2
 
 (define (pair-fold-2 kons knil lists)
   (pair-fold-x 2 kons knil lists))
