@@ -8,6 +8,7 @@
 (import (std srfi/1)
         ../core/list
         ../geometry/kernel
+        ../graph
         ../graph-operations
         generation-elements)
 
@@ -41,3 +42,17 @@
    (lambda (r)
      (find (lambda (a) (equal? (agent-label a) agentl)) (find.agents-in-room graph agents r)))
    (graph:find.rooms graph)))
+
+;;; Find closest room to an agent
+
+(define (find.closest-wall/agent graph agent)
+  (let ((walls (graph:find.walls graph))
+        (p (agent-head-position agent)))
+    (fold
+     (lambda (w closest)
+       (if (< (squareddistance.point-pseq p (wall-pseq w))
+              (squareddistance.point-pseq p (wall-pseq closest)))
+           w
+           closest))
+     (car walls)
+     (cdr walls))))
