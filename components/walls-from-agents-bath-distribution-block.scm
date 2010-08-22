@@ -47,13 +47,13 @@
                                                ;; TODO: REVIEW!!!!!
                                                (receive (w dist) (find.closest-wall/agent graph a)
                                                         (let ((p (agent-head-position a)))
-                                                         (vect2:+ (vect2:*scalar
-                                                                   (vect2:~normalize
-                                                                    (point+pseq-perpendicular->direction
-                                                                     p
-                                                                     (wall-pseq w)))
-                                                                   (* dist #e1.1))
-                                                                  p))))))
+                                                          (vect2:+ (vect2:*scalar
+                                                                    (vect2:~normalize
+                                                                     (point+pseq-perpendicular->direction
+                                                                      p
+                                                                      (wall-pseq w)))
+                                                                    (* dist #e1.1))
+                                                                   p))))))
                            agents)
                    '()))))))
     (receive (parallel-1 parallel-2)

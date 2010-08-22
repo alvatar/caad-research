@@ -17,3 +17,4 @@ ssax-sxml/*.c
 *.c
 tools/xmlviewer
 xml-output
+TAGS
