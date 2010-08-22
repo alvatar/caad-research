@@ -404,7 +404,7 @@
 ;;; TODO: this is a bad format. It should be stored as pseq directly.
 
 (define (sxml:make-structural e)
-  (let ((bb (pseq->bbox (structural-pseq e))))
+  (let ((bb (pseq:bbox (structural-pseq e))))
     (let ((center (bbox:centroid bb))
           (dim (bbox:size-segment bb)))
       `(structural

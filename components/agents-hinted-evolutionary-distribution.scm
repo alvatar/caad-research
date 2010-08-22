@@ -49,7 +49,7 @@
 
 (define agents-regenerator
   (lambda (limit-polygon)
-    (let ((slots (~?generate.point-mesh-centered (pseq->bbox limit-polygon)
+    (let ((slots (~?generate.point-mesh-centered (pseq:bbox limit-polygon)
                                                 1.0
                                                 2.0
                                                 2.0

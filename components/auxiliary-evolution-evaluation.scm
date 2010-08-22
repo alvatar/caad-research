@@ -46,14 +46,14 @@
   0.0)
 
 (define (score-agent-orientations agents g limits)
-  (let* ((bb (pseq->bbox limits))
+  (let* ((bb (pseq:bbox limits))
          (bblt (bbox-lefttop bb))
          (bbrt (bbox-righttop bb))
          (bblb (bbox-leftbottom bb))
          (bbrb (bbox-rightbottom bb))
          (east-angle
           (-              ; invert to use it for aligning bounding box
-           (direction->angle-rad (graph:north->east (car (graph-environment g))))))
+           (direction:angle-rad (graph:north->east (car (graph-environment g))))))
          (rotfunc (cute rotate.point-w/reference
                         (bbox:centroid bb)
                         <>

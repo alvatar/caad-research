@@ -6,8 +6,8 @@
 ;;; positions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1)
-        (std srfi/95)
+(import (std srfi/1
+             srfi/95)
         ../core/syntax
         ../core/debugging
         ../geometry/kernel
@@ -139,8 +139,8 @@
            (wall-pseq w)))
         (pseq:relative-position->point
          (pseq:clip/lines-clockwise external-walls
-                    (point+direction->line c (rotate·direction orientation (- (/ pi 8))))
-                    (point+direction->line c (rotate·direction orientation (/ pi 8))))
+                    (point&direction->line c (rotate·direction orientation (- (/ pi 8))))
+                    (point&direction->line c (rotate·direction orientation (/ pi 8))))
          #e1/2))))
 
 ;;; Sort agents descendingly by distance to a given one

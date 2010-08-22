@@ -68,6 +68,12 @@
     ((_ l)
      (apply values l))))
 
+;;; Pair to 2 values
+
+(define (pair->2-values pair)
+  (values (car pair)
+          (cdr pair)))
+
 ;;; Produce a number of identical values
 
 (define (make-values l v)
@@ -407,7 +413,6 @@
 	(if (null? lis) lis
 	    (cons (f lis) (recur (cdr lis)))))))
 
-
 ;;; map+fold combines them two, returning the map and the fold
 ;;; (map+fold (lambda (a b) (values (+ a b) (+ b 1))) 0 '(1 2 3 4))
 ;;; => (1 3 5 7)
@@ -474,7 +479,7 @@
                               (kons lh fold-ans)
                               (cons mapv (recur lt foldv))))))))
 
-;;; foldx is like pair-fold, but stops folding when the cdr is of a given length
+;;; like pair-fold, but stops folding when the cdr is of a given length
 
 (define (pair-fold-x x kons knil lists) ; TODO: implement without pair-fold
   (pair-fold
@@ -490,10 +495,10 @@
    knil
    lists))
 
-;;; fold2 is a foldx specialization for x=2
+;;; pair-fold-x specialization for x=2
 
-(define (pair-fold-2 kons knil lists)
-  (pair-fold-x 2 kons knil lists))
+(define pair-fold-2
+  (curry pair-fold-x 2) (pair-fold-x 2 kons knil lists))
 
 ;-------------------------------------------------------------------------------
 ; Find, remove, substitute

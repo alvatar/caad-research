@@ -158,7 +158,7 @@
 (define-memoized/key-gen graph:bounding-box 
   (lambda (graph) (graph-uid graph))
   (lambda (graph)
-    (pseq->bbox (graph:wall-list->pseq (graph:find.exterior-walls graph)))))
+    (pseq:bbox (graph:wall-list->pseq (graph:find.exterior-walls graph)))))
 
 ;;; External polygon extraction
 
@@ -271,7 +271,7 @@
 
 (define (graph:room-aspect-ratio graph room)
   (let ((bbxsg (bbox:size-segment
-                (pseq->bbox (graph:room->pseq graph room)))))
+                (pseq:bbox (graph:room->pseq graph room)))))
     (max (vect2:x/y bbxsg)
          (vect2:y/x bbxsg))))
 

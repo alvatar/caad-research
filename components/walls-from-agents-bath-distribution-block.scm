@@ -13,11 +13,14 @@
         ../core/list
         ../core/randomization
         ../core/debugging
-        ../geometry/kernel
         ../geometry/generation
+        ../geometry/kernel
+        ../geometry/locus
+        ../geometry/query
         ../graph
         ../graph-visualization
         ../math/exact-algebra
+        ../math/inexact-algebra
         ../operators
         ../graph-operations
         ../output
@@ -27,13 +30,14 @@
 
 ;;; First step of wall generation
 
-(define (add-bath-corridor-block graph world)
+(define (add-bath-corridor-container graph world)
   (let ((corridor-width #e1.6)
         (push-away-non-corridor-agents
          (lambda (graph)
            (let ((agents (world-agents world)))
              (aif wrong-agents
                   null?
+                  ;; Find out if there are any wrong agents inside the corridor container
                   (remove
                    (lambda (a) (eq? (agent-label a) 'distribution))
                    (find.agents-in-room graph
@@ -41,19 +45,19 @@
                                         (find.room/agent graph agents 'distribution)))
                   world
                   (make-world
+                   ;; Map all the agents -> move the wrong agents
                    (map-if (lambda (a) (any (lambda (wa) (eq? (agent-label wa) (agent-label a))) wrong-agents))
                            (lambda (a) (move-agent a
                                               (list
-                                               ;; TODO: REVIEW!!!!!
-                                               (receive (w dist) (find.closest-wall/agent graph a)
+                                               (receive (w sd) (find.nearest-wall+squareddistance/agent graph a)
                                                         (let ((p (agent-head-position a)))
-                                                          (vect2:+ (vect2:*scalar
-                                                                    (vect2:~normalize
-                                                                     (point+pseq-perpendicular->direction
-                                                                      p
-                                                                      (wall-pseq w)))
-                                                                    (* dist #e1.1))
-                                                                   p))))))
+                                                          (vect2+ (vect2:*scalar
+                                                                   (vect2:~normalize
+                                                                    (point&pseq-perpendicular->direction
+                                                                     p
+                                                                     (wall-pseq w)))
+                                                                   (+ (sqrt sd) 0.5)) ; 50 cm. away from wall
+                                                                  p))))))
                            agents)
                    '()))))))
     (receive (parallel-1 parallel-2)
@@ -61,7 +65,7 @@
                                                     (car (agent-positions
                                                           (find-agent (world-agents world)
                                                                       'distribution)))))
-                                               (point+direction->line
+                                               (point&direction->line
                                                 base-point
                                                 (graph:wall-perpendicular
                                                  (graph:closest-wall graph base-point))))
@@ -71,9 +75,14 @@
              ;; TODO: if too close to a wall, add only one
              (let ((new-graph
                     (op:cut
-                     (graph+line->context (op:cut (graph+line->context graph
+                     (graph&line->context (op:cut (graph&line->context graph
                                                                        parallel-1))
                                           parallel-2))))
+
+               (visualization:forget-all)
+         (visualize-graph graph)
+         (visualize-world world graph)
+         (visualization:do-now)
                (values
                 new-graph
                 ;; Passes also the distribution direction
@@ -117,9 +126,9 @@
          
          ;; 
          
-         (let* ((new-graph (op:cut (room+line->context graph
+         (let* ((new-graph (op:cut (room&line->context graph
                                                        room
-                                                       (point+direction->line
+                                                       (point&direction->line
                                                         (choose-point graph room)
                                                         (direction:perpendicular
                                                          distribution-direction)))))
@@ -149,7 +158,7 @@
                  (not (= (count.agents-in-room graph (world-agents world) r) 1)))
                (graph:find.rooms graph))
          (loop-until-fixed (op:merge
-                            (room+room->context graph
+                            (room&room->context graph
                                                 wrong-room
                                                 (choose-merge-room wrong-room))))
          (values graph world))))
@@ -190,7 +199,7 @@
 (define (walls-from-agents/distribution&bath-block graph world)
   (let ((finished-agents (world-agents world)))
     ((compose-right
-      add-bath-corridor-block
+      add-bath-corridor-container
       add-rest-of-rooms
       draw-result
       merge-residual-space

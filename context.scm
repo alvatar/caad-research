@@ -70,7 +70,7 @@
 ;;; Takes a graph and an infinite line and builds the context with the
 ;;; computation of their intersections
 
-(define (graph+line->context graph line)
+(define (graph&line->context graph line)
   (receive (rooms walls intersections)
            (graph:relative-line-intersections graph line)
            (begin
@@ -87,7 +87,7 @@
 ;;; Takes a graph, a room and an infinite line and builds the context with
 ;;; the computation of the intersection between the room and the line
 
-(define (room+line->context graph room line)
+(define (room&line->context graph room line)
   (receive (walls intersections)
            (graph:room-relative-line-intersections graph room line)
            (begin
@@ -103,7 +103,7 @@
 
 ;;; Builds the context from two rooms
 
-(define (room+room->context graph r1 r2)
+(define (room&room->context graph r1 r2)
   `(#f ,graph
        ,r1
        ,r2))
