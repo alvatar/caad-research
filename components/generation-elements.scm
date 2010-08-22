@@ -29,6 +29,11 @@
               (agent-memory a)
               (agent-proc a)))
 
+;;; Move agent head
+
+(define (move-agent-head a new-pos)
+  (move-agent a (list new-pos)))
+
 ;;; Agent head position
 
 (define (agent-head-position a)

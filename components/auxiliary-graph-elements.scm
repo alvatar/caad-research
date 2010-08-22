@@ -5,12 +5,94 @@
 ;;; Graph and element auxiliary procedures common to various components
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1)
+(import (std srfi/1
+             srfi/95)
         ../core/list
         ../geometry/kernel
         ../graph
         ../graph-operations
         generation-elements)
+
+;;; Distance agent-point
+
+(define (~distance.agent<->point agent point)
+  (~distance.point-point
+   (car (agent-positions agent))
+   point)) ; TODO: multi-nodal agents
+
+;;; Distance agent-wall
+
+;; (define (~distance.agent<->wall agent wall)
+;;   (~distance.point-pseq
+;;    (car (agent-positions agent)) ; TODO: multi-nodal agents
+;;    (wall-pseq wall)))
+
+;;; Squared distance agent-wall
+
+(define (squareddistance.agent<->wall agent wall)
+  (squareddistance.point-pseq
+   (car (agent-positions agent)) ; TODO: multi-nodal agents
+   (wall-pseq wall)))
+
+;;; Distance agent-window
+
+(define (~distance.agent<->window agent window)
+  (~distance.point-pseq
+   (car (agent-positions agent)) ; TODO: multi-nodal agents
+   (window-pseq window)))
+
+;;; Distance agent-agent
+
+;; (define (~distance.agent<->agent a1 a2)
+;;   (~distance.point-point
+;;    (car (agent-positions a1)) ; TODO: multi-nodal agents
+;;    (car (agent-positions a2))))
+
+;;; Squared distance agent-agent
+
+(define (squareddistance.agent<->agent a1 a2)
+  (squareddistance.point-point
+   (car (agent-positions a1)) ; TODO: multi-nodal agents
+   (car (agent-positions a2))))
+
+;;; Distance agent-pipe
+
+(define (~distance.agent<->pipe a p)
+  (~distance.point-point
+   (car (agent-positions a))
+   (pipe-position p)))
+
+;;; Distance agent-entry
+
+(define (distance.agent<->entry a e)
+  (~distance.point-pseq
+   (car (agent-positions a))
+   (entry-pseq e)))
+
+;;; Distance agent-cardinal limits (pseq representing a side with an orientation)
+;;; TODO: UNTESTED
+
+(define (distance.agent<->cardinal-limits a orientation external-walls)
+  (let* ((limits (graph:wall-list->pseq exterior-walls))
+         (c (pseq:centroid limits)))
+   (map (lambda (w)
+          (~distance.point-pseq
+           (car (agent-positions a))n
+           (wall-pseq w)))
+        (pseq:relative-position->point
+         (pseq:clip/lines-clockwise external-walls
+                    (point&direction->line c (rotate·direction orientation (- (/ pi 8))))
+                    (point&direction->line c (rotate·direction orientation (/ pi 8))))
+         #e1/2))))
+
+;;; Illumination of the point
+
+(define (light.agent a windows)         ; TODO: multi-nodal
+  (sum
+   (map (lambda (w)
+          (~distance.point-segment
+           (car (agent-positions a))
+           (windows-pseq w))))))
 
 ;;; Find agents in a room
 
@@ -35,6 +117,10 @@
      0
      agents)))
 
+;-------------------------------------------------------------------------------
+; Finders
+;-------------------------------------------------------------------------------
+
 ;;; Find the room that contains an agent
 
 (define (find.room/agent graph agents agentl)
@@ -45,7 +131,7 @@
 
 ;;; Find closest wall to an agent
 
-(define (find.closest-wall/agent graph agent)
+(define (find.nearest-wall<->agent graph agent)
   (let ((walls (graph:find.walls graph))
         (p (agent-head-position agent)))
     (fold
@@ -57,9 +143,9 @@
      (car walls)
      (cdr walls))))
 
-;;; Find the closest room to an agent + its distance
+;;; Find nearest room to an agent + its distance
 
-(define (find.nearest-wall+squareddistance/agent graph agent)
+(define (find.nearest-wall<->agent+squareddistance graph agent)
   (pair->2-values
    (let* ((walls (graph:find.walls graph))
           (first-wall (car walls))
@@ -73,3 +159,23 @@
               nearest-w.d)))
       (cons first-wall (squareddistance.point-pseq p (wall-pseq first-wall)))
       (cdr walls)))))
+
+;-------------------------------------------------------------------------------
+; Sorting
+;-------------------------------------------------------------------------------
+
+;;; Sort agents descendingly by distance to a given one
+
+(define (sort.distance.agent<->agents a as)
+  (sort as
+        (lambda (a1 a2) (< (distance·agent<->agent a a1)
+                      (distance·agent<->agent a a2)))))
+
+;;; Sort the walls according to distance with agents
+
+(define (sort.distance.agent<->walls graph a)
+  (let ((p (agent-head-position a)))
+    (sort (graph:find.walls graph)
+          (lambda (w1 w2) (< (squareddistance.point-pseq p (wall-pseq w1))
+                        (squareddistance.point-pseq p (wall-pseq w2)))))))
+

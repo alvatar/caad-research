@@ -96,6 +96,11 @@
 (define (graph:point-in-room? graph room point)
   (pseq:point-inside? (graph:room->pseq graph room) point))
 
+;;; Is point inside the graph limits?
+
+(define (graph:point-inside? graph point)
+  (pseq:point-inside? (graph:limits graph) point))
+
 ;;; Is the wall of this room?
 
 (define (graph:room-wall-uid? room wall-uid)

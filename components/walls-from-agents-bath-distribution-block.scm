@@ -47,17 +47,22 @@
                   (make-world
                    ;; Map all the agents -> move the wrong agents
                    (map-if (lambda (a) (any (lambda (wa) (eq? (agent-label wa) (agent-label a))) wrong-agents))
-                           (lambda (a) (move-agent a
-                                              (list
-                                               (receive (w sd) (find.nearest-wall+squareddistance/agent graph a)
-                                                        (let ((p (agent-head-position a)))
-                                                          (vect2+ (vect2:*scalar
-                                                                   (vect2:~normalize
-                                                                    (point&pseq-perpendicular->direction
-                                                                     p
-                                                                     (wall-pseq w)))
-                                                                   (+ (sqrt sd) 0.5)) ; 50 cm. away from wall
-                                                                  p))))))
+                           (lambda (a) (move-agent-head
+                                   a
+                                   (let ((p (agent-head-position a)))
+                                     ;; It will choose another wall if the agent ends up outside
+                                     (let cycle-nearest-walls ((sorted-walls (sort.distance.agent<->walls graph a)))
+                                       (let ((wpseq (wall-pseq (car sorted-walls))))
+                                         (aif valid-point
+                                              (lambda (vp) (graph:point-inside? graph vp))
+                                              (vect2:inexact->exact
+                                               (vect2+ (vect2:*scalar
+                                                        (vect2:~normalize
+                                                         (point&pseq-perpendicular->direction p wpseq))
+                                                        (+ (sqrt (~distance.point-pseq p wpseq)) 1)) ; 1 m. away from wall
+                                                       p))
+                                              valid-point
+                                              (cycle-nearest-walls (cdr sorted-walls))))))))
                            agents)
                    '()))))))
     (receive (parallel-1 parallel-2)
@@ -72,17 +77,12 @@
                                              (/ corridor-width 2))
                                         ;(visualization:line-now parallel-1)
                                         ;(visualization:line-now parallel-2)
-             ;; TODO: if too close to a wall, add only one
+             ;; TODO: IMPORTANT if too close to a wall, add only one
              (let ((new-graph
                     (op:cut
                      (graph&line->context (op:cut (graph&line->context graph
                                                                        parallel-1))
                                           parallel-2))))
-
-               (visualization:forget-all)
-         (visualize-graph graph)
-         (visualize-world world graph)
-         (visualization:do-now)
                (values
                 new-graph
                 ;; Passes also the distribution direction
@@ -119,11 +119,7 @@
       (values
        (let room-cycle ((graph graph)
                         (room (find-next-room-to-partition graph)))
-         ;; (visualization:forget-all)
-         ;; (visualize-graph graph)
-         ;; (visualize-world world graph)
-         ;; (visualization:do-now)
-         
+       
          ;; 
          
          (let* ((new-graph (op:cut (room&line->context graph

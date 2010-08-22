@@ -20,7 +20,7 @@
         ../math/exact-algebra
         ../visualization
         auxiliary-evolution-evaluation
-        auxiliary-element-interrelations
+        auxiliary-graph-elements
         generation-elements)
 
 (export agents-hinted-evolutionary-distribution)

@@ -17,7 +17,7 @@
         ../graph-operations
         ../math/exact-algebra
         ../math/inexact-algebra
-        auxiliary-element-interrelations
+        auxiliary-graph-elements
         generation-elements)
 
 
@@ -64,10 +64,10 @@
          (west (rotfunc (segment:mid-point (make-segment bblt bblb)))))
     (define (agent-orientation a)
       (caar (sort
-             `((north ,(distance.agent<->point a north))
-               (south ,(distance.agent<->point a south))
-               (east ,(distance.agent<->point a east))
-               (west ,(distance.agent<->point a west)))
+             `((north ,(~distance.agent<->point a north))
+               (south ,(~distance.agent<->point a south))
+               (east ,(~distance.agent<->point a east))
+               (west ,(~distance.agent<->point a west)))
              (lambda (a b) (< (cadr a) (cadr b))))))
 
     ;; (visualization:forget-all)
@@ -100,12 +100,12 @@
            ((kitchen) 'nada)
            ((living)
             (clamp&invert&normalize ; IDEA: find mathematical solution to control distribution of power 1 vs. x
-             (pick-min (map (lambda (w) (distance.agent<->window a w)) windows))
+             (pick-min (map (lambda (w) (~distance.agent<->window a w)) windows))
              2.0
              12.0))                      ; TODO: 2.0 is wall separation
            ((room)
             (clamp&invert&normalize
-             (pick-min (map (lambda (w) (distance.agent<->window a w)) windows))
+             (pick-min (map (lambda (w) (~distance.agent<->window a w)) windows))
              2.0
              12.0))
            (else (error "Agent type doesn't exist"))))
@@ -122,7 +122,7 @@
          ((distribution)
           (clamp&invert&normalize
            (max ; Only the biggest distance from the necessary elements is important
-            (pick-min (map (lambda (e) (distance.agent<->entry a e)) (graph:find.entries g)))
+            (pick-min (map (lambda (e) (~distance.agent<->entry a e)) (graph:find.entries g)))
             ;(pick-min (map (lambda (e) (distance.agent<->pipe a e)) (graph:find.pipes g)))
             )
            8.0 ; TODO: the best point that satisfies this (calculated with forces??)
@@ -130,7 +130,7 @@
          ((kitchen)
           (clamp&invert&normalize
            (pick-min
-            (map (lambda (e) (distance.agent<->pipe a e)) (graph:find.pipes g)))
+            (map (lambda (e) (~distance.agent<->pipe a e)) (graph:find.pipes g)))
            0.0
            20.0))
          ((living) 'nada)
