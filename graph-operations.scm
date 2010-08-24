@@ -240,7 +240,7 @@
   (let* ((walls (graph:find.room-walls graph room))
          (intersections (map
                          (lambda (w)
-                           (intersection.line-segment
+                           (intersect.line-segment
                             line
                             (pseq->segment (wall-pseq w))))
                          walls)))
