@@ -12,24 +12,23 @@
 (compile-options force-compile: #t)
 
 ;;; Syntax error macro
-;;; TODO: Update places with error instead of syntax-error
 
 (define-syntax syntax-error
   (syntax-rules ()
     ((_)
-     (error "Bad use of syntax error!"))
+     (error "please supply an error message to syntax-error"))
     ((_ arg)
      (error arg))))
 
-;;; Anaforic if
+;;; Anaphoric if
 
 (define-syntax aif
   (syntax-rules ()
     ((_ var expr iftrue)
      (let ((var expr))
        (if var
-         iftrue
-         #f)))
+           iftrue
+           #f)))
     ((_ var expr iftrue iffalse)
      (let ((var expr))
        (if var
@@ -38,8 +37,30 @@
     ((_ var pred expr iftrue iffalse)
      (let ((var expr))
        (if (pred var)
-         iftrue
-         iffalse)))))
+           iftrue
+           iffalse)))))
+
+;;; Unhygienic anaphoric if
+
+(define-macro (uif arg1 . rest-args)
+  (case (length rest-args)
+    ((1)
+     `(let ((?it ,arg1))
+        (if ?it
+            ,(car rest-args)
+            #f)))
+    ((2)
+     `(let ((?it ,arg1))
+        (if ?it
+            ,(car rest-args)
+            ,(cadr rest-args))))
+    ((3)
+     `(let ((?it ,(car rest-args)))
+        (if ,(arg1 ?it)
+            (cadr rest-args)
+            (caddr rest-args))))
+    (else
+     (error "too many arguments passed to unhyginic anaphoric if"))))
 
 ;;; R5RS standard states that an if with only one branch returns an unspecified
 ;;; value if the test is false. This macro places an #f automatically

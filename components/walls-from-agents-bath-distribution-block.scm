@@ -100,13 +100,12 @@
              (find (lambda (r)
                      (> (count.agents-in-room graph (world-agents world) r) 1))
                    (graph:find.rooms graph))))
-
           (choose-point
            (lambda (graph room)
              (let* ((agents (binary-shuffle-list (find.agents-in-room graph
                                                                       (world-agents world)
                                                                       room)))
-                    (reference-point (car (agent-positions (car agents)))))
+                    (reference-point (agent-head-position (car agents))))
                (generate.random-point/two-points
                 reference-point
                 (car (agent-positions (most (lambda (a b)
@@ -116,24 +115,22 @@
                                                                           reference-point)))
                                             (cdr agents)))))))))
 
-      (values
-       (let room-cycle ((graph graph)
-                        (room (find-next-room-to-partition graph)))
-       
-         ;; 
-         
-         (let* ((new-graph (op:cut (room&line->context graph
-                                                       room
-                                                       (point&direction->line
-                                                        (choose-point graph room)
-                                                        (direction:perpendicular
-                                                         distribution-direction)))))
-                (next-room (find-next-room-to-partition new-graph)))
-           (if next-room
+      (let room-cycle ((graph graph)
+                       (agents (world-agents world)))
+        (uif (find-next-room-to-partition graph)
+             (let ((agents-in-room (find.agents-in-room graph
+                                                        agents
+                                                        ?it))
+                   (new-graph (op:cut (room&line->context graph
+                                                          ?it
+                                                          (point&direction->line
+                                                           (choose-point graph ?it)
+                                                           (direction:perpendicular
+                                                            distribution-direction))))))
                (room-cycle new-graph
-                           next-room)
-               new-graph)))
-       world))))
+                           agents))
+             (values graph
+                     world))))))
 
 ;;; Check if there is the proper relationship between agents and rooms, fix if needed
 

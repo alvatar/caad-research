@@ -94,29 +94,6 @@
            (car (agent-positions a))
            (windows-pseq w))))))
 
-;;; Find agents in a room
-
-(define (find.agents-in-room graph agents room)
-  (filter
-   (lambda (a)
-     (every
-      (lambda (p)
-        (pseq:point-inside? (graph:room->pseq graph room) p))
-      (agent-positions a))) ; TODO: wrong! if an agent is between two rooms, what to do?
-   agents))
-
-;;; Cound the agents in a room
-
-(define (count.agents-in-room graph agents r)
-  (let ((pol (graph:room->pseq graph r)))
-    (fold
-     (lambda (a num)
-       (if (pseq:point-inside? pol (agent-head-position a))
-           (add1 num)
-           num))
-     0
-     agents)))
-
 ;-------------------------------------------------------------------------------
 ; Finders
 ;-------------------------------------------------------------------------------
@@ -128,6 +105,17 @@
    (lambda (r)
      (find (lambda (a) (equal? (agent-label a) agentl)) (find.agents-in-room graph agents r)))
    (graph:find.rooms graph)))
+
+;;; Find agents in a room
+
+(define (find.agents-in-room graph agents room)
+  (filter
+   (lambda (a)
+     (every
+      (lambda (p)
+        (pseq:point-inside? (graph:room->pseq graph room) p))
+      (agent-positions a))) ; TODO: wrong! if an agent is between two rooms, what to do?
+   agents))
 
 ;;; Find closest wall to an agent
 
@@ -179,3 +167,18 @@
           (lambda (w1 w2) (< (squareddistance.point-pseq p (wall-pseq w1))
                         (squareddistance.point-pseq p (wall-pseq w2)))))))
 
+;-------------------------------------------------------------------------------
+; Misc.
+;-------------------------------------------------------------------------------
+
+;;; Cound the agents in a room
+
+(define (count.agents-in-room graph agents r)
+  (let ((pol (graph:room->pseq graph r)))
+    (fold
+     (lambda (a num)
+       (if (pseq:point-inside? pol (agent-head-position a))
+           (add1 num)
+           num))
+     0
+     agents)))
