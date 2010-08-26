@@ -93,12 +93,11 @@
           (second-wall-uid-1-half (make-uuid))
           (second-wall-uid-2-half (make-uuid)))
       (receive (fore aft)
-               (graph:room-break
-                graph
-                room
-                (wall-uid first-wall)
-                (wall-uid second-wall))
-               (let-values (((splitted-wall-1a splitted-wall-1b)
+               (graph:room-break graph
+                                 room
+                                 (wall-uid first-wall)
+                                 (wall-uid second-wall))
+               (let-values (((splitted-wall-1a splitted-wall-1b split-status)
                              (let ((create-walls (curry graph:split-wall
                                                         first-wall
                                                         first-split-point)))
@@ -107,7 +106,7 @@
                                     (first (wall-pseq first-wall)))
                                    (create-walls first-wall-uid-1-half first-wall-uid-2-half)
                                    (create-walls first-wall-uid-2-half first-wall-uid-1-half))))
-                            ((splitted-wall-2a splitted-wall-2b)
+                            ((splitted-wall-2a splitted-wall-2b split-status)
                              (let ((create-walls (curry graph:split-wall
                                                         second-wall
                                                         second-split-point)))

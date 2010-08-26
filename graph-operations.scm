@@ -300,16 +300,34 @@
 ;-------------------------------------------------------------------------------
 
 ;;; Create a two new walls where one was before, given a splitting point
+;;; @returns 3 vals: 2 new walls + status
 
-(define (graph:split-wall wall split-point-relative uuid1 uuid2)
-  (let ((split-point (pseq:relative-position->point (wall-pseq wall) split-point-relative))
+(define (graph:split-wall wall split-pt-rel uuid1 uuid2
+                          #!optional allow-subelement-removal)
+  (let ((split-point (pseq:relative-position->point (wall-pseq wall) split-pt-rel))
         (first-point (first (wall-pseq wall)))
         (second-point (last (wall-pseq wall))))
-    (values
-     (make-wall-plain uuid1
-                      (list first-point split-point))
-     (make-wall-plain uuid2
-                      (list split-point second-point)))))
+    (receive (first-side-windows second-side-windows splitted-windows)
+             ((Y (lambda (recur)
+                   (lambda (l)
+                     (if (null? l)
+                         (values '() '() '())
+                         (recur (cdr l))))))
+              (wall-windows wall))
+             (values
+              (make-wall uuid1
+                         '((type "new"))
+                         (list first-point split-point)
+                         first-side-windows
+                         '())
+              (make-wall uuid2
+                         '((type "new"))
+                         (list split-point second-point)
+                         second-side-windows
+                         '())
+              (if (or allow-subelement-removal (null? splitted-windows))
+                  'ok
+                  'lost-window)))))
 
 ;;; Update refs to walls in rooms
 

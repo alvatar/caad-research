@@ -35,6 +35,8 @@
             <wall uid="d1e5dc7c-a950-11df-9664-49a8df010816">
                 <pt x="10.462393" y="10.726151"></pt>
                 <pt x="10.462393" y="0.000000"></pt>
+                <window uid="d1e5dc4a-a950-11df-9664-49a8df010816" to="0.644754" from="0.758496"></window>
+                <window uid="d1e5dc4a-a950-11df-9664-49a8df010816" to="0.794754" from="0.858496"></window>
             </wall>
             <wall uid="d1e5dca4-a950-11df-9664-49a8df010816" type="new">
                 <pt x="10.462393" y="0.000000"></pt>

@@ -136,7 +136,7 @@
 ;;; Check if there is the proper relationship between agents and rooms, fix if needed
 
 (define (merge-residual-space graph world)
-  (define-choice! "merge-room?"
+  (define-choice! "choose-room-to-merge"
     (choose-merge-room room)
     (find (lambda (r)
             (aif res

@@ -44,7 +44,7 @@
 
 ;;; Function composition
 
-(define (%compose reducer . fns)
+(define (composer reducer . fns)
   (reducer (lambda (fn chain)
             (lambda args
               (call-with-values (lambda () (apply fn args)) chain)))
@@ -52,10 +52,10 @@
           fns))
 
 (define (compose . fns)
-  (apply %compose reduce fns))
+  (apply composer reduce fns))
 
 (define (compose-right . fns)
-  (apply %compose reduce-right fns))
+  (apply composer reduce-right fns))
 
 ;-------------------------------------------------------------------------------
 ; Associative functions
