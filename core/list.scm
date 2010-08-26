@@ -834,6 +834,32 @@
       (loop (cdr slow)
             (cddr fast))))))
 
+;;; partition a list depending on predicate satisfaction, effectively extending
+;;; the SRFI-1 |partition| procedure
+;;; (classify (lambda (x) (car x))
+;;;           ((lambda (x) (equal? x 'a)) (lambda (x) (equal? x 'b)))
+;;;           '((a) (b 0) (a 1) (b 1 2)))
+;;; => ((a) (a 1))
+;;;    ((b 0) (b 1 2))
+
+(define (classify) ; TODO
+ ;; (fold/values (lambda (x a b c)
+ ;;                (case 'first
+ ;;                  ((first) (values (cons x a) b c))
+ ;;                  ((second) (values a (cons x b) c))
+ ;;                  ((splitted) (values a b (cons x c)))))
+ ;;              '(() () ())
+ ;;              (wall-windows wall))
+ (error "unimplemented"))
+
+;;; partition a list depending using a |case| form for testing
+;;; (case-classify (lambda (x) (car x)) (a b) '((a) (b 0) (a 1) (b 1 2)))
+;;; => ((a) (a 1))
+;;;    ((b 0) (b 1 2))
+
+(define (case-classify key-generator)
+  (error "unimplemented"))
+
 ;-------------------------------------------------------------------------------
 ; Miscellaneous
 ;-------------------------------------------------------------------------------

@@ -302,30 +302,42 @@
 ;;; Create a two new walls where one was before, given a splitting point
 ;;; @returns 3 vals: 2 new walls + status
 
-(define (graph:split-wall wall split-pt-rel uuid1 uuid2
-                          #!optional allow-subelement-removal)
+(define (graph:split-wall wall split-pt-rel uuid1 uuid2)
   (let ((split-point (pseq:relative-position->point (wall-pseq wall) split-pt-rel))
         (first-point (first (wall-pseq wall)))
-        (second-point (last (wall-pseq wall))))
+        (second-point (last (wall-pseq wall)))
+        (adjust-windows (lambda (wl)
+                          (error "HERE")
+                          (map (lambda (w) w)
+                               wl))))
     (receive (first-side-windows second-side-windows splitted-windows)
-             ((Y (lambda (recur)
-                   (lambda (l)
-                     (if (null? l)
-                         (values '() '() '())
-                         (recur (cdr l))))))
-              (wall-windows wall))
+             (fold/values (lambda (w a b c)
+                            (cond
+                             ;; both points fall into the first wall
+                             ((and (< (window-from w) split-pt-rel)
+                                   (< (window-to w) split-pt-rel))
+                              (values (cons w a) b c))
+                             ;; both points fall into the second wall
+                             ((and (> (window-from w) split-pt-rel)
+                                   (> (window-to w) split-pt-rel))
+                              (values a (cons w b) c))
+                             ;; the window is in between
+                             (else
+                              (values a b (cons w c)))))
+                          '(() () ())
+                          (wall-windows wall))
              (values
               (make-wall uuid1
                          '((type "new"))
                          (list first-point split-point)
-                         first-side-windows
+                         (adjust-windows first-side-windows)
                          '())
               (make-wall uuid2
                          '((type "new"))
                          (list split-point second-point)
-                         second-side-windows
+                         (adjust-windows second-side-windows)
                          '())
-              (if (or allow-subelement-removal (null? splitted-windows))
+              (if (null? splitted-windows)
                   'ok
                   'lost-window)))))
 
