@@ -23,6 +23,7 @@
         ../math/inexact-algebra
         ../operators
         ../graph-operations
+        ../logic
         ../output
         ../visualization
         auxiliary-graph-elements
@@ -135,7 +136,8 @@
 ;;; Check if there is the proper relationship between agents and rooms, fix if needed
 
 (define (merge-residual-space graph world)
-  (define (choose-merge-room room)
+  (define-choice! "merge-room?"
+    (choose-merge-room room)
     (find (lambda (r)
             (aif res
                  null?

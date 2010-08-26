@@ -126,7 +126,7 @@ let EnhCommentifyTraditionalMode = "Yes"
 let EnhCommentifyRespectIndent = "yes"
 let Tlist_Inc_Winwidth =  1 
 let Tlist_Auto_Update =  1 
-let CTags_CScope_Top_Dir = "/data/projects/ensanche-core/__deploy"
+let CTags_CScope_Top_Dir = "/data/projects/ensanche-core/__scripts"
 let Tlist_Exit_OnlyWindow =  1 
 let Tlist_Display_Prototype =  0 
 let Tlist_Max_Tag_Length =  10 
@@ -142,9 +142,9 @@ let NetrwTopLvlMenu = "Netrw."
 let ScreenShellHeight =  15 
 let Tlist_Show_Menu =  0 
 let Tlist_Use_Right_Window =  0 
-let Make_Dir = "/data/projects/ensanche-core/__deploy"
+let Make_Dir = "/data/projects/ensanche-core/__scripts"
 silent only
-cd /data/projects/ensanche-core/__deploy
+cd /data/projects/ensanche-core/__scripts
 if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
