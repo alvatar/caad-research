@@ -11,9 +11,12 @@
          (mostly-generic))
 (compile-options force-compile: #t)
 
-(import (std srfi/1))
-(import (std srfi/16))
-(import ../core/functional)
+(import (std srfi/1
+             srfi/16)
+        ../core/functional
+        ../core/debugging)
+
+(%activate-checks)
 
 ;-------------------------------------------------------------------------------
 ; Arithmetic
@@ -51,6 +54,9 @@
 ;;; Normalize value in a range
 
 (define (normalize x lo hi) ; TODO: should check boundaries? yes, if debug
+  (%accept "value is outside normalization boundaries"
+           (or (< x lo)
+               (> x hi)))
   (/ (- x lo) (- hi lo)))
 
 ;;; Takes a value and two boundaries, using any as reference, inverts the intervals

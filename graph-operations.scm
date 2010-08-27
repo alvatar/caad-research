@@ -104,7 +104,7 @@
 ;;; Is the wall of this room?
 
 (define (graph:room-wall-uid? room wall-uid)
-  (%accept (string? wall-uid) "this doesn't look like a UUID")
+  (%accept (string? wall-uid) "this doesn't look like an UUID")
   (find (lambda (wuid) (equal? wuid wall-uid)) (room-walls room)))
 
 ;-------------------------------------------------------------------------------
@@ -190,8 +190,8 @@
 
 (define (graph:walls-common-point w1 w2)
   (aif cp (pseq:common-point?
-            (wall-pseq w1)
-            (wall-pseq w2))
+           (wall-pseq w1)
+           (wall-pseq w2))
        cp
        (begin (pp (wall-pseq w1))
               (pp (wall-pseq w2))
@@ -248,12 +248,12 @@
      (filter-map (lambda (e)
                    (let ((wall (car e))
                          (intersection (cadr e)))
-                    (and
-                     (point? intersection)
-                     (list wall
-                           (segment:point->relative-position
-                            (pseq->segment (wall-pseq wall))
-                            intersection)))))
+                     (and
+                      (point? intersection)
+                      (list wall
+                            (segment:point->relative-position
+                             (pseq->segment (wall-pseq wall))
+                             intersection)))))
                  (zip walls intersections)))))
 
 ;;; Returns all the intersections of a line with the graph
@@ -306,9 +306,10 @@
   (let ((split-point (pseq:relative-position->point (wall-pseq wall) split-pt-rel))
         (first-point (first (wall-pseq wall)))
         (second-point (last (wall-pseq wall)))
-        (adjust-windows (lambda (wl)
-                          (error "HERE")
-                          (map (lambda (w) w)
+        (adjust-windows (lambda (ref1 ref2 wl)
+                          (map (lambda (w) (make-window (scale-along-pseq.pseq)
+                                                   (normalize (window-from w) ref1 ref2)
+                                                   (normalize (window-to w) ref1 ref2)))
                                wl))))
     (receive (first-side-windows second-side-windows splitted-windows)
              (fold/values (lambda (w a b c)
@@ -330,12 +331,12 @@
               (make-wall uuid1
                          '((type "new"))
                          (list first-point split-point)
-                         (adjust-windows first-side-windows)
+                         (adjust-windows 0.0 split-point first-side-windows)
                          '())
               (make-wall uuid2
                          '((type "new"))
                          (list split-point second-point)
-                         (adjust-windows second-side-windows)
+                         (adjust-windows split-point 1.0 second-side-windows)
                          '())
               (if (null? splitted-windows)
                   'ok
