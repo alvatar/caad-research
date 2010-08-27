@@ -270,31 +270,9 @@
 ;;; Calculate wall element (door, wall...) points a list
 
 (define (sxml:wall-element->pseq element wall)
-  (let ((from (sxml:wall-element-relative-points 'from element))
-        (to (sxml:wall-element-relative-points 'to element)))
-    (if (= (length (sxml:wall-points wall)) 2)
-        (let* ((Ax (sxml:archpoint-coord 'x (sxml:wall-point-n wall 1)))
-               (Ay (sxml:archpoint-coord 'y (sxml:wall-point-n wall 1)))
-               (ABx (- (sxml:archpoint-coord 'x (sxml:wall-point-n wall 2)) Ax))
-               (ABy (- (sxml:archpoint-coord 'y (sxml:wall-point-n wall 2)) Ay)))
-          (list (make-vect2 (+ Ax (* ABx from)) (+ Ay (* ABy from)))
-                (make-vect2 (+ Ax (* ABx to)) (+ Ay (* ABy to)))))
-        (error "Error - wall element has more than 2 relative points\n"))))
-      ; Else:
-        ; 1. Precalcular lista de puntos relativos
-        ; 2. Hacer lista de puntos relativos menores que puerta
-        ; 3. Dibujar trayectoria de puerta completa de los segmentos menores
-        ; 4. Dibujar el porcentaje restante sobre el siguiente segmento
-
-;;; Calculate all wall elements point lists of the same type
-
-(define (sxml:all-wall-element-points->pseq type wall)
-  (map (lambda (e) (sxml:wall-element->pseq e wall)) ((sxpath `(,type)) wall)))
-
-;;; Calculate all wall elements point lists of the same type of all walls
-
-(define (sxml:all-wall-element-points-all-walls->pseq type graph)
-  (map (lambda (w) (sxml:all-wall-element-points->pseq type w)) (sxml:graph-walls graph)))
+  (pseq:slice (sxml:wall->pseq wall)
+              (sxml:wall-element-relative-points 'from element)
+              (sxml:wall-element-relative-points 'to element)))
 
 ;-------------------------------------------------------------------------------
 ; Room
@@ -371,7 +349,7 @@
                                   wall)
          (let ((entry-point (string->number (sxml:entry-wall-point entry)))
                (wallp (sxml:wall->pseq wall)))
-           (let ((center (pseq:relative-position->point wallp entry-point))
+           (let ((center (pseq:1d-coord->point wallp entry-point))
                  (direction (pseq:~normalized-tangent-in-relative wallp entry-point))) ; TODO: WRONG! normalized!
              (list (vect2+ center (vect2:*scalar direction #e0.4))
                    (vect2+ center (vect2:*scalar (direction:reverse direction) #e0.4)))))))))

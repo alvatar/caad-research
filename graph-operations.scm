@@ -76,18 +76,16 @@
     (any (lambda (room) (graph:point-in-room? graph room p))
          (graph:find.rooms graph)))
   (let* ((wall-points (wall-pseq wall))
-         (mid-p (pseq:relative-position->point wall-points 0.5))
+         (mid-p (pseq:1d-coord->point wall-points 0.5))
          (tangent-p (pseq:tangent-in-relative wall-points 0.5))
-         (p1 (rotate.point-w/reference mid-p
-                                         (vect2+
-                                          mid-p
-                                          (vect2:*scalar tangent-p equal-accuracy))
-                                         pi/2))
-         (p2 (rotate.point-w/reference mid-p
-                                         (vect2+
-                                          mid-p
-                                          (vect2:*scalar tangent-p equal-accuracy))
-                                         -pi/2)))
+         (p1 (rotate.point/ref mid-p
+                               (vect2+ mid-p
+                                       (vect2:*scalar tangent-p equal-accuracy))
+                               pi/2))
+         (p2 (rotate.point/ref mid-p
+                               (vect2+ mid-p
+                                       (vect2:*scalar tangent-p equal-accuracy))
+                               -pi/2)))
     (not (and (point-in-any-room? p1)
               (point-in-any-room? p2)))))
 
@@ -251,7 +249,7 @@
                      (and
                       (point? intersection)
                       (list wall
-                            (segment:point->relative-position
+                            (segment:point->1d-coord
                              (pseq->segment (wall-pseq wall))
                              intersection)))))
                  (zip walls intersections)))))
@@ -283,17 +281,17 @@
 ;;; Calculate south from north direction
 
 (define (graph:north->south vec)
-  (rotate.point vec pi))
+  (rotate.point/O vec pi))
 
 ;;; Calculate north-east from north direction
 
 (define (graph:north->north-east vec)
-  (rotate.point vec -pi/4))
+  (rotate.point/O vec -pi/4))
 
 ;;; Calculate east from north direction
 
 (define (graph:north->east vec)
-  (rotate.point vec -pi/2)) ; TODO: perpendicular
+  (rotate.point/O vec -pi/2)) ; TODO: perpendicular
 
 ;-------------------------------------------------------------------------------
 ; Graph modification
@@ -302,45 +300,51 @@
 ;;; Create a two new walls where one was before, given a splitting point
 ;;; @returns 3 vals: 2 new walls + status
 
-(define (graph:split-wall wall split-pt-rel uuid1 uuid2)
-  (let ((split-point (pseq:relative-position->point (wall-pseq wall) split-pt-rel))
-        (first-point (first (wall-pseq wall)))
-        (second-point (last (wall-pseq wall)))
-        (adjust-windows (lambda (ref1 ref2 wl)
-                          (map (lambda (w) (make-window (scale-along-pseq.pseq)
-                                                   (normalize (window-from w) ref1 ref2)
-                                                   (normalize (window-to w) ref1 ref2)))
-                               wl))))
-    (receive (first-side-windows second-side-windows splitted-windows)
-             (fold/values (lambda (w a b c)
-                            (cond
-                             ;; both points fall into the first wall
-                             ((and (< (window-from w) split-pt-rel)
-                                   (< (window-to w) split-pt-rel))
-                              (values (cons w a) b c))
-                             ;; both points fall into the second wall
-                             ((and (> (window-from w) split-pt-rel)
-                                   (> (window-to w) split-pt-rel))
-                              (values a (cons w b) c))
-                             ;; the window is in between
-                             (else
-                              (values a b (cons w c)))))
-                          '(() () ())
-                          (wall-windows wall))
-             (values
-              (make-wall uuid1
-                         '((type "new"))
-                         (list first-point split-point)
-                         (adjust-windows 0.0 split-point first-side-windows)
-                         '())
-              (make-wall uuid2
-                         '((type "new"))
-                         (list split-point second-point)
-                         (adjust-windows split-point 1.0 second-side-windows)
-                         '())
-              (if (null? splitted-windows)
-                  'ok
-                  'lost-window)))))
+(define (graph:split-wall wall split-x uuid1 uuid2) ; TODO: review for mult-segment walls
+  (let ((wall-pseq (wall-pseq wall)))
+    (let ((split-point (pseq:1d-coord->point wall-pseq split-x))
+          (first-point (first wall-pseq))
+          (second-point (last wall-pseq))
+          (adjust-windows (lambda (ref1 ref2 wl)
+                            (map (lambda (w)
+                                   (let ((new-from (normalize (window-from w) ref1 ref2))
+                                         (new-to (normalize (window-to w) ref1 ref2))
+                                         (new-pseq (pseq:slice wall-pseq ref1 ref2)))
+                                    (make-window (list (pseq:1d-coord->point new-pseq new-from)
+                                                       (pseq:1d-coord->point new-pseq new-to))
+                                                 new-from
+                                                 new-to)))
+                                 wl))))
+      (receive (first-side-windows second-side-windows splitted-windows)
+               (fold/values (lambda (w a b c)
+                              (cond
+                               ;; both points fall into the first wall
+                               ((and (< (window-from w) split-x)
+                                     (< (window-to w) split-x))
+                                (values (cons w a) b c))
+                               ;; both points fall into the second wall
+                               ((and (> (window-from w) split-x)
+                                     (> (window-to w) split-x))
+                                (values a (cons w b) c))
+                               ;; the window is in between
+                               (else
+                                (values a b (cons w c)))))
+                            '(() () ())
+                            (wall-windows wall))
+               (values
+                (make-wall uuid1
+                           '((type "new"))
+                           (list first-point split-point)
+                           (adjust-windows 0.0 split-x first-side-windows)
+                           '())
+                (make-wall uuid2
+                           '((type "new"))
+                           (list split-point second-point)
+                           (adjust-windows split-x 1.0 second-side-windows)
+                           '())
+                (if (null? splitted-windows)
+                    'ok
+                    'lost-window))))))
 
 ;;; Update refs to walls in rooms
 

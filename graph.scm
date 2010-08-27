@@ -10,8 +10,7 @@
          (block))
 (compile-options force-compile: #t)
 
-(import core/list-records
-        web/parse/ssax-sxml/sxml-tools/sxpath)
+(import core/list-records)
 
 ;-------------------------------------------------------------------------------
 ; Types

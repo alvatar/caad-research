@@ -5,10 +5,10 @@
 ;;; Evaluation system for the evolutionary algorithm
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1)
-        (std srfi/26)
-        (std srfi/69)
-        (std srfi/95)
+(import (std srfi/1
+             srfi/26
+             srfi/69
+             srfi/95)
         ../core/syntax
         ../core/functional
         ../core/debugging
@@ -54,7 +54,7 @@
          (east-angle
           (-              ; invert to use it for aligning bounding box
            (direction:angle-rad (graph:north->east (car (graph-environment g))))))
-         (rotfunc (cute rotate.point-w/reference
+         (rotfunc (cute rotate.point/ref
                         (bbox:centroid bb)
                         <>
                         east-angle))

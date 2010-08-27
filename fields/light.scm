@@ -13,6 +13,17 @@
 (import ../fields-2d)
 (import ../utils/misc)
 
+;;; Calculate all wall elements point lists of the same type
+
+(define (sxml:all-wall-element-points->pseq type wall)
+  (map (lambda (e) (sxml:wall-element->pseq e wall)) ((sxpath `(,type)) wall)))
+
+;;; Calculate all wall elements point lists of the same type of all walls
+
+(define (sxml:all-wall-element-points-all-walls->pseq type graph)
+  (map (lambda (w) (sxml:all-wall-element-points->pseq type w)) (sxml:graph-walls graph)))
+
+
 (define (make-light-field graph size-x size-y mapped-x mapped-y limit-polygon)
   (merge-u8-2dfields
     (map ; produces a field per light-source
