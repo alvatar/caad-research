@@ -19,9 +19,10 @@
         ../graph-visualization
         ../math/exact-algebra
         ../visualization
+        agent
         auxiliary-evolution-evaluation
         auxiliary-graph-elements
-        generation-elements)
+        world)
 
 (export agents-hinted-evolutionary-distribution)
 

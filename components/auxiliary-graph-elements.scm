@@ -11,7 +11,8 @@
         ../geometry/kernel
         ../graph
         ../graph-operations
-        generation-elements)
+        agent
+        world)
 
 ;;; Distance agent-point
 

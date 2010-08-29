@@ -25,7 +25,7 @@
          (for-each pp args)
          (apply values args))))))
 
-;;; Debug print making sure that 
+;;; Debug print making sure that numeric values are translated into inexact
 
 (define-syntax piv
   (syntax-rules ()

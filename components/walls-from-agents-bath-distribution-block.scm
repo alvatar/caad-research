@@ -26,8 +26,9 @@
         ../logic
         ../output
         ../visualization
+        agent
         auxiliary-graph-elements
-        generation-elements)
+        world)
 
 ;;; First step of wall generation
 

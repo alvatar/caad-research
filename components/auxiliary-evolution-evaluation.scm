@@ -17,8 +17,9 @@
         ../graph-operations
         ../math/exact-algebra
         ../math/inexact-algebra
+        agent
         auxiliary-graph-elements
-        generation-elements)
+        world)
 
 
 ;;; Helper function for debugging scores

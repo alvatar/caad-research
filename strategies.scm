@@ -2,20 +2,18 @@
 ;;; Licensed under the GPLv3 license, see LICENSE file for full description.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; A strategy based on agents with brownian motion but hinted initial
-;;; positions
+;;; Strategies define combinations of pluggable components for a generation
+;;; algorithm
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1)
-        components/agents-place-randomly
-        components/agents-evolutionary-distribution
         components/agents-hinted-evolutionary-distribution
         components/check-and-fix-input
         components/walls-from-agents-bath-distribution-block)
 
-(define fully-evolutionary
-  (list
-   agents-evolutionary-distribution))
+;-------------------------------------------------------------------------------
+; Strategies list
+;-------------------------------------------------------------------------------
 
 (define bath-block
   (list
