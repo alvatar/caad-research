@@ -9,8 +9,8 @@
 
 (import (std srfi/1
              srfi/11
-             misc/uuid))
-(import context
+             misc/uuid)
+        context
         core/functional
         core/list
         core/debugging
@@ -18,6 +18,7 @@
         geometry/kernel
         math/exact-algebra
         graph-operations
+        graph-repairing
         graph)
 
 (%activate-checks)
@@ -144,7 +145,7 @@
                           ,splitted-wall-1b
                           ,splitted-wall-2a
                           ,splitted-wall-2b))))
-                   (op:fix-wall-order
+                   (graph:fix-wall-order
                     ;; Remove touched walls
                     (op:remove-multiple
                      ;; Update references of rooms to old walls
@@ -219,7 +220,7 @@
                       (lambda (room) (remove-any equal? modified-walls-uids (room-walls room))))))
                ;; The common wall and its bifurcations are removed anyway and the later re-added once fixed,
                ;; also the merged rooms are removed
-               (op:fix-wall-order
+               (graph:fix-wall-order
                 (make-graph
                  (graph-uid graph)
                  (graph-environment graph)
@@ -269,23 +270,3 @@
 
 (define (op:snap-walls/structure context #!optional threshold)
   (error "unimplemented"))
-
-;-------------------------------------------------------------------------------
-; Error checking and correction
-;-------------------------------------------------------------------------------
-
-;;; Fix wall order in all rooms
-
-(define (op:fix-wall-order graph)
-  (make-graph
-   (graph-uid graph)
-   (graph-environment graph)
-   (map-if room? (lambda (e) (graph:sort.room-walls graph e)) (graph-architecture graph))))
-
-;;; Fix walls connectivity
-
-(define (op:fix-wall-snapping graph)
-  (make-graph
-   (graph-uid graph)
-   (graph-environment graph)
-   (map-if room? (lambda (r) (graph:snap.room-walls graph r 0)) (graph-architecture graph))))

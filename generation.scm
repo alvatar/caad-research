@@ -8,6 +8,7 @@
 (import (std srfi/1)
         core/syntax
         graph
+        graph-repairing
         strategies)
 
 ;;; Generate using a graph as input
@@ -22,7 +23,7 @@
                          ((car steps) graph world)
                          (execute-step (cdr steps) g w)))))))
     (lambda (input)
-      (execute-step steps input #f))))
+      (execute-step steps (graph:fix.everything input) #f))))
 
 ;;; Generate simply following the steps, no input
 

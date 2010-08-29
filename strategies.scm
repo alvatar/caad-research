@@ -4,22 +4,28 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Strategies define combinations of pluggable components for a generation
 ;;; algorithm
+;;; LPC: location/pattern/constraint
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1)
         components/agents-hinted-evolutionary-distribution
-        components/check-and-fix-input
         components/walls-from-agents-bath-distribution-block)
 
+(define-syntax define-strategy
+  (syntax-rules ()
+    ((_ (?strategy) ?components ...)
+     (define ?strategy
+       (list ?components ...)))))
+
 ;-------------------------------------------------------------------------------
-; Strategies list
+; Strategies component lists
 ;-------------------------------------------------------------------------------
 
-(define bath-block
-  (list
-   check-and-fix-input
-   agents-hinted-evolutionary-distribution
-   walls-from-agents/distribution&bath-block))
+;;; A LPC algorithm with a set of predefined distribution&bath blocks
+
+(define-strategy (bath-block)
+  agents-hinted-evolutionary-distribution
+  walls-from-agents/distribution&bath-block)
 
 ;;; A-list of symbols and strategies
 
