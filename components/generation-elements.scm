@@ -9,6 +9,7 @@
         ../graph-operations
         ../core/list
         ../geometry/kernel
+        ../geometry/query
         ../graph
         ../math/exact-algebra
         ../visualization)
