@@ -2,18 +2,25 @@
 ;;; Licensed under the GPLv3 license, see LICENSE file for full description.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Generation algorithms for graphs
+;;; Generation algorithms defined as strategies. Strategies are combinations
+;;; of pluggable components for a generation algorithm
+;;; LPC: location/pattern/constraint
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1)
+        components/agents-hinted-evolutionary-distribution
+        components/walls-from-agents-bath-distribution-block
         core/syntax
         graph
-        graph-repairing
-        strategies)
+        graph-repairing)
+
+;-------------------------------------------------------------------------------
+; Generation general procedures
+;-------------------------------------------------------------------------------
 
 ;;; Generate using a graph as input
 
-(define (generate-from-graph steps)
+(define (generate/graph steps)
   (letrec ((execute-step
             (lambda (steps graph world)
               (cond
@@ -27,7 +34,7 @@
 
 ;;; Generate simply following the steps, no input
 
-(define (generate//input steps)
+(define (generate steps)
   (letrec ((execute-step
             (lambda (steps graph world)
               (cond
@@ -49,8 +56,31 @@
       (cond
        ((graph? seed-data)
         (aif aelm (assq type procedures-alist)
-             (generate-from-graph (cadr aelm))
+             (generate/graph (cadr aelm))
              (error "unkown strategy asked to generator")))
        (else
         (error "unknown seed data type fed into generator")))
-      (generate//input type)))
+      (generate type)))
+
+;-------------------------------------------------------------------------------
+; Strategies
+;-------------------------------------------------------------------------------
+
+;;; Strategy definition
+
+(define-syntax define-strategy
+  (syntax-rules ()
+    ((_ (?strategy) ?components ...)
+     (define ?strategy
+       (list ?components ...)))))
+
+;;; A LPC algorithm with a set of predefined distribution&bath blocks
+
+(define-strategy (bath-block)
+  agents-hinted-evolutionary-distribution
+  walls-from-agents/distribution&bath-block)
+
+;;; A-list of symbols and strategies
+
+(define procedures-alist
+  `((bath-block ,bath-block)))
