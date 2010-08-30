@@ -15,7 +15,9 @@
 
 (export U Y Y! compose compose-right
         define-associative
-        curry define-curried lambda-curried uncurry
+        curry define-curried lambda-curried
+        lambda-eq? lambda-eqv? lambda-equal?
+        uncurry
         define-memoized define-memoized/key-gen)
 
 ;-------------------------------------------------------------------------------
@@ -133,6 +135,12 @@
   (if (null? bindings) `(lambda () ,@body)
     (fold-right (lambda (arg curr-body) `(lambda (,arg) ,curr-body))
 	 (cons 'begin body) bindings)))
+
+;;; Some helpful curry functions
+
+(define (lambda-eq? x) (curry eq? x))
+(define (lambda-eqv? x) (curry eqv? x))
+(define (lambda-equal? x) (curry equal? x))
 
 ;;; Uncurrying
 ;;;

@@ -53,9 +53,7 @@
     (make-graph
      (graph-uid graph)
      (graph-environment graph)
-     (remove (lambda (e)
-               (equal? e element))
-             (graph-architecture graph)))))
+     (remove (lambda-equal? element) (graph-architecture graph)))))
 
 ;;; Remove element-list from graph
 
@@ -67,9 +65,7 @@
     (make-graph
      (graph-uid graph)
      (graph-environment graph)
-     (remove (lambda (e)
-               (any (lambda (e2) (equal? e2 e)) le))
-             (graph-architecture graph)))))
+     (remove (lambda (e) (any (lambda-equal? e) le)) (graph-architecture graph)))))
 
 ;;; Rename element
 
