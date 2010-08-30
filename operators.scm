@@ -2,7 +2,8 @@
 ;;; Licensed under the GPLv3 license, see LICENSE file for full description.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Architectural high-level operations on the graph
+;;; Architectural high-level operations on the graph. As a requirement, they
+;;; must leave the graph coherent after operating on it
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; (compile-options force-compile: #t)
@@ -49,7 +50,7 @@
   (let ((graph context)
         (element arguments))
     (%accept (graph? graph) "only context currently accepted for adding is a whole graph")
-    ;; TODO: A context with the graph and a room would allow adding the element and reference
+    ;; TODO: remove references, too. IMPORTANT
     (make-graph
      (graph-uid graph)
      (graph-environment graph)
@@ -61,7 +62,7 @@
   (let ((graph context)
         (le arguments))
     (%accept (graph? graph) "only context currently accepted for adding is a whole graph")
-    ;; TODO: A context with the graph and a room would allow adding the element and reference
+    ;; TODO: remove references, too. IMPORTANT
     (make-graph
      (graph-uid graph)
      (graph-environment graph)
@@ -77,21 +78,28 @@
     (op:add
      (op:remove graph element)
      (cond
-       ((room? element)
+       ((room? element) ; TODO: this, of course, would be better off with an object system
         (make-room name
                    (room-walls element)))
        (else
         (error "only room renaming is implemented"))))))
 
-;;; Move an element within a constraining subspace
+;;; Move an element within a constraining subspace, without changing topology
+;;; @context: a 2-layers context containing the constraining space and the element
+;;; @arguments: movement vector (1d or 2d depending on the constraining space)
 
 (define (op:move context arguments)
   (let ((graph (n-ary:level context 0))
-        (constraining-subspace (n-ary:level context 1))
-        (element (car (n-ary:level context 1))) ; TODO: FIX n-ary:level
+        (constraining-subspace (n-ary:level context 1))  ; TODO: FIX n-ary:level
+        (element (caar (n-ary:level context 2))) ; TODO OMG!
         (movement-vect (get-arg arguments 'movement)))
     (%accept (wall? element) "only walls can be moved at the moment")
     graph))
+
+;;; Move several elements if they don't change topology when moved together
+
+(define (op:move-multiple context arguments)
+  context)
 
 ;-------------------------------------------------------------------------------
 ; Topological operations

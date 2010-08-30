@@ -55,6 +55,13 @@
   `(#f ,graph
        ,any))
 
+;;; Define a context tree as a graph plus two layers of children
+
+(define (2-layers->context graph layer-1 layer-2)
+  `(#f ,graph
+       (#f ,layer-1
+           ,layer-2)))
+
 ;-------------------------------------------------------------------------------
 ; Specialized context & arguments builders
 ;-------------------------------------------------------------------------------
@@ -92,3 +99,7 @@
                     ,room
                     ,@walls))
               `(@split-points ,intersections)))))
+
+;-------------------------------------------------------------------------------
+; Context checking
+;-------------------------------------------------------------------------------

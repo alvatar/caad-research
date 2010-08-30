@@ -31,24 +31,24 @@
      (visualization:paint-text backend text "Arial" 0.5 0.1 -0.5))
    50))
 
-;; (let ((graph (input-from-xml "xml-input/two_rooms.xml")))
-;;   (pp graph)
-;;   (visualize-graph graph)
-;;   (visualize-title "op:move - wall (original graph)")
-;;   (visualization:do-loop)
+(let ((graph (input-from-xml "xml-input/two_rooms.xml")))
+  (pp graph)
+  (visualize-graph graph)
+  (visualize-title "op:move - wall (original graph)")
+  (visualization:do-loop)
 
-;;   (let ((transformed-graph
-;;          (op:move (wall&constraints->context graph
-;;                                              (car
-;;                                               (graph:find.walls graph)))
-;;                   `(@movement 1.0))))
-;;     (pp transformed-graph)
-;;     (visualization:forget-all)
-;;     (visualize-graph transformed-graph)
-;;     (visualize-title "op:move - wall (transformed graph)")
-;;     (visualization:do-loop)
-;;     (visualization:forget-all))
-;;   (visualization:forget-all))
+  (let* ((wall-to-move (car (graph:find.walls graph))) ; TODO: crap
+         (guide-walls (cdr (graph:find.walls graph)))   ; TODO: crap
+         (transformed-graph
+          (op:move (2-layers->context graph guide-walls wall-to-move)
+                   `(@movement 1.0))))
+    (pp transformed-graph)
+    (visualization:forget-all)
+    (visualize-graph transformed-graph)
+    (visualize-title "op:move - wall (transformed graph)")
+    (visualization:do-loop)
+    (visualization:forget-all))
+  (visualization:forget-all))
 
 ;; (let ((graph (input-from-xml "xml-input/one_room.xml")))
 ;;   (pp graph)
@@ -73,20 +73,21 @@
 ;;     (visualization:do-loop))
 ;;   (visualization:forget-all))
 
-(let ((graph (input-from-xml "xml-input/two_rooms.xml")))
-  (pp graph)
-  (visualize-graph graph)
-  (visualize-title "op:merge (original graph)")
-  (visualization:do-loop)
+;; (let ((graph (input-from-xml "xml-input/two_rooms.xml")))
+;;   (pp graph)
+;;   (visualize-graph graph)
+;;   (visualize-title "op:merge (original graph)")
+;;   (visualization:do-loop)
 
-  (let ((transformed-graph
-         (op:merge (apply many->context
-                          graph
-                          (graph:find.rooms graph)))))
-    (pp transformed-graph)
-    (visualization:forget-all)
-    (visualize-graph transformed-graph)
-    (visualize-title "op:merge (transformed graph)")
-    (visualization:do-loop)
-    (visualization:forget-all))
-  (visualization:forget-all))
+;;   (let ((transformed-graph
+;;          (op:merge (apply many->context
+;;                           graph
+;;                           (graph:find.rooms graph)))))
+;;     (pp transformed-graph)
+;;     (visualization:forget-all)
+;;     (visualize-graph transformed-graph)
+
+;;     (visualize-title "op:merge (transformed graph)")
+;;     (visualization:do-loop)
+;;     (visualization:forget-all))
+;;   (visualization:forget-all))
