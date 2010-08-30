@@ -175,10 +175,9 @@
             (begin (display "No agent found in a room!!\n")
                    graph)
             (op:rename graph
-                       room
-                       (symbol->string
-                        (agent-label
-                         (car agent)))))))
+                       `(@element ,room @name ,(symbol->string
+                                                (agent-label
+                                                 (car agent))))))))
     graph
     (graph:find.rooms graph))
    world))

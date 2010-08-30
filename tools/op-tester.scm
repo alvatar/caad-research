@@ -30,65 +30,62 @@
      (visualization:paint-text backend text "Arial" 0.5 0.1 -0.5))
    50))
 
-((lambda ()
-   (let ((graph (input-from-xml "xml-input/two_rooms.xml")))
-     (pp graph)
-     (visualize-graph graph)
-     (visualize-title "op:move - wall (original graph)")
-     (visualization:do-loop)
+(let ((graph (input-from-xml "xml-input/two_rooms.xml")))
+  (pp graph)
+  (visualize-graph graph)
+  (visualize-title "op:move - wall (original graph)")
+  (visualization:do-loop)
 
-     (let ((transformed-graph
-            (op:move (wall&constraints->context graph
-                                                (car
-                                                 (graph:find.walls graph)))
-                     `(@movement 1.0))))
-       (pp transformed-graph)
-       (visualization:forget-all)
-       (visualize-graph transformed-graph)
-       (visualize-title "op:move - wall (transformed graph)")
-       (visualization:do-loop)
-       (visualization:forget-all))
-     (visualization:forget-all))))
+  (let ((transformed-graph
+         (op:move (wall&constraints->context graph
+                                             (car
+                                              (graph:find.walls graph)))
+                  `(@movement 1.0))))
+    (pp transformed-graph)
+    (visualization:forget-all)
+    (visualize-graph transformed-graph)
+    (visualize-title "op:move - wall (transformed graph)")
+    (visualization:do-loop)
+    (visualization:forget-all))
+  (visualization:forget-all))
 
-((lambda ()
-   (let ((graph (input-from-xml "xml-input/one_room.xml")))
-     (pp graph)
-     (visualize-graph graph)
-     (visualize-title "op:cut (original graph)")
-     (visualization:do-loop)
+(let ((graph (input-from-xml "xml-input/one_room.xml")))
+  (pp graph)
+  (visualize-graph graph)
+  (visualize-title "op:cut (original graph)")
+  (visualization:do-loop)
 
-     (let* ((graph-limits (graph:wall-list->pseq
-                           (graph:find.exterior-walls graph)))
-            (transformed-graph
-             ((compose op:cut line->context+arguments) 
-              graph
-              (point&point->line
-               (pseq:centroid graph-limits)
-               (vect2:*scalar (generate.random-point)
-                              (vect2:max-component
-                               (bbox:size-segment (pseq:bbox graph-limits))))))))
-       (pp transformed-graph)
-       (visualization:forget-all)
-       (visualize-graph transformed-graph)
-       (visualize-title "op:cut (transformed graph)")
-       (visualization:do-loop))
-     (visualization:forget-all))))
+  (let* ((graph-limits (graph:wall-list->pseq
+                        (graph:find.exterior-walls graph)))
+         (transformed-graph
+          ((compose op:cut line->context+arguments) 
+           graph
+           (point&point->line
+            (pseq:centroid graph-limits)
+            (vect2:*scalar (generate.random-point)
+                           (vect2:max-component
+                            (bbox:size-segment (pseq:bbox graph-limits))))))))
+    (pp transformed-graph)
+    (visualization:forget-all)
+    (visualize-graph transformed-graph)
+    (visualize-title "op:cut (transformed graph)")
+    (visualization:do-loop))
+  (visualization:forget-all))
 
-((lambda ()
-   (let ((graph (input-from-xml "xml-input/two_rooms.xml")))
-     (pp graph)
-     (visualize-graph graph)
-     (visualize-title "op:merge (original graph)")
-     (visualization:do-loop)
+(let ((graph (input-from-xml "xml-input/two_rooms.xml")))
+  (pp graph)
+  (visualize-graph graph)
+  (visualize-title "op:merge (original graph)")
+  (visualization:do-loop)
 
-     (let ((transformed-graph
-            (op:merge (apply room&room->context
-                             graph
-                             (graph:find.rooms graph)))))
-       (pp transformed-graph)
-       (visualization:forget-all)
-       (visualize-graph transformed-graph)
-       (visualize-title "op:merge (transformed graph)")
-       (visualization:do-loop)
-       (visualization:forget-all))
-     (visualization:forget-all))))
+  (let ((transformed-graph
+         (op:merge (apply room&room->context
+                          graph
+                          (graph:find.rooms graph)))))
+    (pp transformed-graph)
+    (visualization:forget-all)
+    (visualize-graph transformed-graph)
+    (visualize-title "op:merge (transformed graph)")
+    (visualization:do-loop)
+    (visualization:forget-all))
+  (visualization:forget-all))

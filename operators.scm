@@ -30,50 +30,68 @@
 
 ;;; Identity
 
-(define (op:identity context-tree)
-  (context-tree:root context-tree))
+(define (op:identity context #!optional arguments) context)
 
 ;;; Add element
 
-(define (op:add graph element)
-  (make-graph
-   (graph-uid graph)
-   (graph-environment graph)
-   (cons element (graph-architecture graph))))
+(define (op:add context arguments)
+  (let ((graph context))
+    (%accept (graph? graph) "only context currently accepted for adding is a whole graph")
+    ;; TODO: A context with the graph and a room would allow adding the element and reference
+    (make-graph
+     (graph-uid graph)
+     (graph-environment graph)
+     (cons arguments (graph-architecture graph)))))
 
 ;;; Remove element from graph
 
-(define (op:remove graph element)
-  (make-graph
-   (graph-uid graph)
-   (graph-environment graph)
-   (remove (lambda (e)
-             (equal? e element))
-           (graph-architecture graph))))
+(define (op:remove context arguments)
+  (let ((graph context)
+        (element arguments))
+    (%accept (graph? graph) "only context currently accepted for adding is a whole graph")
+    ;; TODO: A context with the graph and a room would allow adding the element and reference
+    (make-graph
+     (graph-uid graph)
+     (graph-environment graph)
+     (remove (lambda (e)
+               (equal? e element))
+             (graph-architecture graph)))))
 
 ;;; Remove element-list from graph
 
-(define (op:remove-multiple graph le)
-  (make-graph
-   (graph-uid graph)
-   (graph-environment graph)
-   (remove (lambda (e)
-             (any (lambda (e2) (equal? e2 e)) le))
-           (graph-architecture graph))))
+(define (op:remove-multiple context arguments)
+  (let ((graph context)
+        (le arguments))
+    (%accept (graph? graph) "only context currently accepted for adding is a whole graph")
+    ;; TODO: A context with the graph and a room would allow adding the element and reference
+    (make-graph
+     (graph-uid graph)
+     (graph-environment graph)
+     (remove (lambda (e)
+               (any (lambda (e2) (equal? e2 e)) le))
+             (graph-architecture graph)))))
 
 ;;; Rename element
 
-(define (op:rename graph room name)  ; TODO: generalize to any context
-  (op:add
-   (op:remove graph room)
-   (make-room name
-              (room-walls room))))
+(define (op:rename context arguments)
+  (let ((graph context)
+        (element (get-arg arguments 'element))
+        (name (get-arg arguments 'name)))
+    (%accept (graph? graph) "only context currently accepted for adding is a whole graph")
+    (op:add
+     (op:remove graph element)
+     (cond
+       ((room? element)
+        (make-room name
+                   (room-walls element)))
+       (else
+        (error "only room renaming is implemented"))))))
 
 ;;; Move
 
 (define (op:move context arguments)
   (let ((graph (n-ary:level context 0))
-        (element (car (n-ary:level context 1)))
+        (element (car (n-ary:level context 1))) ; TODO: FIX n-ary:level
         (constraining-subspace (n-ary:level context 2))
         (movement-vect (get-arg arguments 'movement)))
     (%accept (wall? element) "only walls can be moved at the moment")
@@ -168,7 +186,7 @@
                            second-wall))))))))
   
   (if (< (n-ary:depth context) 2)       ; no information about walls
-      (error "unimplemented op:cut detection of walls")
+      (error "unimplemented op:cut wall finding with point arguments")
       (let ((graph (n-ary:level context 0))
             (rooms (car (n-ary:level context 1))) ; TODO: LEVEL IS REGISTERED IN n-ary:level??
             (walls (car (n-ary:level context 2))) ; TODO
@@ -189,7 +207,7 @@
 
 ;;; Merge two rooms
 
-(define (op:merge context)
+(define (op:merge context #!optional arguments)
   (let ((graph (n-ary:level context 0))
         (rooms (n-ary:level context 1))
         (possible-merge-uid-1 (make-uuid))
@@ -256,12 +274,12 @@
 
 ;;; Expand
 
-(define (op:expand graph context-selector constraints)
+(define (op:expand context arguments)
   (error "unimplemented"))
 
 ;;; Shrink
 
-(define (op:shrink graph context-selector constraints)
+(define (op:shrink context arguments)
   (error "unimplemented"))
 
 ;-------------------------------------------------------------------------------
@@ -270,10 +288,10 @@
 
 ;;; Stabilize structure: add, move or replace pilars (TODO)
 
-(define (op:stabilize-structure graph context-selector constraints)
+(define (op:stabilize-structure context arguments)
   (error "unimplemented"))
 
 ;;; Snap walls to closest structure
 
-(define (op:snap-walls/structure context #!optional threshold)
+(define (op:snap-walls/structure context arguments)
   (error "unimplemented"))
