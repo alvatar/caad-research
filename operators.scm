@@ -11,6 +11,7 @@
              srfi/11
              misc/uuid)
         context
+        core/command
         core/functional
         core/list
         core/debugging
@@ -60,11 +61,6 @@
              (any (lambda (e2) (equal? e2 e)) le))
            (graph-architecture graph))))
 
-;;; Move
-
-(define (op:move graph context-tree)
-  (error "unimplemented op:move"))
-
 ;;; Rename element
 
 (define (op:rename graph room name)  ; TODO: generalize to any context
@@ -72,6 +68,16 @@
    (op:remove graph room)
    (make-room name
               (room-walls room))))
+
+;;; Move
+
+(define (op:move context arguments)
+  (let ((graph (n-ary:level context 0))
+        (element (car (n-ary:level context 1)))
+        (constraining-subspace (n-ary:level context 2))
+        (movement-vect (get-arg arguments 'movement)))
+    (%accept (wall? element) "only walls can be moved at the moment")
+    graph))
 
 ;-------------------------------------------------------------------------------
 ; Topological operations
@@ -82,7 +88,7 @@
 ;;; in case they are not given. Then split the room if they belong to the same
 ;;; one and the path doesn't intersect any other wall.
 
-(define (op:cut context #!optional points)
+(define (op:cut context arguments)
   (define (cut-room-opposed graph room walls split-points) ;graph context-selector constraints)
     (let ((first-wall (car walls))
           (second-wall (cadr walls))
@@ -166,7 +172,8 @@
       (let ((graph (n-ary:level context 0))
             (rooms (car (n-ary:level context 1))) ; TODO: LEVEL IS REGISTERED IN n-ary:level??
             (walls (car (n-ary:level context 2))) ; TODO
-            (split-points (flatten (n-ary:level context 3)))) ; TODO
+            (split-points (get-arg arguments 'split-points)))
+        (%accept #t "you didn't pass split-points to op:cut as arguments" split-points)
         (let ((wall1 (car walls))
               (wall2 (cadr walls)))
           (cond

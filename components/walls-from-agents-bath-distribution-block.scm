@@ -81,10 +81,11 @@
                                         ;(visualization:line-now parallel-2)
              ;; TODO: IMPORTANT if too close to a wall, add only one
              (let ((new-graph
-                    (op:cut
-                     (graph&line->context (op:cut (graph&line->context graph
-                                                                       parallel-1))
-                                          parallel-2))))
+                    ((compose op:cut line->context+arguments)
+                     ((compose op:cut line->context+arguments)
+                      graph
+                      parallel-1)
+                     parallel-2)))
                (values
                 new-graph
                 ;; Passes also the distribution direction
@@ -123,12 +124,13 @@
              (let ((agents-in-room (find.agents-in-room graph
                                                         agents
                                                         ?it))
-                   (new-graph (op:cut (room&line->context graph
-                                                          ?it
-                                                          (point&direction->line
-                                                           (choose-point graph ?it)
-                                                           (direction:perpendicular
-                                                            distribution-direction))))))
+                   (new-graph ((compose op:cut room&line->context+arguments)
+                               graph
+                               ?it
+                               (point&direction->line
+                                (choose-point graph ?it)
+                                (direction:perpendicular
+                                 distribution-direction)))))
                (room-cycle new-graph
                            agents))
              (values graph

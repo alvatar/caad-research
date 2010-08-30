@@ -2,11 +2,11 @@
 ;;; Licensed under the GPLv3 license, see LICENSE file for full description.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Functions for filtering out subgraph lists from an architecture graph
+;;; Procedures creating contexts and arguments for operators
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1))
-(import core/list
+(import (std srfi/1)
+        core/list
         core/debugging
         graph
         graph-operations
@@ -38,68 +38,54 @@
 (define context-tree:first-in-level binary-tree:leftmost-in-level)
 
 ;-------------------------------------------------------------------------------
-; Context builders
+; Context & arguments builders
 ;-------------------------------------------------------------------------------
 
-;;; All
+;;; Defines a context as a graph and a list of arbitrary elements
 
-;; (define all-graph->context
-;;   (lambda (graph) graph))
+(define (any->context graph . any)
+  `(#f ,graph
+       ,any))
 
-;;; Returns the smallest room as context
+;;; A wall and a constraining subspace
 
-;; (define smallest-room->context '())
-
-;;; Takes the biggest room as context
-
-;; (define (biggest-room->context graph)
-;;   (let ((rooms-list (graph:find-rooms graph)))
-;;     (if
-;;      (null? rooms-list)
-;;      '()
-;;      (car rooms-list))))                ; TODO
-
-;;; Takes the two first rooms as context
-
-;; (define (two-rooms->context graph)
-;;   (let ((rooms-list (rooms-in-graph graph)))
-;;     (if (> (length rooms-list) 1)
-;;         (take rooms-list 2)
-;;         '())))
+(define (wall&constraints->context graph wall) ; TODO!!
+  `(#f ,graph
+       ,wall))
 
 ;;; Takes a graph and an infinite line and builds the context with the
 ;;; computation of their intersections
 
-(define (graph&line->context graph line)
+(define (line->context+arguments graph line)
   (receive (rooms walls intersections)
            (graph:relative-line-intersections graph line)
            (begin
              (%deny (or (null? walls)
                         (null? intersections))
                     "no intersections found, can't create context")
-             `(#f ,graph       ; #f for the n-ary tree internal nodes
-                  (#f          ; TODO: DOESN'T WORK WITH MORE THAN ONE
-                   ,rooms
-                   ,@(zip (make-list (length walls) #f)
-                          walls
-                          intersections))))))
+             (values
+              `(#f ,graph      ; #f for the n-ary tree internal nodes
+                   (#f         ; TODO: DOESN'T WORK WITH MORE THAN ONE. IMPORTANT!
+                    ,rooms
+                    ,@walls))
+              `(@split-points ,intersections)))))
 
 ;;; Takes a graph, a room and an infinite line and builds the context with
 ;;; the computation of the intersection between the room and the line
 
-(define (room&line->context graph room line)
+(define (room&line->context+arguments graph room line)
   (receive (walls intersections)
            (graph:room-relative-line-intersections graph room line)
            (begin
              (%deny (or (null? walls)
                         (null? intersections))
                     "no intersections found, can't create context")
-             `(#f ,graph        ; #f for the n-ary tree internal nodes
-                  (#f
-                   ,room
-                   ,@(zip (make-list (length walls) #f)
-                          walls
-                          intersections))))))
+             (values
+              `(#f ,graph       ; #f for the n-ary tree internal nodes
+                   (#f
+                    ,room
+                    ,@walls))
+              `(@split-points ,intersections)))))
 
 ;;; Builds the context from two rooms
 
@@ -107,10 +93,3 @@
   `(#f ,graph
        ,r1
        ,r2))
-
-;-------------------------------------------------------------------------------
-; Context transformers
-;-------------------------------------------------------------------------------
-
-(define (context:add-free-point context point)
-  (error "unimplemented"))

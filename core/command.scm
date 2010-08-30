@@ -15,9 +15,8 @@
   (let ((argname (string->symbol (string-append
                                   "@"
                                   (if (symbol? key) (symbol->string key) key)))))
-    (%accept #t "the given key can't be found in the argument list"
-             (let ((res (find-tail (lambda (a) (eq? argname a))
-                                   arguments)))
-               (and (list? res)
-                    (not-null? (cdr res))
-                    (cadr res))))))
+    (let ((res (find-tail (lambda (a) (eq? argname a))
+                          arguments)))
+      (and (list? res)
+           (not-null? (cdr res))
+           (cadr res)))))
