@@ -91,8 +91,9 @@
 
 (define (curry fun arg1 . args)
   (if (pair? args)
-      (lambda x
-        (apply fun (append (cons arg1 args) x)))
+      (let ((all-args (cons arg1 args)))
+        (lambda x
+          (apply fun (append all-args x))))
       (lambda x
         (apply fun (cons arg1 x)))))
 

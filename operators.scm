@@ -83,12 +83,12 @@
        (else
         (error "only room renaming is implemented"))))))
 
-;;; Move
+;;; Move an element within a constraining subspace
 
 (define (op:move context arguments)
   (let ((graph (n-ary:level context 0))
+        (constraining-subspace (n-ary:level context 1))
         (element (car (n-ary:level context 1))) ; TODO: FIX n-ary:level
-        (constraining-subspace (n-ary:level context 2))
         (movement-vect (get-arg arguments 'movement)))
     (%accept (wall? element) "only walls can be moved at the moment")
     graph))
@@ -143,7 +143,7 @@
                         (graph-environment graph)
                         `(
                           ;; Substitution of old room by the 2 new ones
-                          ,@(remove (lambda (e) (equal? e room)) (graph-architecture graph))
+                          ,@(remove (lambda-equal? room) (graph-architecture graph))
                           ,(make-room (make-uuid)
                                       `(,@(cdr fore)
                                         ,first-wall-uid-1-half

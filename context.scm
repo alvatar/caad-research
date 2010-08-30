@@ -2,7 +2,9 @@
 ;;; Licensed under the GPLv3 license, see LICENSE file for full description.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Procedures creating contexts and arguments for operators
+;;; Procedures creating contexts and arguments for operators, serving as
+;;; helpers between geometrical operations and high level-architectural
+;;; operators
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1)
@@ -38,20 +40,24 @@
 (define context-tree:first-in-level binary-tree:leftmost-in-level)
 
 ;-------------------------------------------------------------------------------
-; Context & arguments builders
+; Generic context & arguments builders
 ;-------------------------------------------------------------------------------
 
 ;;; Defines a context as a graph and a list of arbitrary elements
 
-(define (any->context graph . any)
+(define (many->context graph . many)
+  `(#f ,graph
+       ,@many))
+
+;;; Define a context as a graph and a list of any element
+
+(define (any->context graph any)
   `(#f ,graph
        ,any))
 
-;;; A wall and a constraining subspace
-
-(define (wall&constraints->context graph wall) ; TODO!!
-  `(#f ,graph
-       ,wall))
+;-------------------------------------------------------------------------------
+; Specialized context & arguments builders
+;-------------------------------------------------------------------------------
 
 ;;; Takes a graph and an infinite line and builds the context with the
 ;;; computation of their intersections
@@ -86,10 +92,3 @@
                     ,room
                     ,@walls))
               `(@split-points ,intersections)))))
-
-;;; Builds the context from two rooms
-
-(define (room&room->context graph r1 r2)
-  `(#f ,graph
-       ,r1
-       ,r2))

@@ -156,9 +156,9 @@
                  (not (= (count.agents-in-room graph (world-agents world) r) 1)))
                (graph:find.rooms graph))
          (loop-until-fixed (op:merge
-                            (room&room->context graph
-                                                wrong-room
-                                                (choose-merge-room wrong-room))))
+                            (many->context graph
+                                           wrong-room
+                                           (choose-merge-room wrong-room))))
          (values graph world))))
 
 ;;; Give the proper name to rooms
