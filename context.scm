@@ -10,34 +10,12 @@
 (import (std srfi/1)
         core/list
         core/debugging
+        ds/n-ary
         graph
         graph-operations
-        ds/binary-tree
         visualization)
 
 (%activate-checks)
-
-;-------------------------------------------------------------------------------
-; Context tree
-;-------------------------------------------------------------------------------
-
-(define-structure binary-tree node sibling child)
-
-;;; Create a context-tree
-
-(define make-context-tree list->binary-tree)
-
-;;; Get the context-tree root node
-
-(define context-tree:root binary-tree:root)
-
-;;; Extract a list of all nodes in the same level
-
-(define context-tree:level binary-tree:level)
-
-;;; Find the first node in a level
-
-(define context-tree:first-in-level binary-tree:leftmost-in-level)
 
 ;-------------------------------------------------------------------------------
 ; Generic context & arguments builders
@@ -46,21 +24,19 @@
 ;;; Defines a context as a graph and a list of arbitrary elements
 
 (define (many->context graph . many)
-  `(#f ,graph
-       ,@many))
+  (n-ary:make-node/children-list graph many))
 
 ;;; Define a context as a graph and a list of any element
 
 (define (any->context graph any)
-  `(#f ,graph
-       ,any))
+  (n-ary:make-node graph any))
 
 ;;; Define a context tree as a graph plus two layers of children
 
 (define (2-layers->context graph layer-1 layer-2)
-  `(#f ,graph
-       (#f ,layer-1
-           ,layer-2)))
+  (n-ary:make-node graph
+                   (n-ary:make-node layer-1
+                                    layer-2)))
 
 ;-------------------------------------------------------------------------------
 ; Specialized context & arguments builders
@@ -77,10 +53,9 @@
                         (null? intersections))
                     "no intersections found, can't create context")
              (values
-              `(#f ,graph      ; #f for the n-ary tree internal nodes
-                   (#f         ; TODO: DOESN'T WORK WITH MORE THAN ONE. IMPORTANT!
-                    ,rooms
-                    ,@walls))
+              `(,graph
+                (,rooms ; TODO: DOESN'T WORK WITH MORE THAN ONE. IMPORTANT!
+                 ,@walls))
               `(@split-points ,intersections)))))
 
 ;;; Takes a graph, a room and an infinite line and builds the context with
@@ -94,10 +69,9 @@
                         (null? intersections))
                     "no intersections found, can't create context")
              (values
-              `(#f ,graph       ; #f for the n-ary tree internal nodes
-                   (#f
-                    ,room
-                    ,@walls))
+              `(,graph
+                (,room
+                 ,@walls))
               `(@split-points ,intersections)))))
 
 ;-------------------------------------------------------------------------------

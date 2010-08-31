@@ -12,10 +12,14 @@
 (test-begin "n-ary")
 ;-------------------------------------------------------------------------------
 
+(define-structure thingy stuff)
+(define make-node n-ary:make-node)
+(define make-leaf n-ary:make-leaf)
+
 (define test-tree (make-node 'a
                              (make-node 'b
                                         (make-leaf '1)
-                                        (make-leaf '(5 5 5))
+                                        (make-leaf 'thingy)
                                         (make-leaf '3))
                              (make-node 'c
                                         (make-leaf '4)
@@ -26,7 +30,7 @@
 (define test-tree2 (make-node 'a
                              (make-node 'b
                                         (make-leaf 'ba)
-                                        (make-leaf '(bb1 bb2 bb3))
+                                        (make-leaf (make-thingy '(bb1 bb2 bb3)))
                                         (make-leaf 'bc))
                              (make-node 'c
                                         (make-leaf 'ca)
@@ -45,7 +49,7 @@
   (make-node
    #f
    (make-leaf '1)
-   (make-leaf '(5 5 5))
+   (make-leaf 'thingy)
    (make-leaf '3))
   (make-node
    #f
@@ -62,7 +66,7 @@
   (make-node
    #f
    (make-leaf '1)
-   (make-leaf '(5 5 5))
+   (make-leaf 'thingy)
    (make-leaf '3))
   (make-node
    #f
@@ -79,12 +83,12 @@
 (test-equal
  "extract-level, default (\"remove\") treatment of shallow-leaves"
  (n-ary:extract-level test-tree 2)
- '(1 (5 5 5) 3 4 6))
+ '(1 thingy 3 4 6))
 
 (test-equal
  "extract-level, \"accept\" treatment of shallow-leaves"
  (n-ary:extract-level test-tree 2 'accept)
- '(1 (5 5 5) 3 4 6 d e))
+ '(1 thingy 3 4 6 d e))
 
 (test-equal
  "extract-level, \"strict\" treatment of shallow-leaves"
@@ -92,12 +96,12 @@
  #f)
 
 (test-equal
- "depth"
+ "depth 1"
  (n-ary:depth test-tree)
  2)
 
 (test-equal
- "depth"
+ "depth 2"
  (n-ary:depth test-tree2)
  3)
 
@@ -107,7 +111,7 @@
  (make-node 'a
             (make-node 'b
                        (make-leaf 'ba)
-                       (make-leaf '(bb1 bb2 bb3))
+                       (make-leaf (make-thingy '(bb1 bb2 bb3)))
                        (make-leaf 'bc))
             (make-node 'c
                        (make-leaf 'ca)

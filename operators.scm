@@ -89,9 +89,9 @@
 ;;; @arguments: movement vector (1d or 2d depending on the constraining space)
 
 (define (op:move context arguments)
-  (let ((graph (n-ary:level context 0))
-        (constraining-subspace (n-ary:level context 1))  ; TODO: FIX n-ary:level
-        (element (caar (n-ary:level context 2))) ; TODO OMG!
+  (let ((graph (n-ary:extract-level context 0))
+        (constraining-subspace (n-ary:extract-level context 1))
+        (element (car (n-ary:extract-level context 2)))
         (movement-vect (get-arg arguments 'movement)))
     (%accept (wall? element) "only walls can be moved at the moment")
     graph))

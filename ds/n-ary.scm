@@ -10,34 +10,51 @@
         ../core/syntax
         ../core/list)
 
+(export n-ary:make-node
+        n-ary:make-node/children-list
+        n-ary:make-leaf
+        n-ary:take-levels
+        n-ary:skim-level
+        n-ary:extract-level
+        n-ary:depth)
+
+
 ;;; An internal node
 
-(define (make-node data . children)
-  (cons #f (cons data children)))
+(define (make-node data child1 . children)
+  (cons data (cons child1 children)))
 
 (define (make-node/children-list data children-list)
   (apply make-node data children-list))
+
+(define n-ary:make-node make-node)
+(define n-ary:make-node/children-list make-node/children-list)
 
 ;;; A leaf
 
 (define (make-leaf x) x)
 
+(define n-ary:make-leaf make-leaf)
+
 ;;; Get a node's data
 
-(define (node-data node) ; TODO check node
-  (cadr node))
+(define (node-data node)
+  (%accept (n-ary-node? node))
+  (car node))
 
 ;;; Get a node's children
 
-(define (node-children tree) ;; TODO: Check node
-  (cddr tree))
+(define (node-children tree)
+  (%accept (n-ary-node? node))
+  (cdr tree))
 
-;;; An internal node must satisfy these, otherwise it is considered a leaf
+;;; An internal node predicate
 
 (define (n-ary-node? obj)
   (and (list? obj)
-       (not (car obj))
-       (> (length obj) 2)))
+       (> (length obj) 1)))
+
+;;; A leaf predicate
 
 (define (n-ary-leaf? obj)
   (not (n-ary-node? obj)))

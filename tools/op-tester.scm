@@ -91,3 +91,5 @@
 ;;     (visualization:do-loop)
 ;;     (visualization:forget-all))
 ;;   (visualization:forget-all))
+
+(display "\n--- VISUAL TESTS EXECUTED WITH NO RUNTIME ERROR ---\n\n")
