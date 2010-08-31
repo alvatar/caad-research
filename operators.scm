@@ -191,11 +191,12 @@
   
   (if (< (n-ary:depth context) 2)       ; no information about walls
       (error "unimplemented op:cut wall finding with point arguments")
-      (let ((graph (n-ary:level context 0))
-            (rooms (car (n-ary:level context 1))) ; TODO: LEVEL IS REGISTERED IN n-ary:level??
-            (walls (car (n-ary:level context 2))) ; TODO
+      (let ((graph (n-ary:extract-level context 0))
+            (rooms (n-ary:extract-level context 1))
+            (walls (n-ary:extract-level context 2))
             (split-points (get-arg arguments 'split-points)))
         (%accept #t "you didn't pass split-points to op:cut as arguments" split-points)
+        (%accept (= (length rooms) 1) "can only cut one room currently")
         (let ((wall1 (car walls))
               (wall2 (cadr walls)))
           (cond
@@ -205,15 +206,15 @@
             (error "connected walls splitting is not implemented"))
            (else                        ; opposing walls
             (cut-room-opposed graph
-                              rooms
+                              (car rooms)
                               walls
                               split-points)))))))
 
 ;;; Merge two rooms
 
 (define (op:merge context #!optional arguments)
-  (let ((graph (n-ary:level context 0))
-        (rooms (n-ary:level context 1))
+  (let ((graph (n-ary:extract-level context 0))
+        (rooms (n-ary:extract-level context 1))
         (possible-merge-uid-1 (make-uuid))
         (possible-merge-uid-2 (make-uuid)))
     (%deny (< (length rooms) 2) "The number of rooms is less than 2")
