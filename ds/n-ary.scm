@@ -5,13 +5,18 @@
 ;;; n-ary tree
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import ../core/syntax
+(import (std srfi/1)
+        ../core/debugging
+        ../core/syntax
         ../core/list)
 
 ;;; An internal node
 
 (define (make-node data . children)
   (cons #f (cons data children)))
+
+(define (make-node/children-list data children-list)
+  (apply make-node data children-list))
 
 ;;; A leaf
 
@@ -40,23 +45,17 @@
 ;;; Build a tree taking only up the that depth
 
 (define (n-ary:take-levels tree level)
-  ((letrec
-       ((recur-tree (lambda (node level)
-                      (cond
-                       ((null? node) '())
-                       ((n-ary-leaf? node) node)
-                       ((zero? level) (make-leaf (node-data node)))
-                       (else (make-node
-                              (node-data node)
-                              (bifurcation (node-children node) level))))))
-        (recur-children (lambda (nodes level)
-                          (if (null? nodes)
-                              '()
-                              (bifurcation nodes level))))
-        (bifurcation (lambda (nodes level)
-                       (cons (recur-tree (car nodes) (- level 1))
-                             (recur-children (cdr nodes) level)))))
-     recur-tree) tree level))
+  (let recur ((node tree)
+              (level level))
+   (cond
+    ((null? node) '())
+    ((n-ary-leaf? node) node)
+    ((zero? level) (make-leaf (node-data node)))
+    (else (make-node/children-list
+           (node-data node)
+           (map recur ; map with the 'recur' function the...
+                (node-children node) ; ...children and...
+                (circular-list (- level 1)))))))) ; ...an ∞ list
 
 ;;; Build a list with a given tree level. Takes an option to deal with shallow
 ;;; leaves
@@ -106,26 +105,19 @@
                           (lambda (leaf) leaf))
                          ((remove #f) ; Doesn't consider leaves that are not in target level
                           (lambda (leaf) #f)))))
-     ((letrec
-          ((recur-down (lambda (node level)
-                         (cond
-                          ((null? node) '())
-                          ((zero? level) (if (n-ary-leaf? node)
-                                             node
-                                             (node-data node)))
-                          ((n-ary-leaf? node) ; leaf but not in target level
-                           (leaf-process node))
-                          (else
-                           (recur-right (node-children node) level)))))
-           (recur-right (lambda (nodes level)
-                          (if (null? nodes)
-                              '()
-                              (let ((valid-head (recur-down (car nodes) (- level 1))))
-                                (if valid-head
-                                    (make-node valid-head
-                                               (recur-right (cdr nodes) level))
-                                    (recur-right (cdr nodes) level)))))))
-        recur-down) tree level))))
+     (let recur ((node tree)
+                 (level level))
+       (cond
+        ((null? node) '())
+        ((zero? level) (if (n-ary-leaf? node)
+                           node
+                           (node-data node)))
+        ((n-ary-leaf? node) (leaf-process node))
+        (else (make-node/children-list
+               #f
+               (map recur       ; map with the 'recur' function the...
+                    (node-children node) ; ...children and...
+                    (circular-list (- level 1))))))))))
 
 ;;; Calculate the depth of the deepest leaf
 

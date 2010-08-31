@@ -37,15 +37,39 @@
                                                    (make-leaf 'eaa)
                                                    (make-leaf 'eab)))))
 
-;; (test-equal
-;;  "skim-level, \"remove\" (default) treatment of shallow-leaves"
-;;  (n-ary:skim-level test-tree 2)
-;;  '((1 (5 5 5) 3) (4 6)))
+(test-equal
+ "skim-level, \"remove\" (default) treatment of shallow-leaves"
+ (n-ary:skim-level test-tree 2)
+ (make-node
+  #f
+  (make-node
+   #f
+   (make-leaf '1)
+   (make-leaf '(5 5 5))
+   (make-leaf '3))
+  (make-node
+   #f
+   (make-leaf '4)
+   (make-leaf '6))
+  #f
+  #f))
 
-;; (test-equal
-;;  "skim-level, \"accept\" treatment of shallow-leaves"
-;;  (n-ary:skim-level test-tree 2 'accept)
-;;  '((1 (5 5 5) 3) (4 6) d e))
+(test-equal
+ "skim-level, \"accept\" treatment of shallow-leaves"
+ (n-ary:skim-level test-tree 2 'accept)
+ (make-node
+  #f
+  (make-node
+   #f
+   (make-leaf '1)
+   (make-leaf '(5 5 5))
+   (make-leaf '3))
+  (make-node
+   #f
+   (make-leaf '4)
+   (make-leaf '6))
+  (make-leaf 'd)
+  (make-leaf 'e)))
 
 (test-equal
  "skim-level, \"strict\" treatment of shallow-leaves"
