@@ -9,7 +9,7 @@
         ../syntax)
 
 
-(define-predicate point?)
+(define-prototype-check point?)
 
 (define (new-point #!key (x 0) (y 0))
   ;; 2d, exact-integer values for x,y
@@ -78,19 +78,24 @@
 (define p4 (new-point x: 20 y:  14))
 (define (=? a b) [$ =? a b])
 
+($ add-method! p1 'cool? (lambda (self) #t))
+
 (test-equal "(point? 3)" (point? 3) #f)
 (test-assert "point:=?" ($ =? p1 (new-point x: ($ x p1) y: ($ y p1))))
 (test-equal "point:=? p1 p2" ($ =? p1 p2) #f)
 (test-assert "(point? p1)" (point? p1))
 (test-error "incorrect arguments with =?" ($ =? p1 3))
+(test-error "non-existing method" ($ non-existing-message p1 3))
 (test-assert "=?" ($ =? (new-point x: 30 y: 137) ($ add p1 p2)))
 (test-assert "<=?" ($ <=? p0 p1))
 (test-assert "<?" ($ <? p0 p1))
 (test-equal "<?" ($ <? p4 p0) #f)
 (test-assert ">=?" ($ >=? p1 p4))
 (test-assert "min-point" ($ =? (new-point x: 7 y: 5) ($ min-point p2 p3)))
+(test-error "non-existing added method" ($ cool? p0))
+(test-assert "added method" ($ cool? p1))
 
-
+($ add-method! p1 'cool? (lambda (self) #t))
 
 ;-------------------------------------------------------------------------------
 (test-end "point")

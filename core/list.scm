@@ -12,6 +12,7 @@
 (compile-options force-compile: #t)
 
 (import (std srfi/1)
+        debugging
         functional
         syntax)
 
@@ -27,12 +28,19 @@
 
 (define (sub1 x) (- x 1))
 
+;;; is list of given length
+
+(define-syntax =length
+  (syntax-rules ()
+    ((_ ?list ?length)
+     (= (length ?list) ?length))))
+
 ;;; not null?
 
 (define-syntax not-null?
   (syntax-rules ()
-    ((_ l)
-     (not (null? l)))))
+    ((_ ?l)
+     (not (null? ?l)))))
 
 ;;; atom?
 

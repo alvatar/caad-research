@@ -5,70 +5,81 @@
 
 (import (std srfi/1
              srfi/48)
+        debugging
         syntax)
+
+(export $ define-prototype-check object)
+
+(%activate-checks)
 
 ;-------------------------------------------------------------------------------
 ; Basic prototype-based OO system
 ;-------------------------------------------------------------------------------
 
+;;; Object prototype
+
 (define-structure object dispatcher)
 
-(define-macro ($ <selector> <obj> . <args>)
-  `((-> ',<selector> ,<obj>) ,<obj> ,@<args>))
+;;; Short syntax for sending messages to objects
 
-(define-macro (define-predicate <name>)
-  `(define (,<name> obj)
-     (cond ((not (object? obj)) #f)
-           ((find-method  ',<name> obj)
-            => (lambda (m) (m obj)))
-           (else #f))))
+(define-syntax $
+  (syntax-rules ()
+    ((_ ?selector ?obj . ?args)
+     ((-> '?selector ?obj) ?obj . ?args))))
 
-(define-macro (object <fields> . <methods>)
-  `(let* ( (fields ,(cons 'list
-                          (map (lambda (f)
-                                 (if (pair? f)
-                                     `(cons ',(car f) (make-setter-getter ,(cadr f)))
-                                     `(cons ',f (make-setter-getter ':uninitialized))))
-                               `,<fields>)))
-           (field-names (map car fields)))
-     (make-object
-      (make-dispatch-table
-       (append
-        fields
-        ;; method procs
-        ,(cons 'list 
-               (map
-                (lambda (m) ;; ((name arg...) body)
-                  (let ((name (caar m))
-                        (args (cdar m))
-                        (body (cdr  m)))
-                    `(cons ',name (lambda ,args ,@body))))
-                `,<methods>))
-        (list
-         ;; Default behaviors not shortcut
-         (cons 'field-names  (lambda (obj) field-names))
-         (cons 'shallow-clone shallow-clone-method)
-         (cons 'deep-clone    deep-clone-method)))))))
+;;; Define a type-checking predicate
 
-;;; [$ <selector-sym> <obj> <arg> ...]
-; (define-syntax $  ;; send [user syntax]
-;   (syntax-rules ()
-;     [($ <selector> <obj> <arg> ...)
-;      ;;=>
-;      ((-> '<selector> <obj>) <obj> <arg> ...)
-;     ]
-; ) )
+(define-syntax define-prototype-check
+  (syntax-rules ()
+    ((_ ?name)
+     (define (?name obj)
+       (cond ((not (object? obj)) #f)
+             ((find-method '?name obj) => (lambda (m) (m obj)))
+             (else #f))))))
 
-(define (-> sym obj) ;; '-> send sym to obj to get a method
-  (cond
-   [(find-method sym obj)]            ;; Answer method or #f
-   [((custom-method-finder) sym obj)] ;; user addition
-   [else (error-not-applicable sym obj)]))
+;;; Getter/setter for fields
 
-(define always-false (lambda (sym obj) #f))
+(define-syntax %?field-spec->accessor
+  (syntax-rules ()
+    ((field-spec->accessor (?name ?val))
+     (cons '?name (make-setter-getter ?val)))
+    ([field-spec->accessor ?name]
+     (cons '?name (make-setter-getter ':uninitialized)))))
+
+;;; Object creation
+
+(define-syntax object
+  (syntax-rules ()
+    ((_ (?field-spec ...) ((?method-name ?method-self ?method-args ...) ?expr1 ?expr2 ...) ...)
+     (let* ((fields (list (%?field-spec->accessor ?field-spec) ...))
+            (field-names (map car fields)))
+       (make-object
+        (make-dispatch-table
+         (append
+          fields
+          (list (cons '?method-name
+                      (lambda (?method-self ?method-args ...) ?expr1 ?expr2 ...))
+                ...
+                ;; default behaviors          
+                (cons 'field-names (lambda (obj) field-names))
+                (cons 'shallow-clone shallow-clone-method)
+                (cons 'deep-clone deep-clone-method)))))))))
+
+;;; Find the right message handler
+
+(define (-> sym obj)
+  (cond ((find-method sym obj))
+        (((custom-method-finder) sym obj))
+        (else
+         ;; it would be nice to use (->string obj) but if there is a
+         ;; bug in obj's ->string then an infinite error loop might occur
+         (lambda args (error sym "message not recognized by prototype" args)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TODO
+;;; PARAMETERIZE
 
 (define custom-method-finder
-  (let ([sim+obj->method always-false])
+  (let ((sim+obj->method (lambda (sym obj) #f)))
     (lambda rest
       (if (null? rest)
           sim+obj->method
@@ -80,136 +91,82 @@
             (set! sim+obj->method proc)
             proc)))))
 
+;;; Search delegate(s) as required
+;;; -> method or #f
 
-;;; (find-method obj selector) -> method or #f
-;;;      Search delegate(s) as required
 (define (find-method selector obj)
-  (cond
-   [(not (object? obj)) #f]             ; failed
-   [((object-dispatcher obj) selector)] ;; method or #f
-   [((object-dispatcher obj) 'delegate)
-    => ;; method which returns delegate(s)
-    (lambda (m)
-      (let ( (delegate (m obj)) )
-        (if (list? delegate)
-            ;; multiple inheritance [First Found Rule]
-            (let loop ( (delegates delegate) )
-              (cond
-               [(null? delegates) #f]
-               [(find-method selector (car delegates))]
-               [else (loop (cdr delegates))]))
-            ;; single inheritance
-            (find-method selector delegate))))]
-   [else #f]))
+  (cond ((not (object? obj)) #f)
+        (((object-dispatcher obj) selector)) ;; method or #f
+        (((object-dispatcher obj) 'delegate)
+         => ;; method which returns delegate(s)
+         (lambda (m)
+           (let ((delegate (m obj)))
+             (if (list? delegate)
+                 ;; multiple inheritance [First Found Rule]
+                 (let loop ((delegates delegate))
+                   (cond ((null? delegates) #f)
+                         ((find-method selector (car delegates)))
+                         (else (loop (cdr delegates)))))
+                 ;; single inheritance
+                 (find-method selector delegate)))))
+        (else #f)))
 
+;;; Make an accessor procedure
+;;; -> (lambda) (self) or (self val)
 
+(define (make-setter-getter val)
+  (lambda rest (if (null? (cdr rest))
+              val
+              (begin (set! val (cadr rest)) val))))
 
-(define (error-not-applicable sym obj)
-  (lambda args
-    (error sym "not applicable to object" args)))
-  ;; Note: it would be nice to use (->string obj)
-  ;; here, but if there is a bug in obj's ->string
-  ;; then we can get an infinite error loop.
-
-
-; (define-syntax field-spec->accessor
-;   (syntax-rules ()
-;     ([field-spec->accessor (<name> <val>)]
-;      ;;=>
-;      (cons '<name> (make-setter-getter <val>))
-;      )
-;     ([field-spec->accessor <name>]
-;      ;;=>
-;      (cons '<name> (make-setter-getter ':uninitialized)))
-;     )
-; )
-
-
-;;; (object (<field-spec> ...)  <method-spec>... )
-; (define-syntax object
-;   (syntax-rules ()
-;     ([object (<field-spec> ...)
-;              ((<name> <self> <arg> ...) <exp1> <exp2> ...) ...]
-;      ;;=>
-;      [let* ( [fields
-;               (list (field-spec->accessor <field-spec>) ...)]
-;              [field-names (map car fields)]
-;            )
-;      (make-obj
-;       (make-dispatch-table
-;        (append
-;         fields
-;         (list ;; method procs
-;          (cons '<name>
-;                (lambda (<self> <arg> ...) <exp1> <exp2> ...))
-;          ...
-;          ;; Default behaviors not shortcut
-;          (cons 'field-names  (lambda (obj) field-names))
-;          (cons 'shallow-clone shallow-clone-method)
-;          (cons 'deep-clone    deep-clone-method)
-;         ))))]
-;      )
-; ) )
-
-
-(define (make-setter-getter val) ;; return a method
-  (lambda rest                        ;; (self) or (self new-val)
-    (if (null? (cdr rest))
-        val
-        (begin
-          (set! val (cadr rest))
-          val))))
+;;; Make a procedure which maps a symbol (selector) to a method
+;;; (lambda (self args ...)) or #f
 
 (define (make-dispatch-table name-method-alist)
-  ;; Return a function which maps a symbol [selector]
-  ;;  to a method: (lambda (self <arg>...) ...) or #f
   (define (find-method sym) ;; NB: does NOT follow delegate
-    (cond
-     [(eq? sym 'lookup)
-      (lambda (obj) find-method)]
-     [(smart-assq sym)
-      => ;; return method
-      cdr]
-     ;; Default built-in behaviors [keep these few in number]
-     [(eq? sym 'method-alist) ;; introspection
-      (lambda (obj) name-method-alist)]
-     [(eq? sym 'add-method!)    add-method!   ]
-     [(eq? sym 'remove-method!) remove-method!]
-     [else #f]))
-  ;; Don't move (name . meth) if at front of name-method-alist
-  ;; short-count determines "front"
-  (define short-count 2)
+    (cond ((eq? sym 'lookup) (lambda (obj) find-method))
+          ((smart-assq! sym name-method-alist) => cdr)
+          ;; Default built-in behaviors
+          ((eq? sym 'method-alist) (lambda (obj) name-method-alist))
+          ((eq? sym 'add-method!) add-method!)
+          ((eq? sym 'remove-method!) remove-method!)
+          (else #f)))
+  
   ;; If found method not near front, move it to front.
   ;; This acts as a cache does to shorten searches
   ;; for commonly used methods but does NOT require
   ;; hashing or cache flushing.
-  (define (smart-assq sym) 
-    (let count-loop ([count 0][alist name-method-alist])
-      (cond
-       [(null? alist) #f]                   ;; failed
-       [(eq? sym (caar alist)) (car alist)] ; success
-       [(< count short-count)
-        (count-loop (+ count 1) (cdr alist))]
-       [else ;; ASSERT: (>= count short-count)
-        (let move-loop ([last alist][current (cdr alist)])
-          (cond
-           [(null? current) #f]      ;; failed
-           [(eq? sym (caar current)) ; success
-            ;; splice out found
-            (set-cdr! last (cdr current))
-            ;; move found to front
-            (set-cdr! current name-method-alist)
-            (set! name-method-alist current)
-            ;; return found (name . method) pair
-            (car current)]
-           [else (move-loop (cdr last) (cdr current))]))])))
+  (define (smart-assq! sym dummy-alist) ; TODO! dummy-alist should be the actual input list
+    ;; Don't move (name . method) if at front of name-method-alist
+    ;; short-count determines "front"
+    (let ((short-count 2))
+      (let count-loop ((count 0)
+                       (alist name-method-alist))
+        (cond
+         ((null? alist) #f)
+         ((eq? sym (caar alist)) (car alist))
+         ((< count short-count) (count-loop (+ count 1) (cdr alist)))
+         (else
+          (%accept (>= count short-count) "count is smaller than short-count!")
+          (let move-loop ((last alist)
+                          (current (cdr alist)))
+            (cond
+             ((null? current) #f)
+             ((eq? sym (caar current))
+              ;; splice out found
+              (set-cdr! last (cdr current))
+              ;; move found to front
+              (set-cdr! current name-method-alist)
+              (set! name-method-alist current)
+              ;; return found (name . method) pair
+              (car current))
+             (else (move-loop (cdr last) (cdr current))))))))))
   (define (add-method! obj name method)
     (cond
-     [(assq name name-method-alist)
-      => (lambda (pair) (set-cdr! pair method))]
-     [else
+     ((assq name name-method-alist) => (lambda (p) (set-cdr! p method)))
+     (else
       (set! name-method-alist
-            (cons (cons name method) name-method-alist))])
+            (cons (cons name method) name-method-alist))))
     name)
   (define required-methods
     '(field-names shallow-clone deep-clone))
@@ -228,10 +185,10 @@
                 name-method-alist))
     ;; If method was an accessor,
     ;;   remove it from the field-names list.
-    (let* ([field-names-bucket
-            (assq 'field-names name-method-alist)]
-           [field-names-method (cdr field-names-bucket)]
-           [field-names-list   (field-names-method obj)])
+    (let* ((field-names-bucket
+            (assq 'field-names name-method-alist))
+           (field-names-method (cdr field-names-bucket))
+           (field-names-list   (field-names-method obj)))
       (when (memq to-remove field-names-list)
             (let ([new-field-names
                    (remq to-remove field-names-list)])
@@ -245,7 +202,7 @@
 
 (define (fresh-alist alist)
   (unless (list? alist)
-    (error 'copy-list "requires a list argument" alist))
+          (error 'copy-list "requires a list argument" alist))
   (map (lambda (pair) (cons (car pair) (cdr pair))) alist))
 
 
@@ -266,7 +223,6 @@
            (lambda (pair) (memq (car pair) field-names))
            [$ method-alist obj]))
       (lambda (fields methods)
-        
         (make-object
          (make-dispatch-table
           (append
@@ -286,25 +242,6 @@
                       (deep-clone delegate))))
             (set-cdr! del (lambda (obj) cloned-delegate))))
     cloned))
-
-
-;;; Useful helpers
-;;
-;;; (define-predicate <pred?>) -- syntax
-; (define-syntax define-predicate
-;   (syntax-rules ()
-;     ((define-predicate <pred?>)
-;      ;;=>
-;      (define (<pred?> obj)
-;        (cond
-;         [(not (object? obj)) #f]
-;         [(find-method '<pred?> obj)
-;          =>
-;          (lambda (meth) (meth obj))
-;          ]
-;         [else #f]))
-;      )
-; ) )
 
 ;;; (->string thing)  Return a string describing any thing.
 
@@ -341,19 +278,6 @@
 
 (define shallow-clone-method (lambda (self) (shallow-clone self)))
 (define deep-clone-method    (lambda (self) (deep-clone self)))
-
-;; (let ( [sim+obj->method always-false] )
-;;   (set! custom-method-finder
-;;         (lambda rest
-;;           (if (null? rest)
-;;               sim+obj->method
-;;               (let ( (proc (car rest)) )
-;;                 (unless (procedure? proc)
-;;                         (error 'custom-method-finder
-;;                                "requires a procedure (lambda (sym obj) ...)"
-;;                                proc))
-;;                 (set! sim+obj->method proc)
-;;                 proc)))))
 
 ;;; Optimizaion Note: both the find-method procs (the 2nd is in 
 ;;; make-dispatch-table) are where method caches would improve 
