@@ -88,22 +88,35 @@
 ;;; @context: a 2-layers context containing the constraining space and the element
 ;;; @arguments: movement vector (1d or 2d depending on the constraining space)
 
+(define (op:move-invariant context arguments)
+  (let ((graph (n-ary:extract-level context 0))
+        (constraining-subspace (n-ary:extract-level context 1))
+        (element (car (n-ary:extract-level context 2)))
+        (movement-vect (get-arg arguments 'movement)))
+    (%accept (wall? element) "only walls can be moved at the moment")
+    ))
+
+;;; Move several elements if they don't change topology when moved together
+
+(define (op:move-multiple-invariant context arguments)
+  context)
+
+;-------------------------------------------------------------------------------
+; Topological operations
+;-------------------------------------------------------------------------------
+
+;;; Move an element within a constraining subspace, but where topological changes
+;;; are allowed
+;;; @context: a 2-layers context containing the constraining space and the element
+;;; @arguments: movement vector (1d or 2d depending on the constraining space)
+
 (define (op:move context arguments)
   (let ((graph (n-ary:extract-level context 0))
         (constraining-subspace (n-ary:extract-level context 1))
         (element (car (n-ary:extract-level context 2)))
         (movement-vect (get-arg arguments 'movement)))
     (%accept (wall? element) "only walls can be moved at the moment")
-    graph))
-
-;;; Move several elements if they don't change topology when moved together
-
-(define (op:move-multiple context arguments)
-  context)
-
-;-------------------------------------------------------------------------------
-; Topological operations
-;-------------------------------------------------------------------------------
+    ))
 
 ;;; The generic CUT operation: given a graph and a set of points with a minimum
 ;;; length of 2, first select the 2 walls where those first and last points lay
@@ -111,7 +124,7 @@
 ;;; one and the path doesn't intersect any other wall.
 
 (define (op:cut context arguments)
-  (define (cut-room-opposed graph room walls split-points) ;graph context-selector constraints)
+  (define (cut-room-opposed graph room walls split-points)
     (let ((first-wall (car walls))
           (second-wall (cadr walls))
           (first-split-point (car split-points))
