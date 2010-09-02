@@ -5,6 +5,11 @@
 ;;; Input procedures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declare (standard-bindings)
+         (extended-bindings)
+         (block))
+(compile-options force-compile: #t)
+
 (import (std string/xml-to-sxml))
 (import core/debugging
         sxml-graph

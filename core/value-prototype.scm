@@ -3,6 +3,15 @@
 
 ;;; Based on Tiny Talk. Copyright (c) 2008 by Kenneth A Dicke
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Prototype-based OO system through deputies for Scheme values
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(declare (standard-bindings)
+         (extended-bindings)
+         (block))
+(compile-options force-compile: #t)
+
 (import (std srfi/1)
         debugging
         prototype

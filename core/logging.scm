@@ -5,6 +5,11 @@
 ;;; Logging utilities and macros
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declare (standard-bindings)
+         (extended-bindings)
+         (block))
+(compile-options force-compile: #t)
+
 ;;; Log with a given text 
 
 (define-syntax %log

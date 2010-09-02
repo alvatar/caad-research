@@ -5,8 +5,13 @@
 ;;; Selection
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import (std srfi/1))
-(import core/syntax
+(declare (standard-bindings)
+         (extended-bindings)
+         (block))
+(compile-options force-compile: #t)
+
+(import (std srfi/1)
+        core/syntax
         core/debugging
         core/logging
         math/exact-algebra

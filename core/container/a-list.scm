@@ -18,6 +18,8 @@
 ;;; if is not in the "front" of the list.
 ;;; -> (symbol alist) -> element
 
+;;; INEFFICIENT! FIND A SOLUTION
+
 (define (a-list:make-assq-reorder! front-count) ; TODO! dummy-alist should be the actual input list
   ;; Don't move (name . method) if at front of name-method-alist
   ;; front-count determines "front"

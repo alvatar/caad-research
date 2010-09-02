@@ -3,9 +3,19 @@
 
 ;;; Based on Tiny Talk. Copyright (c) 2008 by Kenneth A Dicke
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Prototype-based OO system
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(declare (standard-bindings)
+         (extended-bindings)
+         (block))
+(compile-options force-compile: #t)
+
 (import (std srfi/1
              srfi/48)
         container/a-list
+        functional
         debugging
         syntax)
 
@@ -125,16 +135,38 @@
 
 (define (make-dispatch-table name-method-alist)
   (letrec
-      ((find-method
+      ((smart-assq! (let ((short-count 2))
+                     (lambda (sym)
+                       (let count-loop ([count 0][alist name-method-alist])
+                         (cond
+                          [(null? alist) #f] ;; failed
+                          [(eq? sym (caar alist)) (car alist)] ; success
+                          [(< count short-count)
+                           (count-loop (+ count 1) (cdr alist))]
+                          [else ;; ASSERT: (>= count short-count)
+                           (let move-loop ([last alist][current (cdr alist)])
+                             (cond
+                              [(null? current) #f]      ;; failed
+                              [(eq? sym (caar current)) ; success
+                               ;; splice out found
+                               (set-cdr! last (cdr current))
+                               ;; move found to front
+                               (set-cdr! current name-method-alist)
+                               (set! name-method-alist current)
+                               ;; return found (name . method) pair
+                               (car current)
+                               ]
+                              [else (move-loop (cdr last) (cdr current))]))
+                           ])))))
+       (find-method
         (lambda (sym)
-          (let ((assq! (a-list:make-assq-reorder! 5)))
-            (cond ((eq? sym 'lookup) (lambda (obj) find-method))
-                  ((assq! sym name-method-alist) => cdr)
-                  ;; Default built-in behaviors
-                  ((eq? sym 'methods) (lambda (obj) name-method-alist))
-                  ((eq? sym 'add-method!) add-method!)
-                  ((eq? sym 'remove-method!) remove-method!)
-                  (else #f)))))
+          (cond ((eq? sym 'lookup) (lambda (obj) find-method))
+                ((smart-assq! sym) => cdr)
+                ;; Default built-in behaviors
+                ((eq? sym 'methods) (lambda (obj) name-method-alist))
+                ((eq? sym 'add-method!) add-method!)
+                ((eq? sym 'remove-method!) remove-method!)
+                (else #f))))
        (add-method!
         (lambda (obj name method)
           (cond
@@ -149,16 +181,16 @@
           (%deny (memq to-remove '(field-names shallow-clone deep-clone))
                  "this method is required: can't be removed")
           (set! name-method-alist
-                (remp (lambda (pair)
-                        (eq? to-remove (car pair)))
-                      name-method-alist))
+                (remove (lambda (pair)
+                          (eq? to-remove (car pair)))
+                        name-method-alist))
           (let* ((field-names-bucket
                   (assq 'field-names name-method-alist))
                  (field-names-method (cdr field-names-bucket))
                  (field-names-list (field-names-method obj)))
             (when (memq to-remove field-names-list)
                   (let ([new-field-names
-                         (remq to-remove field-names-list)])
+                         (remove (lambda-eq? to-remove) field-names-list)])
                     (set-cdr! field-names-bucket
                               (lambda (self) new-field-names))))))))
     find-method))

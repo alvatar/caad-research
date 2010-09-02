@@ -5,11 +5,18 @@
 ;;; A simple, generic approach to serializable commands and arguments
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(declare (standard-bindings)
+         (extended-bindings)
+         (block))
+(compile-options force-compile: #t)
+
 (import (std srfi/1))
 (import list
         debugging)
 
 (%activate-checks)
+
+;;; Get an argument given the key
 
 (define (get-arg arguments key)
   (let ((argname (string->symbol (string-append
