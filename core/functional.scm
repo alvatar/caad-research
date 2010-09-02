@@ -13,7 +13,7 @@
 
 (import (std srfi/1))
 
-(export U Y Y! compose compose-right
+(export U Y Y! compose compose-right negate
         define-associative
         curry define-curried lambda-curried
         lambda-eq? lambda-eqv? lambda-equal?
@@ -52,12 +52,15 @@
               (call-with-values (lambda () (apply fn args)) chain)))
           values
           fns))
-
 (define (compose . fns)
   (apply composer reduce fns))
-
 (define (compose-right . fns)
   (apply composer reduce-right fns))
+
+;;; Negate a function
+
+(define (negate f)
+  (lambda args (not (apply f args))))
 
 ;-------------------------------------------------------------------------------
 ; Associative functions

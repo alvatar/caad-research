@@ -16,7 +16,7 @@
         core/functional
         core/list
         core/debugging
-        ds/n-ary
+        core/container/n-ary
         geometry/kernel
         math/exact-algebra
         graph-operations
@@ -94,7 +94,7 @@
         (element (car (n-ary:extract-level context 2)))
         (movement-vect (get-arg arguments 'movement)))
     (%accept (wall? element) "only walls can be moved at the moment")
-    ))
+    graph))
 
 ;;; Move several elements if they don't change topology when moved together
 
@@ -116,7 +116,7 @@
         (element (car (n-ary:extract-level context 2)))
         (movement-vect (get-arg arguments 'movement)))
     (%accept (wall? element) "only walls can be moved at the moment")
-    ))
+    graph))
 
 ;;; The generic CUT operation: given a graph and a set of points with a minimum
 ;;; length of 2, first select the 2 walls where those first and last points lay

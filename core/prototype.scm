@@ -5,10 +5,13 @@
 
 (import (std srfi/1
              srfi/48)
+        container/a-list
         debugging
         syntax)
 
-(export $ define-prototype-check object)
+(export $ ->string define-prototype-check
+        object object?
+        custom-method-finder)
 
 (%activate-checks)
 
@@ -43,7 +46,7 @@
   (syntax-rules ()
     ((field-spec->accessor (?name ?val))
      (cons '?name (make-setter-getter ?val)))
-    ([field-spec->accessor ?name]
+    ((field-spec->accessor ?name)
      (cons '?name (make-setter-getter ':uninitialized)))))
 
 ;;; Object creation
@@ -75,9 +78,6 @@
          ;; bug in obj's ->string then an infinite error loop might occur
          (lambda args (error sym "message not recognized by prototype" args)))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TODO
-;;; PARAMETERIZE
-
 (define custom-method-finder
   (let ((sim+obj->method (lambda (sym obj) #f)))
     (lambda rest
@@ -91,468 +91,134 @@
             (set! sim+obj->method proc)
             proc)))))
 
-;;; Search delegate(s) as required
+;;; Search methods, look for delegate(s) if required
 ;;; -> method or #f
+;;; TODO: Could be optimized with a cache
 
 (define (find-method selector obj)
-  (cond ((not (object? obj)) #f)
-        (((object-dispatcher obj) selector)) ;; method or #f
-        (((object-dispatcher obj) 'delegate)
-         => ;; method which returns delegate(s)
-         (lambda (m)
-           (let ((delegate (m obj)))
-             (if (list? delegate)
-                 ;; multiple inheritance [First Found Rule]
-                 (let loop ((delegates delegate))
-                   (cond ((null? delegates) #f)
-                         ((find-method selector (car delegates)))
-                         (else (loop (cdr delegates)))))
-                 ;; single inheritance
-                 (find-method selector delegate)))))
-        (else #f)))
+  (when (object? obj)                   ; return #f if not an object
+        (let ((dispatcher (object-dispatcher obj)))
+          (cond ((dispatcher selector)) ; find method
+                ((dispatcher 'delegate) ; find delgate
+                 => (lambda (m)
+                      (let ((delegate (m obj)))
+                        (if (list? delegate)
+                            ;; multiple inheritance (First Found Rule)
+                            (let loop ((delegates delegate))
+                              (cond ((null? delegates) #f)
+                                    ((find-method selector (car delegates)))
+                                    (else (loop (cdr delegates)))))
+                            ;; single inheritance
+                            (find-method selector delegate)))))
+                (else #f)))))
 
 ;;; Make an accessor procedure
 ;;; -> (lambda) (self) or (self val)
 
 (define (make-setter-getter val)
-  (lambda rest (if (null? (cdr rest))
-              val
-              (begin (set! val (cadr rest)) val))))
+  (lambda self&args (if (null? (cdr self&args))
+                   val
+                   (begin (set! val (cadr self&args)) val))))
 
 ;;; Make a procedure which maps a symbol (selector) to a method
-;;; (lambda (self args ...)) or #f
+;;; -> (lambda (self args ...)) or #f
 
 (define (make-dispatch-table name-method-alist)
-  (define (find-method sym) ;; NB: does NOT follow delegate
-    (cond ((eq? sym 'lookup) (lambda (obj) find-method))
-          ((smart-assq! sym name-method-alist) => cdr)
-          ;; Default built-in behaviors
-          ((eq? sym 'method-alist) (lambda (obj) name-method-alist))
-          ((eq? sym 'add-method!) add-method!)
-          ((eq? sym 'remove-method!) remove-method!)
-          (else #f)))
-  
-  ;; If found method not near front, move it to front.
-  ;; This acts as a cache does to shorten searches
-  ;; for commonly used methods but does NOT require
-  ;; hashing or cache flushing.
-  (define (smart-assq! sym dummy-alist) ; TODO! dummy-alist should be the actual input list
-    ;; Don't move (name . method) if at front of name-method-alist
-    ;; short-count determines "front"
-    (let ((short-count 2))
-      (let count-loop ((count 0)
-                       (alist name-method-alist))
-        (cond
-         ((null? alist) #f)
-         ((eq? sym (caar alist)) (car alist))
-         ((< count short-count) (count-loop (+ count 1) (cdr alist)))
-         (else
-          (%accept (>= count short-count) "count is smaller than short-count!")
-          (let move-loop ((last alist)
-                          (current (cdr alist)))
-            (cond
-             ((null? current) #f)
-             ((eq? sym (caar current))
-              ;; splice out found
-              (set-cdr! last (cdr current))
-              ;; move found to front
-              (set-cdr! current name-method-alist)
-              (set! name-method-alist current)
-              ;; return found (name . method) pair
-              (car current))
-             (else (move-loop (cdr last) (cdr current))))))))))
-  (define (add-method! obj name method)
-    (cond
-     ((assq name name-method-alist) => (lambda (p) (set-cdr! p method)))
-     (else
-      (set! name-method-alist
-            (cons (cons name method) name-method-alist))))
-    name)
-  (define required-methods
-    '(field-names shallow-clone deep-clone))
-  (define (remove-method! obj to-remove)
-    (unless (symbol? to-remove)
-            (error 'remove-method!
-                   "bad method selector [not a symbol]"
-                   to-remove))
-    (when (memq to-remove required-methods)
-          (error 'remove-method!
-                 "cowardly refuses to break object system"
-                 to-remove))
-    (set! name-method-alist
-          (remp (lambda (pair)
-                  (eq? to-remove (car pair)))
-                name-method-alist))
-    ;; If method was an accessor,
-    ;;   remove it from the field-names list.
-    (let* ((field-names-bucket
-            (assq 'field-names name-method-alist))
-           (field-names-method (cdr field-names-bucket))
-           (field-names-list   (field-names-method obj)))
-      (when (memq to-remove field-names-list)
-            (let ([new-field-names
-                   (remq to-remove field-names-list)])
-              (set-cdr! field-names-bucket
-                        (lambda (self) new-field-names)))))
-    to-remove)
+  (letrec
+      ((find-method
+        (lambda (sym)
+          (let ((assq! (a-list:make-assq-reorder! 5)))
+            (cond ((eq? sym 'lookup) (lambda (obj) find-method))
+                  ((assq! sym name-method-alist) => cdr)
+                  ;; Default built-in behaviors
+                  ((eq? sym 'methods) (lambda (obj) name-method-alist))
+                  ((eq? sym 'add-method!) add-method!)
+                  ((eq? sym 'remove-method!) remove-method!)
+                  (else #f)))))
+       (add-method!
+        (lambda (obj name method)
+          (cond
+           ((assq name name-method-alist) => (lambda (p) (set-cdr! p method)))
+           (else
+            (set! name-method-alist
+                  (cons (cons name method) name-method-alist))))
+          name))
+       (remove-method!
+        (lambda (obj to-remove)
+          (%accept (symbol? to-remove) "bad method selector (not a symbol)")
+          (%deny (memq to-remove '(field-names shallow-clone deep-clone))
+                 "this method is required: can't be removed")
+          (set! name-method-alist
+                (remp (lambda (pair)
+                        (eq? to-remove (car pair)))
+                      name-method-alist))
+          (let* ((field-names-bucket
+                  (assq 'field-names name-method-alist))
+                 (field-names-method (cdr field-names-bucket))
+                 (field-names-list (field-names-method obj)))
+            (when (memq to-remove field-names-list)
+                  (let ([new-field-names
+                         (remq to-remove field-names-list)])
+                    (set-cdr! field-names-bucket
+                              (lambda (self) new-field-names))))))))
+    find-method))
 
-  ;; Return the dispatcher
-  find-method)
+;;; Clone an object without recursively cloning its delegates
 
-
-(define (fresh-alist alist)
-  (unless (list? alist)
-          (error 'copy-list "requires a list argument" alist))
-  (map (lambda (pair) (cons (car pair) (cdr pair))) alist))
-
-
-;;; (shallow-clone obj)
 (define (shallow-clone obj)
-  ;; don't recursively clone delegate
-  (define (clone-accessors alist)
-    (map (lambda (pair)
-           (cons (car pair)
-                 (make-setter-getter ((cdr pair) obj))))
-         alist))
-  (unless (object? obj)
-    (error 'clone "can't clone non-object" obj))
-  (let ( (field-names [$ field-names obj]) )
-    (call-with-values
-      (lambda ()
-          (partition
-           (lambda (pair) (memq (car pair) field-names))
-           [$ method-alist obj]))
-      (lambda (fields methods)
-        (make-object
-         (make-dispatch-table
-          (append
-           (clone-accessors fields)
-           (fresh-alist methods)))))))) ; fresh-alist used because add-method! uses set-cdr!
+  (define (clone-accessors al)
+    (map (lambda (p) (cons (car p)
+                      (make-setter-getter ((cdr p) obj))))
+         al))
+  (%accept (object? obj) "can't clone because this isn't an object")
+  (let ((field-names ($ field-names obj)))
+    (receive (fields methods)
+             (partition (lambda (pair) (memq (car pair) field-names))
+                        ($ methods obj))
+             (make-object
+              (make-dispatch-table
+               (append
+                (clone-accessors fields)
+                ;; make a new a-list because add-method! uses set-cdr!
+                (map (lambda (pair) (cons (car pair) (cdr pair))) methods)))))))
+(define shallow-clone-method (lambda (self) (shallow-clone self)))
 
-;;; (deep-clone obj)
+;;; Recursively clones delegates
+
 (define (deep-clone obj)
-  ;; like shallow-clone, but DO recursively clone delegate
   (let* ((cloned (shallow-clone obj))
-         (del (assq 'delegate [$ method-alist cloned])))
-    (when del ;; (delegate . proc)
+         (del (assq 'delegate [$ methods cloned])))
+    (when del
           (let* ((delegate ((cdr del) cloned))
                  (cloned-delegate
-                  (if (list? delegate)
-                      (map deep-clone delegate)
-                      (deep-clone delegate))))
+                  (when (list? delegate)
+                        (map deep-clone delegate)
+                        (deep-clone delegate))))
             (set-cdr! del (lambda (obj) cloned-delegate))))
     cloned))
+(define deep-clone-method (lambda (self) (deep-clone self)))
 
-;;; (->string thing)  Return a string describing any thing.
+;;; Return a string describing any object
 
 (define (->string thing)
-  (define (default:obj->string obj)
-    ;; assert (obj ?obj)
-    (let ((outp (open-output-string))
-          (field-names ($ field-names  thing))
-          (lookup      (object-dispatcher thing)))
-      ;; NB does not follow delegates.
-      (display "#[instance" outp)
-      (for-each (lambda (name)
-                  (display " " outp)
-                  (display name outp)
-                  (display ": " outp)
-                  (display (->string ((lookup name) thing))
-                           outp))
-                field-names)
-      (display "]" outp)
-      (get-output-string outp)))
-  
-  (define (default:scheme->string non-object)
-    (format #f "~a" thing))
-  
-  ;; ->string main code
-  (cond
-   [(find-method '->string thing)
-    => ;; local object override
-    (lambda (m) (m thing))]
-   [(object? thing) (default:obj->string    thing)]
-   [else            (default:scheme->string thing)]))
-
-
-
-(define shallow-clone-method (lambda (self) (shallow-clone self)))
-(define deep-clone-method    (lambda (self) (deep-clone self)))
-
-;;; Optimizaion Note: both the find-method procs (the 2nd is in 
-;;; make-dispatch-table) are where method caches would improve 
-;;; performance.  This exactly corresponds to the local and
-;;; global caches in some Smalltalk implementations.
-
-
-;-------------------------------------------------------------------------------
-; Value types
-;-------------------------------------------------------------------------------
-
-(define add-deputy!   'defined-below)
-(define deputy-object 'defined-below)
-
-(define (every? pred? list)
-  (let loop ( (list list) )
+  (let ((obj->string
+         (lambda (obj)
+           (let ((outp (open-output-string))
+                 (field-names ($ field-names  obj))
+                 (lookup (object-dispatcher obj)))
+             (display "#[instance" outp)
+             (for-each (lambda (name)
+                         (display " " outp)
+                         (display name outp)
+                         (display ": " outp)
+                         (display (->string ((lookup name) obj))
+                                  outp))
+                       field-names)
+             (display "]" outp)
+             (get-output-string outp))))
+        (scheme->string
+         (lambda (e) (format #f "~a" e))))
     (cond
-     ((null? list) #t)
-     ((pred? (car list)) (loop (cdr list)))
-     (else #f))))
-
-(define (any? pred? list)
-  (let loop ( (list list) )
-    (cond
-     ((null? list)       #f)
-     ((pred? (car list)) #t)
-     (else (loop (cdr list))))))
-
-
-(define deputy-alist '()) ;; A globle table
-
-
-(define (deputy-method-finder sym obj)
-  ;; Answer a method or #f
-  (cond
-   [(deputy-object obj)
-    => ;; object representing a Scheme native type
-    (lambda (deputy) ([$ lookup deputy] sym))] ; NB: NO delegation
-   [else #f]))
-
-
-(define (start-tiny-talk) ;; ensures this lib is "initialized"
-  ;; Hook into tiny-talk -> (method lookup) function.
-  (custom-method-finder deputy-method-finder)
-  'OK)
-
-
-;; =============================================================
-;; Helpers
-
-(define (slice indexed-coll start end repackage)
-  ;; start-inclusive end-exclusive
-  ;; repackage is list-><whatever>
-  (let loop ( [elts '()] [index (- end 1)] )
-    (if (< index start)
-        (repackage elts)
-        (loop (cons [$ iref indexed-coll index] elts) (- index 1)))))
-
-(define (id x) x)
-
-(define (every? pred? list)
-  (let loop ( (list list) )
-    (cond
-     ((null? list) #t)
-     ((pred? (car list)) (loop (cdr list)))
-     (else #f))))
-
-(define (any? pred? list)
-  (let loop ( (list list) )
-    (cond
-     ((null? list)       #f)
-     ((pred? (car list)) #t)
-     (else (loop (cdr list))))))
-
-(define (vector-for-each proc vec . vecs)
-  (let ( (lists (append (list (vector->list vec)) (map vector->list vecs))) )
-    (apply for-each (cons proc lists))))
-
-
-(define (vector-map proc vec)
-  (list->vector (map proc (vector->list vec))))
-
-;; =============================================================
-;; EXPORTS
-
-(set! add-deputy!
-      (lambda (predicate object)
-        (unless (and (procedure? predicate)
-                     (object? object))
-                (error 'add-deputy!
-                       "requires a predicate and an object"
-                       predicate object))
-        (cond
-         [(assq predicate deputy-alist)
-          =>
-          (lambda (bucket) (set-cdr! bucket object))]
-         [else (set! deputy-alist
-                     (cons (cons predicate object) deputy-alist))])))
-                             
-(set! deputy-object
-      (lambda (thing)
-        (let loop ([deps deputy-alist])
-          (cond
-           [(null? deps) #f]
-           [((caar deps) thing) (cdar deps)]
-           [else (loop (cdr deps))]))))
-
-
-;; =============================================================
-;; "SIMPLE" (non-collection) OBJECTS
-
-;; name =? shallow-clone deep-clone
-
-(add-deputy! boolean?
-             (object ()
-                     [(name self) 'boolean]
-                     [(=? self other)
-                      (or (and self other)
-                          (and (not self) (not other)))]
-                     [(shallow-clone self) (if self #t #f)]
-                     [(deep-clone    self) (if self #t #f)]))
-
-(add-deputy! symbol?
-             (object ()
-                     [(name self) 'symbol]
-                     [(=? self other) (eq? self other)]
-                     [(shallow-clone self) self]
-                     [(deep-clone    self) self]))
-
-(add-deputy! char?
-             (object ()
-                     [(name self) 'character]
-                     [(=? self other) (and (char? other)(char=? self other))]
-                     [(shallow-clone self) self]
-                     [(deep-clone    self) self]))
-
-(add-deputy! procedure?
-             (object ()
-                     [(name self) 'procedure]
-                     [(=? self other) (eq? self other)]
-                     [(shallow-clone self) self]
-                     [(deep-clone    self) self]))
-
-(add-deputy! number?
-             (object ()
-                     [(name self) 'number]
-                     [(join self other) (+ self other)]
-                     [(negate self) (- self)]
-                     [(=? self other) (= self other)]
-                     [(shallow-clone self) self]
-                     [(deep-clone    self) self]))
-
-;; =============================================================
-;; COLLECTIONS
-
-;; length map for-each every? any? collect reject join
-;; iref slice [for indexed collections only]
-
-(add-deputy! string?
-             (object ()
-                     [(name self) 'string]
-                     [(join self other) (string-append self other)]
-                     [(length self) (string-length self)]
-                     [(iref self index) (string-ref self index)]
-                     [(slice self start end)
-                      ;;(slice self start end list->string)
-                      (substring self start end)]
-                     [(=? self other) (and (string? other) (string=? self other))]
-                     [(for-each self proc) ;; for-each-elt
-                      (let ( [limit (string-length self)] )
-                        (let loop ( [index 0] )
-                          (if (>= index limit)
-                              'OK
-                              (begin (proc (string-ref self index))
-                                     (loop (+ index 1))))))]
-                     [(map self proc) ;; NB: returns a string
-                      (let ( [limit (string-length self)] )
-                        (let loop ( [index 0] [results '()] )
-                          (if (>= index limit)
-                              (list->string (reverse results))
-                              (loop (+ index 1)
-                                    (cons (proc (string-ref self index))
-                                          results)))))]
-                     [(every?   self proc) [$ every? (string->list self) proc]]
-                     [(any?     self proc) [$ any?   (string->list self) proc]]
-                     [(shallow-clone self) (string-copy self)]
-                     [(deep-clone    self) (string-copy self)]
-                     [(collect self proc)
-                      (call-with-values (lambda () (partition proc (string->list self)))
-                        (lambda (yes no) (list->string yes)))]
-                     [(reject self proc)
-                      (call-with-values (lambda () (partition proc (string->list self)))
-                        (lambda (yes no) (list->string no)))]))
-
-
-(add-deputy! vector?
-             (object ()
-                     [(name self) 'vector]
-                     [(join self other) ;; (vector-append self other)
-                      (unless (vector? other)
-                              (error 'vector:join
-                                     "requires two vectors to append together"
-                                     self other))
-                      (list->vector
-                       (append (vector->list self)
-                               (vector->list other)))]
-                     [(=? self other)
-                      (and (vector? other)
-                           (or (eq? self other)
-                               (and (= (vector-length self) (vector-length other))
-                                    (call-with-current-continuation
-                                     (lambda (return)
-                                       (vector-for-each
-                                        (lambda (a b)
-                                          (unless [$ =? a b] (return #f)))
-                                        self other)
-                                       (return #t))))))]
-                     [(length self) (vector-length self)]
-                     [(iref self index) (vector-ref self index)]
-                     [(slice self start end)
-                      (slice self start end list->vector)]
-                     [(for-each self proc) (vector-for-each proc self)]
-                     [(map      self proc) (vector-map      proc self)]
-                     [(every?   self proc) [$ every? (vector->list self) proc]]
-                     [(any?     self proc) [$ any?   (vector->list self) proc]]
-                     [(shallow-clone self) (vector-map id self)]
-                     [(deep-clone    self) (vector-map id self)]
-                     [(collect self proc)
-                      (call-with-values (lambda () (partition proc (vector->list self)))
-                        (lambda (yes no) (list->vector yes)))]
-                     [(reject self proc)
-                      (call-with-values (lambda () (partition proc (vector->list self)))
-                        (lambda (yes no) (list->vector no)))]))
-
-(add-deputy! list?
-             (object ()
-                     [(name self) 'list]
-                     [(length self) (length self)]
-                     [(join self other) (append self other)]
-                     [(=? self other) (equal? self other)
-                      ;; #|      (or (eq? self other)
-                      ;; (and (list? other)
-                      ;; (let loop ( [left self] [right other] )
-                      ;; (cond 
-                      ;; [(null? left ) (null? right)]
-                      ;; [(null? right) #f]
-                      ;; [[$ =? (car left) (car right)]
-                      ;; (loop (cdr left) (cdr right))]
-                      ;; [else #f])))) |#
-                      ]
-                     [(iref  self index) (list-ref self index)]
-                     [(slice self start end)
-                      ;; start-inclusive end-exclusive
-                      (let start-loop ( [list self] [index 0] )
-                        (if (< index start)
-                            (start-loop (cdr list) (+ 1 index))
-                            ;; ASSERT: (= index start)
-                            (let collect-loop ( [elts '()] [list list] [index index] )
-                              (if (< index end)
-                                  (collect-loop (cons (car list) elts)
-                                                (cdr list)
-                                                (+ index 1))
-                                  (reverse elts)))))]
-                     [(every?   self proc) (every?  proc self)]
-                     [(any?     self proc) (any?    proc self)]
-                     [(shallow-clone self) (map id self)]
-                     [(deep-clone    self) (map id self)] ;; bogus
-                     [(for-each self proc) (for-each proc self)]
-                     [(map      self proc) (map      proc self)]
-                     [(collect self proc)
-                      (call-with-values (lambda () (partition proc self))
-                        (lambda (yes no) yes))]
-                     [(reject self proc)
-                      (call-with-values (lambda () (partition proc self))
-                        (lambda (yes no) no))]))
-
-
-(start-tiny-talk)
+     ((find-method '->string thing) => (lambda (m) (m thing)))
+     ((object? thing) (obj->string thing))
+     (else (scheme->string thing)))))

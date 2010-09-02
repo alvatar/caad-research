@@ -6,9 +6,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import (std srfi/1)
-        ../core/debugging
-        ../core/syntax
-        ../core/list)
+        ../debugging
+        ../syntax
+        ../list)
 
 (export n-ary:make-node
         n-ary:make-node/children-list

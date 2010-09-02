@@ -5,6 +5,7 @@
 
 (import (std srfi/48
              srfi/64)
+        ../functional
         ../prototype
         ../syntax)
 
@@ -17,7 +18,7 @@
   (unless (and (integer? x)
                (integer? y))
           (error 'new-point "x and y must be integers" x y))
-  (object ([x x] [y y])
+  (object ((x x) (y y))
           ;;methods
           [(point? self) #t] ;; Yes, this is a point!
           [(name self) 'point]
@@ -68,7 +69,7 @@
                       y: (min [$ y self] [$ y other]))]))
 
 ;-------------------------------------------------------------------------------
-(test-begin "point")
+(test-begin "prototypes")
 ;-------------------------------------------------------------------------------
 
 (define p0 (new-point x:  0 y:   0))
@@ -76,7 +77,7 @@
 (define p2 (new-point x:  7 y: 123))
 (define p3 (new-point x: 17 y:   5))
 (define p4 (new-point x: 20 y:  14))
-(define (=? a b) [$ =? a b])
+(define (=? a b) ($ =? a b))
 
 ($ add-method! p1 'cool? (lambda (self) #t))
 
@@ -96,65 +97,13 @@
 (test-assert "added method" ($ cool? p1))
 
 ($ add-method! p1 'cool? (lambda (self) #t))
+(define p5 ($ shallow-clone p2))
+
+(test-equal "->string" (->string p5) "(new-point x: 7 y: 123)")
+(test-equal "get" ($ x p3) 17)
+(test-equal "set" ($ x p3 4) 4)
+(test-equal "get after set" ($ x p3) 4)
 
 ;-------------------------------------------------------------------------------
-(test-end "point")
+(test-end "prototypes")
 ;-------------------------------------------------------------------------------
-
-;; (define (vowel? c) (and (char? c) (memq c (string->list "aeiou")) #t))
-;; (define (nv? x) (not (vowel? x)))
-;; (define (id x) x) ;; identity
-
-;; (add-test-suite 'tt-plus) ;; default-setup-thunk default-teardown-thunk)
-
-;; (add-equal-test 'tt-plus "abcdef" [$ join "abc" "def"])
-;; (add-equal-test 'tt-plus (vector 1 2 3 'a 'b 'c)
-;;                 [$ join (vector 1 2 3) (vector 'a 'b 'c)])
-;; (add-equal-test 'tt-plus (list 1 2 3 'a 'b 'c)
-;;                 [$ join '(1 2 3) '(a b c)])
-;; (add-eq-test 'tt-plus #t [$ every? "aeiou" vowel?])
-;; (add-eq-test 'tt-plus #t [$ every? (string->list "aeiou") vowel?])
-;; (add-eq-test 'tt-plus #t [$ every? (list->vector (string->list "aeiou")) vowel?])
-;; (add-eq-test 'tt-plus #f [$ every? "aeixou" vowel?])
-;; (add-eq-test 'tt-plus #f [$ every? (string->list "aeixou") vowel?])
-;; (add-eq-test 'tt-plus #f [$ every? (list->vector (string->list "aeixou")) vowel?])
-;; (add-eq-test 'tt-plus #t [$ any? (list->vector (string->list "aeiou")) vowel?])
-;; (add-eq-test 'tt-plus #f [$ any? (list->vector (string->list "aeiou")) nv?])
-;; (add-eq-test 'tt-plus #t [$ any? (string->list "aeixou") nv?])
-;; (add-eq-test 'tt-plus #f [$ any? (string->list "aeiou" ) nv?])
-;; (add-eq-test 'tt-plus #t [$ any? "aeixou" nv?])
-;; (add-eq-test 'tt-plus #f [$ any? "aeiou"  nv?])
-;; (add-eq-test 'tt-plus #t [$ any? "aeixou" nv?])
-;; (add-test 'tt-plus "ths s  lttl strng"
-;;           [$ reject  "this is a little string" vowel?] string=?)
-;; (add-test 'tt-plus "ths s  lttl strng"
-;;           [$ collect "this is a little string" nv?]
-;;           =?)
-;; (add-test 'tt-plus (string->list "ths s  lttl strng")
-;;           [$ reject (string->list "this is a little string") vowel?]
-;;           equal?)
-;; (add-test 'tt-plus (string->list "ths s  lttl strng")
-;;           [$ collect (string->list "this is a little string") nv?]
-;;           =?)
-;; (add-test 'tt-plus (list->vector (string->list "ths s  lttl strng"))
-;;           [$ reject  (list->vector (string->list "this is a little string")) vowel?]
-;;           =?)
-;; (add-test 'tt-plus (list->vector (string->list "ths s  lttl strng"))
-;;           [$ collect (list->vector (string->list "this is a little string")) nv?]
-;;           =?)
-;; (add-test 'tt-plus "123"          [$ map "123"          id] =?)
-;; (add-test 'tt-plus (vector 1 2 3) [$ map (vector 1 2 3) id] =?)
-;; (add-test 'tt-plus (list   1 2 3) [$ map (list   1 2 3) id] =?)
-;; (add-test 'tt-plus "23"         [$ slice "012345"             2 4] =?)
-;; (add-test 'tt-plus (vector 2 3) [$ slice (vector 0 1 2 3 4 5) 2 4] =?)
-;; (add-test 'tt-plus (list   2 3) [$ slice (list   0 1 2 3 4 5) 2 4] =?)
-;; (add-test 'tt-plus 6 [$ length "012345"] =?)
-;; (add-test 'tt-plus 6 [$ length (vector 0 1 2 3 4 5)] =?)
-;; (add-test 'tt-plus 6 [$ length (list   0 1 2 3 4 5)] =?)
-;; (add-test 'tt-plus #\3 [$ iref "012345"             3] =?)
-;; (add-test 'tt-plus   3 [$ iref (vector 0 1 2 3 4 5) 3] =?)
-;; (add-test 'tt-plus   3 [$ iref (list   0 1 2 3 4 5) 3] =?)
-;; (add-test 'tt-plus "123"          [$ shallow-clone "123"] =?)
-;; (add-test 'tt-plus (vector 1 2 3) [$ shallow-clone (vector 1 2 3)] =?)
-;; (add-test 'tt-plus (list   1 2 3) [$ shallow-clone (list   1 2 3)] =?)
-

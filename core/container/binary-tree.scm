@@ -8,7 +8,7 @@
 ;;;;;; TODO: Argument checks
 ;;;;;; TODO: define-type??
 
-(import ../core/list)
+(import ../list)
 
 (define (binary-tree:make-node content left right)
   (list content left right))

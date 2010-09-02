@@ -10,7 +10,7 @@
 (import (std srfi/1)
         core/list
         core/debugging
-        ds/n-ary
+        core/container/n-ary
         graph
         graph-operations
         visualization)

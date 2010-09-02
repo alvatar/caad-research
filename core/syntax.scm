@@ -65,26 +65,17 @@
 ;;; R5RS standard states that an if with only one branch returns an unspecified
 ;;; value if the test is false. This macro places an #f automatically
 
-(define-syntax iff
-  (syntax-rules ()
-    ((_ pred . forms)
-     (if pred
-         (begin . forms)
-         #f))))
-
-;;; When
-
 (define-syntax when
   (syntax-rules ()
-    ((_ condition form . forms)
-     (if condition (begin form . forms) #f))))
+    ((_ ?pred ?form . ?forms)
+     (if ?pred (begin ?form . ?forms) #f))))
 
 ;;; Unless
 
 (define-syntax unless
   (syntax-rules ()
-    ((_ test consequent)
-     (if (not test) consequent))))
+    ((_ ?test ?form . ?forms)
+     (if ?test #f (begin ?form . ?forms)))))
 
 ;;; Letcc macro (hoping and skipping)
 
@@ -113,9 +104,9 @@
 
 (define-syntax begin0
   (syntax-rules ()
-    ((_ expr0 expr1 ...)
-     (let ((return expr0))
-       expr1 ...
+    ((_ ?expr0 ?expr1 ...)
+     (let ((return ?expr0))
+       ?expr1 ...
        return))))
 
 ;;; Define values allows sharing state between functions
