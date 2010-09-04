@@ -30,7 +30,7 @@
 
 ;;; is list of given length
 
-(define-syntax =length
+(define-syntax length=
   (syntax-rules ()
     ((_ ?list ?length)
      (= (length ?list) ?length))))

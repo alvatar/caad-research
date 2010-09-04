@@ -86,7 +86,7 @@
         (else
          ;; it would be nice to use (->string obj) but if there is a
          ;; bug in obj's ->string then an infinite error loop might occur
-         (lambda args (error sym "message not recognized by prototype" args)))))
+         (lambda args (error sym "message not recognized by object" args)))))
 
 (define custom-method-finder
   (let ((sim+obj->method (lambda (sym obj) #f)))

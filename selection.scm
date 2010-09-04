@@ -72,7 +72,7 @@
                                  (else 0)))
                             (%log "Incorrect room sizes!" (unacceptable-room 0))
                             (abs (- expected-area room-area)))))
-                    (graph:find.rooms graph)))))))
+                    (graph:filter.rooms graph)))))))
 
 ;;; Score room proportions
 
@@ -85,7 +85,7 @@
                ((kitchen) (> room-aspect-ratio 3.2))
                ((living) (> room-aspect-ratio 3.0))
                (else #f))))
-         (graph:find.rooms graph))))
+         (graph:filter.rooms graph))))
 
 ;;; Score accesses
 

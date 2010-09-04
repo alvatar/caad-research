@@ -75,7 +75,7 @@
                                                (point&direction->line
                                                 base-point
                                                 (graph:wall-perpendicular
-                                                 (graph:closest-wall graph base-point))))
+                                                 (graph:nearest-wall graph base-point))))
                                              (/ corridor-width 2))
                                         ;(visualization:line-now parallel-1)
                                         ;(visualization:line-now parallel-2)
@@ -102,7 +102,7 @@
            (lambda (graph)
              (find (lambda (r)
                      (> (count.agents-in-room graph (world-agents world) r) 1))
-                   (graph:find.rooms graph))))
+                   (graph:filter.rooms graph))))
           (choose-point
            (lambda (graph room)
              (let* ((agents (binary-shuffle-list (find.agents-in-room graph
@@ -149,12 +149,12 @@
                  res))
           (remove
            (lambda (x) (equal? x room))
-           (graph:find.rooms graph))))
+           (graph:filter.rooms graph))))
   (let loop-until-fixed ((graph graph))
     (aif wrong-room
          (find (lambda (r)
                  (not (= (count.agents-in-room graph (world-agents world) r) 1)))
-               (graph:find.rooms graph))
+               (graph:filter.rooms graph))
          (loop-until-fixed (op:merge
                             (many->context graph
                                            wrong-room
@@ -179,7 +179,7 @@
                                                 (agent-label
                                                  (car agent))))))))
     graph
-    (graph:find.rooms graph))
+    (graph:filter.rooms graph))
    world))
 
 ;;; Utility drawing step

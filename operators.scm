@@ -94,12 +94,16 @@
 
 (define (op:move-invariant context arguments)
   (let ((graph (n-ary:extract-level context 0))
-        (constraining-subspace (n-ary:extract-level context 1))
+        (constraining-subspace (car (n-ary:extract-level context 1)))
         (element (car (n-ary:extract-level context 2)))
         (movement-vect (get-arg arguments 'movement)))
-    (case ($ type element)
-      ((wall)
-       graph)
+    (cond
+     ((wall? element)
+      (cond
+       ((and (every wall? constraining-subspace)
+             (length= constraining-subspace 2))
+        graph)
+       (else (error "constraining subspace not accepted"))))
       (else (error "only walls can be moved at the moment")))))
 
 ;;; Move several elements if they don't change topology when moved together
@@ -253,9 +257,9 @@
                                (or (graph:room-wall-uid? room-a wuid)
                                    (graph:room-wall-uid? room-b wuid))))
                       wall-list))
-            (graph:find.walls-connected-to graph
-                                           (graph:find.wall/uid graph
-                                                                common-wall-uid)))
+            (graph:filter.walls-connected/wall graph
+                                               (graph:find.wall/uid graph
+                                                                    common-wall-uid)))
            (let ((context-walls-1 (graph:try-to-merge-if-parallel-walls
                                    wall-bifurcations-1
                                    possible-merge-uid-1))
@@ -315,7 +319,7 @@
 (define (op:stabilize-structure context arguments)
   (error "unimplemented"))
 
-;;; Snap walls to closest structure
+;;; Snap walls to nearest structure
 
 (define (op:snap-walls/structure context arguments)
   (error "unimplemented"))

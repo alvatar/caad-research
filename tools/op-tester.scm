@@ -12,11 +12,13 @@
         ../context
         ../core/debugging
         ../core/functional
+        ../core/list
         ../core/prototype
         ../input
         ../geometry/kernel
         ../geometry/generation
         ../graph-visualization
+        ../graph
         ../graph-operations
         ../math/exact-algebra
         ../operators
@@ -33,22 +35,31 @@
    50))
 
 (let ((graph (input-from-xml "xml-input/two_rooms.xml")))
-  (pp (->string graph))
+  (pp graph)
   (visualize-graph graph)
   (visualize-title "op:move - wall (original graph)")
   (visualization:do-loop)
 
-  (let* ((wall-to-move (car (graph:find.walls graph))) ; TODO: crap
-         (guide-walls (cdr (graph:find.walls graph)))   ; TODO: crap
-         (transformed-graph
-          (op:move-invariant (2-layers->context graph guide-walls wall-to-move)
-                             `(@movement 1.0))))
-    (pp (->string transformed-graph))
-    (visualization:forget-all)
-    (visualize-graph transformed-graph)
-    (visualize-title "op:move - wall (transformed graph)")
-    (visualization:do-loop)
-    (visualization:forget-all))
+  (let* ((walls (graph:filter.walls graph))
+         (center-wall (graph:nearest-wall
+                       graph
+                       (pseq:centroid
+                        (graph:wall-list->pseq
+                         (graph:filter.exterior-walls graph))))))
+    (let ((transformed-graph
+           (op:move-invariant (2-layers->context
+                               graph
+                               (values->list
+                                (apply/values car
+                                              (graph:filter.wall-connected/2-walls graph center-wall)))
+                               center-wall)
+                              `(@movement 1.0))))
+      (pp transformed-graph)
+      (visualization:forget-all)
+      (visualize-graph transformed-graph)
+      (visualize-title "op:move - wall (transformed graph)")
+      (visualization:do-loop)
+      (visualization:forget-all)))
   (visualization:forget-all))
 
 ;; (let ((graph (input-from-xml "xml-input/one_room.xml")))
@@ -58,7 +69,7 @@
 ;;   (visualization:do-loop)
 
 ;;   (let* ((graph-limits (graph:wall-list->pseq
-;;                         (graph:find.exterior-walls graph)))
+;;                         (graph:filter.exterior-walls graph)))
 ;;          (transformed-graph
 ;;           ((compose op:cut line->context+arguments) 
 ;;            graph
@@ -83,7 +94,7 @@
 ;;   (let ((transformed-graph
 ;;          (op:merge (apply many->context
 ;;                           graph
-;;                           (graph:find.rooms graph)))))
+;;                           (graph:filter.rooms graph)))))
 ;;     (pp transformed-graph)
 ;;     (visualization:forget-all)
 ;;     (visualize-graph transformed-graph)

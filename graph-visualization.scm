@@ -162,4 +162,4 @@
                                     (vect2-x pos)
                                     (vect2-y pos))))
       90))
-   (graph:find.rooms graph)))
+   (graph:filter.rooms graph)))

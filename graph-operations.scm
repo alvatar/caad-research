@@ -26,26 +26,26 @@
 ; Selectors
 ;-------------------------------------------------------------------------------
 
-(define (graph:find.rooms g)
+(define (graph:filter.rooms g)
   (filter (lambda (e) (room? e)) (graph-architecture g)))
 
-(define (graph:find.walls g)
+(define (graph:filter.walls g)
   (filter (lambda (e) (wall? e)) (graph-architecture g)))
 
-(define (graph:find.structurals g)
+(define (graph:filter.structurals g)
   (filter (lambda (e) (structural? e)) (graph-architecture g)))
 
-(define (graph:find.entries g)
+(define (graph:filter.entries g)
   (filter (lambda (e) (entry? e)) (graph-architecture g)))
 
-(define (graph:find.pipes g)
+(define (graph:filter.pipes g)
   (filter (lambda (e) (pipe? e)) (graph-architecture g)))
 
-(define (graph:find.windows g)
-  (reduce append '() (map (lambda (w) (wall-windows w)) (graph:find.walls g))))
+(define (graph:filter.windows g)
+  (reduce append '() (map (lambda (w) (wall-windows w)) (graph:filter.walls g))))
 
-(define (graph:find.doors g)
-  (reduce append '() (map (lambda (w) (wall-doors w)) (graph:find.walls g))))
+(define (graph:filter.doors g)
+  (reduce append '() (map (lambda (w) (wall-doors w)) (graph:filter.walls g))))
 
 (define (graph:find.wall/uid graph uid)
   (aif element (find
@@ -55,7 +55,7 @@
        (begin (display "UID: ")(display uid)(newline)
               (error "Wall with such UID not found"))))
 
-(define (graph:find.room-walls graph room)
+(define (graph:filter.room-walls graph room)
   (map (lambda (r) (graph:find.wall/uid graph r)) (room-walls room)))
 
 ;-------------------------------------------------------------------------------
@@ -74,7 +74,7 @@
 (define (graph:exterior-wall? wall graph)
   (define (point-in-any-room? p)
     (any (lambda (room) (graph:point-in-room? graph room p))
-         (graph:find.rooms graph)))
+         (graph:filter.rooms graph)))
   (let* ((wall-points (wall-pseq wall))
          (mid-p (pseq:1d-coord->point wall-points 0.5))
          (tangent-p (pseq:tangent-in-relative wall-points 0.5))
@@ -106,36 +106,13 @@
   (find (lambda (wuid) (equal? wuid wall-uid)) (room-walls room)))
 
 ;-------------------------------------------------------------------------------
-; Finders/selectors
+; Finders/Filters
+; Find returns #f is no object is found
 ;-------------------------------------------------------------------------------
 
-;;; Find walls to a given one
+;;; Filter the exterior walls
 
-(define (graph:find.walls-connected-to graph wall)
-  (let ((wallp (wall-pseq wall))
-        (inspected-walls (remove
-                          (lambda (w) (equal? wall w))
-                          (graph:find.walls graph))))
-    (values
-     (filter (lambda (w) (pseq:is-end-point? (wall-pseq w) (first wallp))) inspected-walls)
-     (filter (lambda (w) (pseq:is-end-point? (wall-pseq w) (last wallp))) inspected-walls))))
-
-;;; Find longest wall in room
-
-(define (graph:find.longest-wall-in-room graph room)
-  (let ((walls (graph:find.room-walls graph room)))
-    (fold
-      (lambda (w maxw)
-        (if (< (pseq:~length (wall-pseq maxw))
-               (pseq:~length (wall-pseq w)))
-             w
-             maxw))
-      (car walls)
-      (cdr walls))))
-
-;;; Find the exterior walls
-
-(define (graph:find.exterior-walls graph)
+(define (graph:filter.exterior-walls graph)
   (define (iter exterior-walls rest-walls)
     (cond
      ((null? rest-walls)
@@ -144,13 +121,43 @@
       (iter (cons (car rest-walls) exterior-walls) (cdr rest-walls)))
      (else
       (iter exterior-walls (cdr rest-walls)))))
-  (graph:sort.wall-list-connected graph (iter '() (graph:find.walls graph))))
+  (graph:sort.wall-list-connected graph (iter '() (graph:filter.walls graph))))
 
 ;;; Filter common walls
 
 (define (graph:filter.common-room-walls room-a room-b)
   (filter (lambda (a) (any (lambda (b) (equal? a b)) (room-walls room-b)))
           (room-walls room-a)))
+
+;;; Find walls to a given one
+
+(define (graph:filter.walls-connected/wall graph wall)
+  (let ((wallp (wall-pseq wall))
+        (inspected-walls (remove
+                          (lambda (w) (equal? wall w))
+                          (graph:filter.walls graph))))
+    (values
+     (filter (lambda (w) (pseq:is-end-point? (wall-pseq w) (first wallp))) inspected-walls)
+     (filter (lambda (w) (pseq:is-end-point? (wall-pseq w) (last wallp))) inspected-walls))))
+
+;;; Find longest wall in room
+
+(define (graph:find.longest-wall-in-room graph room)
+  (aif walls (graph:filter.room-walls graph room) null?
+       #f
+       (fold
+        (lambda (w maxw)
+          (if (< (pseq:~length (wall-pseq maxw))
+                 (pseq:~length (wall-pseq w)))
+              w
+              maxw))
+        (car walls)
+        (cdr walls))))
+
+;;; Find a wall connected with 2 walls at the same time
+
+(define (graph:find.wall-connected/2-walls graph w1 w2)
+  (error "unimplemented"))
 
 ;-------------------------------------------------------------------------------
 ; Geometrical calculations
@@ -161,12 +168,12 @@
 (define-memoized/key-gen graph:bounding-box 
   (lambda (graph) (graph-uid graph))
   (lambda (graph)
-    (pseq:bbox (graph:wall-list->pseq (graph:find.exterior-walls graph)))))
+    (pseq:bbox (graph:wall-list->pseq (graph:filter.exterior-walls graph)))))
 
 ;;; External polygon extraction
 
 (define (graph:limits graph)
-  (graph:wall-list->pseq (graph:find.exterior-walls graph)))
+  (graph:wall-list->pseq (graph:filter.exterior-walls graph)))
 
 ;;; Total area of the graph
 
@@ -215,15 +222,15 @@
 
 ;;; Calculate the closest wall to a point
 
-(define (graph:closest-wall graph point)
+(define (graph:nearest-wall graph point)
   (min/generator (lambda (w)
                    (~distance.point-pseq point (wall-pseq w)))
-                 (graph:find.walls graph)))
+                 (graph:filter.walls graph)))
 
 ;;; Calculate the pseq that describes a room
 
 (define (graph:room->pseq graph room)
-  (graph:wall-list->pseq (graph:find.room-walls graph room)))
+  (graph:wall-list->pseq (graph:filter.room-walls graph room)))
 
 ;;; Calculate room area
 
@@ -235,7 +242,7 @@
 ;;; Output: 2 values of the same size (walls and intersections)
 
 (define (graph:room-relative-line-intersections graph room line)
-  (let* ((walls (graph:find.room-walls graph room))
+  (let* ((walls (graph:filter.room-walls graph room))
          (intersections (map
                          (lambda (w)
                            (intersect.line-segment
@@ -268,7 +275,7 @@
                       (append walls new-wall)
                       (append intersections new-intr))))
    '(() () ())
-   (graph:find.rooms graph)))
+   (graph:filter.rooms graph)))
 
 ;;; Calculate room aspect ratio
 
@@ -402,7 +409,7 @@
   (make-room (room-uid room)
              (map (lambda (w)
                     (wall-uid w))
-                  (graph:sort.wall-list-connected graph (graph:find.room-walls graph room)))))
+                  (graph:sort.wall-list-connected graph (graph:filter.room-walls graph room)))))
 
 ;;; Sort walls in a wall list so they are connected properly
 

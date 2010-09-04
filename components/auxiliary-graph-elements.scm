@@ -105,7 +105,7 @@
   (find
    (lambda (r)
      (find (lambda (a) (equal? (agent-label a) agentl)) (find.agents-in-room graph agents r)))
-   (graph:find.rooms graph)))
+   (graph:filter.rooms graph)))
 
 ;;; Find agents in a room
 
@@ -121,7 +121,7 @@
 ;;; Find closest wall to an agent
 
 (define (find.nearest-wall<->agent graph agent)
-  (let ((walls (graph:find.walls graph))
+  (let ((walls (graph:filter.walls graph))
         (p (agent-head-position agent)))
     (fold
      (lambda (w closest)
@@ -136,7 +136,7 @@
 
 (define (find.nearest-wall<->agent+squareddistance graph agent)
   (pair->2-values
-   (let* ((walls (graph:find.walls graph))
+   (let* ((walls (graph:filter.walls graph))
           (first-wall (car walls))
           (p (agent-head-position agent)))
      (fold
@@ -164,7 +164,7 @@
 
 (define (sort.distance.agent<->walls graph a)
   (let ((p (agent-head-position a)))
-    (sort (graph:find.walls graph)
+    (sort (graph:filter.walls graph)
           (lambda (w1 w2) (< (squareddistance.point-pseq p (wall-pseq w1))
                         (squareddistance.point-pseq p (wall-pseq w2)))))))
 

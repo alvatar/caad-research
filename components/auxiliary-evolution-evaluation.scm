@@ -90,7 +90,7 @@
            agents)))))
 
 (define (score-agent-illumination agents g) ; TODO: this should think about obstruction, not distances
-  (let ((windows (graph:find.windows g)))
+  (let ((windows (graph:filter.windows g)))
     (sum
      (delete
       'nada
@@ -123,15 +123,15 @@
          ((distribution)
           (clamp&invert&normalize
            (max ; Only the biggest distance from the necessary elements is important
-            (pick-min (map (lambda (e) (~distance.agent<->entry a e)) (graph:find.entries g)))
-            ;(pick-min (map (lambda (e) (distance.agent<->pipe a e)) (graph:find.pipes g)))
+            (pick-min (map (lambda (e) (~distance.agent<->entry a e)) (graph:filter.entries g)))
+            ;(pick-min (map (lambda (e) (distance.agent<->pipe a e)) (graph:filter.pipes g)))
             )
            8.0 ; TODO: the best point that satisfies this (calculated with forces??)
            20.0)) ; TODO: This number should be analyzed from graph (the max possible distance)
          ((kitchen)
           (clamp&invert&normalize
            (pick-min
-            (map (lambda (e) (~distance.agent<->pipe a e)) (graph:find.pipes g)))
+            (map (lambda (e) (~distance.agent<->pipe a e)) (graph:filter.pipes g)))
            0.0
            20.0))
          ((living) 'nada)
@@ -152,4 +152,4 @@
 ;;        (mean
 ;;         (map (lambda (w)
 ;;                (pick-max (map (lambda (a) (inverse (distance.agent<->wall a w))) agents)))
-;;              (graph:find.walls g)))))))
+;;              (graph:filter.walls g)))))))

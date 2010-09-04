@@ -45,8 +45,8 @@
     (make-agent-type 'room))))
 
 (define (avrg-dist-to-elements graph p)
-  ;;(pick-min (map (lambda (e) (~distance.point-point p (pipe-position e))) (graph:find.pipes graph)))
-  (pick-min (map (lambda (e) (~distance.point-pseq p (entry-pseq e))) (graph:find.entries graph))))
+  ;;(pick-min (map (lambda (e) (~distance.point-point p (pipe-position e))) (graph:filter.pipes graph)))
+  (pick-min (map (lambda (e) (~distance.point-pseq p (entry-pseq e))) (graph:filter.entries graph))))
 
 (define agents-regenerator
   (lambda (limit-polygon)
@@ -80,7 +80,7 @@
                                       (< (pick-min
                                           (map (lambda (pipe)
                                                  (~distance.point-point s (pipe-position pipe)))
-                                               (graph:find.pipes graph)))
+                                               (graph:filter.pipes graph)))
                                          80.0)) ; is it closer than this?
                                     foldedslots)
                        (values (make-agent-simple
