@@ -12,6 +12,7 @@
         ../context
         ../core/debugging
         ../core/functional
+        ../core/prototype
         ../input
         ../geometry/kernel
         ../geometry/generation
@@ -32,7 +33,7 @@
    50))
 
 (let ((graph (input-from-xml "xml-input/two_rooms.xml")))
-  (pp graph)
+  (pp (->string graph))
   (visualize-graph graph)
   (visualize-title "op:move - wall (original graph)")
   (visualization:do-loop)
@@ -40,9 +41,9 @@
   (let* ((wall-to-move (car (graph:find.walls graph))) ; TODO: crap
          (guide-walls (cdr (graph:find.walls graph)))   ; TODO: crap
          (transformed-graph
-          (op:move (2-layers->context graph guide-walls wall-to-move)
-                   `(@movement 1.0))))
-    (pp transformed-graph)
+          (op:move-invariant (2-layers->context graph guide-walls wall-to-move)
+                             `(@movement 1.0))))
+    (pp (->string transformed-graph))
     (visualization:forget-all)
     (visualize-graph transformed-graph)
     (visualize-title "op:move - wall (transformed graph)")

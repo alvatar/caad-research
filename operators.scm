@@ -6,20 +6,21 @@
 ;;; must leave the graph coherent after operating on it
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declare (standard-bindings)
-         (extended-bindings)
-         (block))
-(compile-options force-compile: #t)
+;; (declare (standard-bindings)
+;;          (extended-bindings)
+;;          (block))
+;; (compile-options force-compile: #t)
 
 (import (std srfi/1
              srfi/11
              misc/uuid)
         context
         core/command
+        core/container/n-ary
+        core/debugging
         core/functional
         core/list
-        core/debugging
-        core/container/n-ary
+        core/prototype
         geometry/kernel
         math/exact-algebra
         graph-operations
@@ -96,8 +97,10 @@
         (constraining-subspace (n-ary:extract-level context 1))
         (element (car (n-ary:extract-level context 2)))
         (movement-vect (get-arg arguments 'movement)))
-    (%accept (wall? element) "only walls can be moved at the moment")
-    graph))
+    (case ($ type element)
+      ((wall)
+       graph)
+      (else (error "only walls can be moved at the moment")))))
 
 ;;; Move several elements if they don't change topology when moved together
 

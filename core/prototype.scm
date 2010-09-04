@@ -63,7 +63,7 @@
 
 (define-syntax object
   (syntax-rules ()
-    ((_ (?field-spec ...) ((?method-name ?method-self ?method-args ...) ?expr1 ?expr2 ...) ...)
+    ((_ (?field-spec ...) ((?method-name ?method-self ?method-args ...) ?expr1 ?exprs ...) ...)
      (let* ((fields (list (%?field-spec->accessor ?field-spec) ...))
             (field-names (map car fields)))
        (make-object
@@ -71,7 +71,7 @@
          (append
           fields
           (list (cons '?method-name
-                      (lambda (?method-self ?method-args ...) ?expr1 ?expr2 ...))
+                      (lambda (?method-self ?method-args ...) ?expr1 ?exprs ...))
                 ...
                 ;; default behaviors          
                 (cons 'field-names (lambda (obj) field-names))

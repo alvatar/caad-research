@@ -16,7 +16,8 @@
 
 (define-syntax %?define-prototype-record
   (syntax-rules ()
-    ((_ ?maker                       ; for seamless record integration
+    ((_ ?name
+        ?maker                       ; for seamless record integration
         (?constructor ?arg ...)
         ?type-checker
         (?field ?accessor) ...)
@@ -24,17 +25,19 @@
        (define-prototype-check ?type-checker)
        (define (?constructor ?arg ...)
          (object ((?arg ?arg) ...)
-                 ((?type-checker self) #t)))
+                 ((?type-checker self) #t)
+                 ((type self) ?name)))
        (define ?maker ?constructor)
-       ;(define (?type-checker instance) ($ ?type-checker instance))
        (define (?accessor instance) ($ ?field instance))
        ...))))
 
 (define-macro (define-prototype-record name field . fields)
-  (let ((name (symbol->string name)))
-    `(%?define-prototype-record ,(string->symbol (string-append "make-" name))
-       (,(string->symbol (string-append "new-" name)) ,field ,@fields)
-       ,(string->symbol (string-append name "?"))
-       ,@(map (lambda (f) `(,f ,(string->symbol
-                            (string-append name "-" (symbol->string f)))))
-              (cons field fields)))))
+  (let ((namestr (symbol->string name)))
+    `(%?define-prototype-record
+      ',name
+      ,(string->symbol (string-append "make-" namestr))
+      (,(string->symbol (string-append "new-" namestr)) ,field ,@fields)
+      ,(string->symbol (string-append namestr "?"))
+      ,@(map (lambda (f) `(,f ,(string->symbol
+                           (string-append namestr "-" (symbol->string f)))))
+             (cons field fields)))))
