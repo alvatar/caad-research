@@ -45,7 +45,7 @@
 ;;; Is this a graph
 
 (define (sxml:graph? graph)
-  (equal? (graph-type graph) 'architecture))
+  (error "unimplemented"))
 
 ;;; Get everything inside the graph as-is
 
@@ -305,7 +305,7 @@
 
 ;;; Get list of walls that belong to a room, fully described
 (define (sxml:room-walls graph room)
-  (map (lambda (r) (sxml:find-wall/uid graph r)) (make-uid-list room)))
+  (map (lambda (r) (sxml:find-wall/uid graph r)) (sxml:make-uid-list room)))
 
 ;-------------------------------------------------------------------------------
 ; Pipes

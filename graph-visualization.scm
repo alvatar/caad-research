@@ -5,10 +5,10 @@
 ;;; A predesigned band strategy
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declare (standard-bindings)
-         (extended-bindings)
-         (block))
-(compile-options force-compile: #t)
+;; (declare (standard-bindings)
+;;          (extended-bindings)
+;;          (block))
+;; (compile-options force-compile: #t)
 
 (import core/list
         geometry/kernel

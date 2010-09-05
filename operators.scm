@@ -35,13 +35,15 @@
 
 ;;; Identity
 
-(define (op:identity context #!optional arguments) context)
+(define (op:identity context arguments)
+  (%accept (graph? context) "context is not a full graph")
+  context)
 
 ;;; Add element
 
 (define (op:add context arguments)
+  (%accept (graph? context) "context is not a full graph")
   (let ((graph context))
-    (%accept (graph? graph) "only context currently accepted for adding is a whole graph")
     ;; TODO: A context with the graph and a room would allow adding the element and reference
     (make-graph
      (graph-uid graph)
@@ -51,9 +53,9 @@
 ;;; Remove element from graph
 
 (define (op:remove context arguments)
+  (%accept (graph? context) "context is not a full graph")
   (let ((graph context)
         (element arguments))
-    (%accept (graph? graph) "only context currently accepted for adding is a whole graph")
     ;; TODO: remove references, too. IMPORTANT
     (make-graph
      (graph-uid graph)
@@ -63,9 +65,9 @@
 ;;; Remove element-list from graph
 
 (define (op:remove-multiple context arguments)
+  (%accept (graph? context) "context is not a full graph")
   (let ((graph context)
         (le arguments))
-    (%accept (graph? graph) "only context currently accepted for adding is a whole graph")
     ;; TODO: remove references, too. IMPORTANT
     (make-graph
      (graph-uid graph)
@@ -75,18 +77,18 @@
 ;;; Rename element
 
 (define (op:rename context arguments)
+  (%accept (graph? context) "context is not a full graph")
   (let ((graph context)
         (element (get-arg arguments 'element))
         (name (get-arg arguments 'name)))
-    (%accept (graph? graph) "only context currently accepted for adding is a whole graph")
     (op:add
      (op:remove graph element)
      (cond
-       ((room? element) ; TODO: this, of course, would be better off with an object system
-        (make-room name
-                   (room-walls element)))
-       (else
-        (error "only room renaming is implemented"))))))
+      ((room? element) ; TODO: this, of course, would be better off with an object system
+       (make-room name
+                  (room-walls element)))
+      (else
+       (error "only room renaming is implemented"))))))
 
 ;;; Move an element within a constraining subspace, without changing topology
 ;;; @context: a 2-layers context containing the constraining space and the element
@@ -104,12 +106,38 @@
              (length= constraining-subspace 2))
         graph)
        (else (error "constraining subspace not accepted"))))
-      (else (error "only walls can be moved at the moment")))))
+     ((window? element)
+      (error "moving windows not implemented"))
+     ((door? element)
+      (error "moving doors not implemented"))
+     ((room? element)
+      (error "moving rooms not implemented"))
+     (else (error "element can't be moved")))))
 
 ;;; Move several elements if they don't change topology when moved together
 
 (define (op:move-multiple-invariant context arguments)
   context)
+
+;-------------------------------------------------------------------------------
+; Boolean operations
+; A subgraph can be a full graph too
+;-------------------------------------------------------------------------------
+
+;;; Merge a graph or a subgraph
+
+(define (op:union context arguments)
+  (error "unimplemented"))
+
+;;; Substract a subgraph from a graph
+
+(define (op:difference context arguments)
+  (error "unimplemented"))
+
+;;; Keep the common parts between a graph and a subgraph
+
+(define (op:intersection context arguments)
+  (error "unimplemented"))
 
 ;-------------------------------------------------------------------------------
 ; Topological operations
