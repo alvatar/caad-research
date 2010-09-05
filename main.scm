@@ -5,7 +5,8 @@
 ;;; Main
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import evolution
+(import core/command
+        evolution
         input
         output
         visualization)
@@ -13,7 +14,8 @@
 ((lambda ()
    (random-source-randomize! default-random-source)
    (output-pool
-    (evolution '(fill-pool @pool-size 1)
+    (evolution (@args (evolver-type 'fill-pool)
+                      (pool-size 1))
                'bath-block
                'keep-best
                (input-from-xml "xml-input/plan_1.xml")))

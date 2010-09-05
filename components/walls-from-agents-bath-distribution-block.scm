@@ -8,11 +8,12 @@
 
 (import (std srfi/1)
         ../context
-        ../core/syntax
+        ../core/command
+        ../core/debugging
         ../core/functional
         ../core/list
         ../core/randomization
-        ../core/debugging
+        ../core/syntax
         ../geometry/generation
         ../geometry/kernel
         ../geometry/locus
@@ -175,9 +176,10 @@
             (begin (display "No agent found in a room!!\n")
                    graph)
             (op:rename graph
-                       `(@element ,room @name ,(symbol->string
-                                                (agent-label
-                                                 (car agent))))))))
+                       (@args (element room)
+                              (name (symbol->string
+                                     (agent-label
+                                      (car agent)))))))))
     graph
     (graph:filter.rooms graph))
    world))

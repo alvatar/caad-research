@@ -5,25 +5,32 @@
 ;;; A simple, generic approach to serializable commands and arguments
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declare (standard-bindings)
-         (extended-bindings)
-         (block))
-(compile-options force-compile: #t)
+;; (declare (standard-bindings)
+;;          (extended-bindings)
+;;          (block))
+;; (compile-options force-compile: #t)
 
-(import (std srfi/1))
-(import list
-        debugging)
+(import syntax)
 
-(%activate-checks)
+;;; Make arguments
 
-;;; Get an argument given the key
+(define-syntax @args
+  (syntax-rules ()
+    ((_ (key contents) ...)
+     `((key ,contents) ...))))
 
-(define (get-arg arguments key)
-  (let ((argname (string->symbol (string-append
-                                  "@"
-                                  (if (symbol? key) (symbol->string key) key)))))
-    (let ((res (find-tail (lambda (a) (eq? argname a))
-                          arguments)))
-      (and (list? res)
-           (not-null? (cdr res))
-           (cadr res)))))
+;;; Make a command
+
+(define-syntax @command
+  (syntax-rules ()
+    ((_ command (key contents) ...)
+     `(command ((key , contents) ...)))))
+
+;;; Get an argument
+
+(define-syntax @get
+  (syntax-rules ()
+    ((_ key command)
+     (aif element (assq 'key command)
+          (cadr element)
+          (error "argument not found")))))

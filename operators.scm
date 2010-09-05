@@ -79,8 +79,8 @@
 (define (op:rename context arguments)
   (%accept (graph? context) "context is not a full graph")
   (let ((graph context)
-        (element (get-arg arguments 'element))
-        (name (get-arg arguments 'name)))
+        (element (@get element arguments))
+        (name (@get name arguments)))
     (op:add
      (op:remove graph element)
      (cond
@@ -98,7 +98,7 @@
   (let ((graph (n-ary:extract-level context 0))
         (constraining-subspace (car (n-ary:extract-level context 1)))
         (element (car (n-ary:extract-level context 2)))
-        (movement-vect (get-arg arguments 'movement)))
+        (movement-vect (@get movement arguments)))
     (cond
      ((wall? element)
       (cond
@@ -152,7 +152,7 @@
   (let ((graph (n-ary:extract-level context 0))
         (constraining-subspace (n-ary:extract-level context 1))
         (element (car (n-ary:extract-level context 2)))
-        (movement-vect (get-arg arguments 'movement)))
+        (movement-vect (@get movementt arguments)))
     (%accept (wall? element) "only walls can be moved at the moment")
     graph))
 
@@ -245,7 +245,7 @@
       (let ((graph (n-ary:extract-level context 0))
             (rooms (n-ary:extract-level context 1))
             (walls (n-ary:extract-level context 2))
-            (split-points (get-arg arguments 'split-points)))
+            (split-points (@get split-points arguments)))
         (%accept #t "you didn't pass split-points to op:cut as arguments" split-points)
         (%accept (= (length rooms) 1) "can only cut one room currently")
         (let ((wall1 (car walls))

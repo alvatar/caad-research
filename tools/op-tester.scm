@@ -51,9 +51,9 @@
                                graph
                                (values->list
                                 (apply/values car
-                                              (graph:filter.wall-connected/2-walls graph center-wall)))
+                                              (graph:find.wall-connected/2-walls graph center-wall)))
                                center-wall)
-                              `(@movement 1.0))))
+                              (@args (movement 1.0)))))
       (pp transformed-graph)
       (visualization:forget-all)
       (visualize-graph transformed-graph)
