@@ -20,7 +20,7 @@
         graph-visualization
         visualization)
 
-(%activate-logging)
+(%activate-log)
 
 (define-structure evaluated-graph graph score)
 

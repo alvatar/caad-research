@@ -129,7 +129,7 @@
   (filter (lambda (a) (any (lambda (b) (equal? a b)) (room-walls room-b)))
           (room-walls room-a)))
 
-;;; Find walls to a given one
+;;; Find walls connected to a given one
 
 (define (graph:filter.walls-connected/wall graph wall)
   (let ((wallp (wall-pseq wall))
@@ -139,6 +139,11 @@
     (values
      (filter (lambda (w) (pseq:is-end-point? (wall-pseq w) (first wallp))) inspected-walls)
      (filter (lambda (w) (pseq:is-end-point? (wall-pseq w) (last wallp))) inspected-walls))))
+
+;;; Find walls connected to a given one in a room
+
+(define (graph:filter.walls-connected/wall/room graph wall room)
+  (error "unimplemented"))
 
 ;;; Find longest wall in room
 

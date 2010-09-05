@@ -14,13 +14,26 @@
 
 (define-syntax %log
   (syntax-rules ()
-    ((_ text . forms)
-     (begin . forms))))
+    ((_ ?text ?forms ...) (begin ?forms ...))))
 
-(define-macro (%activate-logging) ; TODO: nested define-sytax with BH
+;;; Log if a condition is met
+
+(define-syntax %log-if
+  (syntax-rules ()
+    ((_ ?text ?test) #f)))
+
+;;; Effectively activate logs
+
+(define-macro (%activate-log)      ; TODO: nested define-sytax with BH
   '(define-syntax %log
-    (syntax-rules ()
-      ((_ text . forms)
-       (begin (display text)
-              (newline)
-              . forms)))))
+     (syntax-rules ()
+       ((_ ?text ?forms ...)
+        (begin (display ?text)
+               (newline)
+               ?forms ...))))
+  '(define-syntax %log-if
+     (syntax-rules ()
+       ((_ ?text ?test ?forms ...)
+        (if ?test
+            (begin (display ?text)
+                   (newline)))))))

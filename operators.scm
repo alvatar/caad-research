@@ -20,6 +20,7 @@
         core/debugging
         core/functional
         core/list
+        core/logging
         core/prototype
         geometry/kernel
         math/exact-algebra
@@ -28,6 +29,7 @@
         graph)
 
 (%activate-checks)
+(%activate-log)
 
 ;-------------------------------------------------------------------------------
 ; Basic operations
@@ -36,13 +38,13 @@
 ;;; Identity
 
 (define (op:identity context arguments)
-  (%accept (graph? context) "context is not a full graph")
+  (%accept (graph? context) "context is not a graph")
   context)
 
 ;;; Add element
 
 (define (op:add context arguments)
-  (%accept (graph? context) "context is not a full graph")
+  (%accept (graph? context) "context is not a graph")
   (let ((graph context))
     ;; TODO: A context with the graph and a room would allow adding the element and reference
     (make-graph
@@ -53,7 +55,7 @@
 ;;; Remove element from graph
 
 (define (op:remove context arguments)
-  (%accept (graph? context) "context is not a full graph")
+  (%accept (graph? context) "context is not a graph")
   (let ((graph context)
         (element arguments))
     ;; TODO: remove references, too. IMPORTANT
@@ -65,7 +67,7 @@
 ;;; Remove element-list from graph
 
 (define (op:remove-multiple context arguments)
-  (%accept (graph? context) "context is not a full graph")
+  (%accept (graph? context) "context is not a graph")
   (let ((graph context)
         (le arguments))
     ;; TODO: remove references, too. IMPORTANT
@@ -77,7 +79,7 @@
 ;;; Rename element
 
 (define (op:rename context arguments)
-  (%accept (graph? context) "context is not a full graph")
+  (%accept (graph? context) "context is not a graph")
   (let ((graph context)
         (element (@get element arguments))
         (name (@get name arguments)))
@@ -95,17 +97,25 @@
 ;;; @arguments: movement vector (1d or 2d depending on the constraining space)
 
 (define (op:move-invariant context arguments)
-  (let ((graph (n-ary:extract-level context 0))
-        (constraining-subspace (car (n-ary:extract-level context 1)))
-        (element (car (n-ary:extract-level context 2)))
-        (movement-vect (@get movement arguments)))
+  (%accept (graph? context) "context is not a graph")
+  (@let-args (element constraining-method constraints movement-method movement)
+             arguments
     (cond
      ((wall? element)
-      (cond
-       ((and (every wall? constraining-subspace)
-             (length= constraining-subspace 2))
-        graph)
-       (else (error "constraining subspace not accepted"))))
+      (case constraining-method
+        ((2-guides)
+         (%accept (and (every wall? constraints) (lenght= constraints 2))
+                  "wrong constraining guides")
+         (if (segment:3-in-same-halfplane/middle (car constraints)
+                                                 element
+                                                 (cadr constraints))
+             ;; calculate movement of line along guides
+             ;;considerar "towards", comprobar inicio y final, construir trayerctoria
+             
+             ;; the guides don't allow movement, so return the same context
+             (%log "guides don't allow any movement"
+                   context)))
+        (else (error "unknown constraining method"))))
      ((window? element)
       (error "moving windows not implemented"))
      ((door? element)
@@ -328,15 +338,41 @@
 ; Boundary modifications
 ;-------------------------------------------------------------------------------
 
-;;; Expand
+;;; Expand modifies boundaries of spaces increasing their area
 
 (define (op:expand context arguments)
   (error "unimplemented"))
 
-;;; Shrink
+;;; Shrink modifies boundaries of spaces reducing their area
 
 (define (op:shrink context arguments)
-  (error "unimplemented"))
+  (let ((graph context))
+    (@let-args
+     (element) arguments
+     (cond
+      ;; shrink a room
+      ((room? element)
+       ;; we expect to get a wall, a unit for the movement and its value
+       ;; TODO: implement several/all walls shrinking, How? Maybe different from scaling:
+       ;; could modify topology, or not keep relations between walls
+       (@let-args (wall unit value) arguments
+                  (op:move-invariant context
+                                     (@args (element wall)
+                                            (constraints
+                                             (@args (method '2-guides)
+                                                    (guides (graph:filter.walls-connected/wall/room
+                                                             graph
+                                                             wall
+                                                             element))))
+                                            (movement
+                                             (@args (method 'towards)
+                                                    (room element)
+                                                    (unit unit)
+                                                    (value value)))))))
+      ((or (eq? element 'limits)
+           (graph? element))
+       (error "limits shrinking not implemented"))
+      (else (error "unrecognized element for shrinking"))))))
 
 ;-------------------------------------------------------------------------------
 ; Post-operations

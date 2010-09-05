@@ -10,6 +10,7 @@
              misc/uuid
              srfi/1)
         ../context
+        ../core/command
         ../core/debugging
         ../core/functional
         ../core/list
@@ -40,20 +41,26 @@
   (visualize-title "op:move - wall (original graph)")
   (visualization:do-loop)
 
-  (let* ((walls (graph:filter.walls graph))
-         (center-wall (graph:nearest-wall
-                       graph
-                       (pseq:centroid
-                        (graph:wall-list->pseq
-                         (graph:filter.exterior-walls graph))))))
+  (let ((chosen-wall (graph:nearest-wall
+                      graph
+                      (pseq:centroid
+                       (graph:wall-list->pseq
+                        (graph:filter.exterior-walls graph)))))
+        (chosen-room (car (graph:filter.rooms graph))))
     (let ((transformed-graph
-           (op:move-invariant (2-layers->context
-                               graph
-                               (values->list
-                                (apply/values car
-                                              (graph:find.wall-connected/2-walls graph center-wall)))
-                               center-wall)
-                              (@args (movement 1.0)))))
+           (op:move-invariant graph
+                              (@args (element chosen-wall)
+                                     (constraints
+                                      (@args (method '2-guides)
+                                             (guides (graph:filter.walls-connected/wall/room
+                                                      graph
+                                                      chosen-wall
+                                                      chosen-room))))
+                                     (movement
+                                      (@args (method 'towards)
+                                             (room chosen-room)
+                                             (unit relative)
+                                             (value 0.5)))))))
       (pp transformed-graph)
       (visualization:forget-all)
       (visualize-graph transformed-graph)

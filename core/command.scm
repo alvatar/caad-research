@@ -16,21 +16,29 @@
 
 (define-syntax @args
   (syntax-rules ()
-    ((_ (key contents) ...)
-     `((key ,contents) ...))))
+    ((_ (?key ?contents) ...)
+     `((?key ,?contents) ...))))
 
 ;;; Make a command
 
 (define-syntax @command
   (syntax-rules ()
-    ((_ command (key contents) ...)
-     `(command ((key , contents) ...)))))
+    ((_ ?command (?key ?contents) ...)
+     `(?command ((?key ,?contents) ...)))))
 
 ;;; Get an argument
 
 (define-syntax @get
   (syntax-rules ()
-    ((_ key command)
-     (aif element (assq 'key command)
+    ((_ ?key ?command)
+     (aif element (assq '?key ?command)
           (cadr element)
           (error "argument not found")))))
+
+;;; Let-arguments
+
+(define-syntax @let-args
+  (syntax-rules ()
+    ((_ (?arg-name ...) ?args-obj ?forms ...)
+     (let ((?arg-name (@get ?arg-name ?args-obj)) ...)
+       ?forms ...))))
