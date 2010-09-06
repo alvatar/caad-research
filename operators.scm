@@ -15,7 +15,7 @@
              srfi/11
              misc/uuid)
         context
-        core/command
+        core/tagged-list
         core/container/n-ary
         core/debugging
         core/functional
@@ -81,8 +81,8 @@
 (define (op:rename context arguments)
   (%accept (graph? context) "context is not a graph")
   (let ((graph context)
-        (element (@get element arguments))
-        (name (@get name arguments)))
+        (element ($get element arguments))
+        (name ($get name arguments)))
     (op:add
      (op:remove graph element)
      (cond
@@ -96,25 +96,49 @@
 ;;; @context: a 2-layers context containing the constraining space and the element
 ;;; @arguments: movement vector (1d or 2d depending on the constraining space)
 
-(define (op:move-invariant context arguments)
-  (%accept (graph? context) "context is not a graph")
-  (@let-args (element constraining-method constraints movement-method movement)
-             arguments
+(define (op:move-invariant context arguments) (%accept (graph? context))
+  (@let ((element constraints movement) arguments)
     (cond
      ((wall? element)
-      (case constraining-method
+      (case (@get method constraints)
+        ;; moving a wall along 2 guides (walls)
         ((2-guides)
-         (%accept (and (every wall? constraints) (lenght= constraints 2))
-                  "wrong constraining guides")
-         (if (segment:3-in-same-halfplane/middle (car constraints)
-                                                 element
-                                                 (cadr constraints))
-             ;; calculate movement of line along guides
-             ;;considerar "towards", comprobar inicio y final, construir trayerctoria
-             
-             ;; the guides don't allow movement, so return the same context
-             (%log "guides don't allow any movement"
-                   context)))
+         (@let ((guides) constraints
+                (method objective unit value) movement)
+           (%accept (and (every wall? guides) (lenght= guides 2)) "wrong guides used for constraining")
+           (let ((guide-1 (car guides))
+                 (guide-2 (cadr guides)))
+             (if (segment:3-in-same-halfplane/middle guide-1 element guide-2)
+                 ;; build the locus describing all possible positions (a pseq trajectory in this case)
+                 (let ((trajectory
+                        (case method
+                          ;; build the trajectory considering movement towards an objective
+                          ((towards)
+                           (cond
+                            ;; move towards room center
+                            ((room? objective)
+                             (error "TODOOOOOOOOOOOOOO"))
+                            ;; move towards wall
+                            ((wall? objective)
+                             (error "defining a wall as a movement objective not implemented"))
+                            ((window? objective)
+                             (error "defining a window as a movement objective not implemented"))
+                            ((door? objective)
+                             (error "defining a door as a movement objective not implemented"))
+                            ((structural? objective)
+                             (error "defining a structural as a movement objective not implemented"))
+                            ((pipe? objective)
+                             (error "defining a pipe as a movement objective not implemented"))
+                            (else (error "cannot move towards this objective (not recognized)"))))
+                          (else (error "movement method not recognized with this constraints")))))
+                   (case unit
+                     ;; uses directly the trajectory locus and take a relative point within it
+                     ((trajectory-relative)
+                      (error "TODOOOOOOOOOOOOOOOOOOO"))
+                     (else (error "unit not recognized with this constraints"))))
+                 ;; the guides don't allow movement, so return the same context
+                 (%log "guides don't allow any movement"
+                       context)))))
         (else (error "unknown constraining method"))))
      ((window? element)
       (error "moving windows not implemented"))
@@ -162,7 +186,7 @@
   (let ((graph (n-ary:extract-level context 0))
         (constraining-subspace (n-ary:extract-level context 1))
         (element (car (n-ary:extract-level context 2)))
-        (movement-vect (@get movementt arguments)))
+        (movement-vect ($get movementt arguments)))
     (%accept (wall? element) "only walls can be moved at the moment")
     graph))
 
@@ -255,7 +279,7 @@
       (let ((graph (n-ary:extract-level context 0))
             (rooms (n-ary:extract-level context 1))
             (walls (n-ary:extract-level context 2))
-            (split-points (@get split-points arguments)))
+            (split-points ($get split-points arguments)))
         (%accept #t "you didn't pass split-points to op:cut as arguments" split-points)
         (%accept (= (length rooms) 1) "can only cut one room currently")
         (let ((wall1 (car walls))
@@ -345,34 +369,32 @@
 
 ;;; Shrink modifies boundaries of spaces reducing their area
 
-(define (op:shrink context arguments)
-  (let ((graph context))
-    (@let-args
-     (element) arguments
-     (cond
-      ;; shrink a room
-      ((room? element)
-       ;; we expect to get a wall, a unit for the movement and its value
-       ;; TODO: implement several/all walls shrinking, How? Maybe different from scaling:
-       ;; could modify topology, or not keep relations between walls
-       (@let-args (wall unit value) arguments
-                  (op:move-invariant context
-                                     (@args (element wall)
-                                            (constraints
-                                             (@args (method '2-guides)
-                                                    (guides (graph:filter.walls-connected/wall/room
-                                                             graph
-                                                             wall
-                                                             element))))
-                                            (movement
-                                             (@args (method 'towards)
-                                                    (room element)
-                                                    (unit unit)
-                                                    (value value)))))))
-      ((or (eq? element 'limits)
-           (graph? element))
-       (error "limits shrinking not implemented"))
-      (else (error "unrecognized element for shrinking"))))))
+(define (op:shrink context arguments) (%accept (graph? context))
+  (@let ((element) arguments)
+        (cond
+         ;; shrink a room
+         ((room? element)
+          ;; we expect to get a wall, a unit for the movement and its value
+          ;; TODO: implement several/all walls shrinking, How? Maybe different from scaling:
+          ;; could modify topology, or not keep relations between walls
+          (@let (wall unit value) arguments
+                (op:move-invariant context
+                                   (@list (element wall)
+                                          (constraints
+                                           (@list (method '2-guides)
+                                                  (guides (graph:filter.walls-connected/wall/room
+                                                           context
+                                                           wall
+                                                           element))))
+                                          (movement
+                                           (@list (method 'towards)
+                                                  (objective element)
+                                                  (unit unit)
+                                                  (value value)))))))
+         ((or (eq? element 'limits)
+              (graph? element))
+          (error "limits shrinking not implemented"))
+         (else (error "unrecognized element for shrinking")))))
 
 ;-------------------------------------------------------------------------------
 ; Post-operations

@@ -8,7 +8,7 @@
 
 (import (std srfi/1)
         ../context
-        ../core/command
+        ../core/tagged-list
         ../core/debugging
         ../core/functional
         ../core/list
@@ -176,7 +176,7 @@
             (begin (display "No agent found in a room!!\n")
                    graph)
             (op:rename graph
-                       (@args (element room)
+                       (@list (element room)
                               (name (symbol->string
                                      (agent-label
                                       (car agent)))))))))

@@ -10,7 +10,7 @@
              misc/uuid
              srfi/1)
         ../context
-        ../core/command
+        ../core/tagged-list
         ../core/debugging
         ../core/functional
         ../core/list
@@ -49,15 +49,15 @@
         (chosen-room (car (graph:filter.rooms graph))))
     (let ((transformed-graph
            (op:move-invariant graph
-                              (@args (element chosen-wall)
+                              (@list (element chosen-wall)
                                      (constraints
-                                      (@args (method '2-guides)
+                                      (@list (method '2-guides)
                                              (guides (graph:filter.walls-connected/wall/room
                                                       graph
                                                       chosen-wall
                                                       chosen-room))))
                                      (movement
-                                      (@args (method 'towards)
+                                      (@list (method 'towards)
                                              (room chosen-room)
                                              (unit relative)
                                              (value 0.5)))))))

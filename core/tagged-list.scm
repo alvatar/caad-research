@@ -14,17 +14,10 @@
 
 ;;; Make arguments
 
-(define-syntax @args
+(define-syntax @list
   (syntax-rules ()
     ((_ (?key ?contents) ...)
      `((?key ,?contents) ...))))
-
-;;; Make a command
-
-(define-syntax @command
-  (syntax-rules ()
-    ((_ ?command (?key ?contents) ...)
-     `(?command ((?key ,?contents) ...)))))
 
 ;;; Get an argument
 
@@ -37,8 +30,17 @@
 
 ;;; Let-arguments
 
-(define-syntax @let-args
+(define-syntax @let
   (syntax-rules ()
-    ((_ (?arg-name ...) ?args-obj ?forms ...)
-     (let ((?arg-name (@get ?arg-name ?args-obj)) ...)
+    ((_ ((?arg-name ...) ?args-obj . ?more) ?forms ...)
+     '(let ((?arg-name (@get ?arg-name ?args-obj)) ...)
        ?forms ...))))
+
+(define-syntax @let
+  (syntax-rules ()
+    ((_ ((?arg-name ...) ?args-obj . ?more) ?forms ...) ; entry point
+     (@let "recur" ((?arg-name (@get ?arg-name ?args-obj)) ...) ?more ?forms ...))
+    ((_ "recur" (?let-bindings ...) () ?forms ...) ; end recursion
+     '(let (?let-bindings ...) ?forms ...))
+    ((_ "recur" (?let-bindings ...) ((?arg-name ...) ?args-obj . ?more) ?forms ...)
+     (@let "recur" (?let-bindings ... (?arg-name (@get ?arg-name ?args-obj)) ...) ?more ?forms ...))))

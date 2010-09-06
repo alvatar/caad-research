@@ -5,7 +5,7 @@
 ;;; Main
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(import core/command
+(import core/tagged-list
         evolution
         input
         output
@@ -14,7 +14,7 @@
 ((lambda ()
    (random-source-randomize! default-random-source)
    (output-pool
-    (evolution (@args (evolver-type 'fill-pool)
+    (evolution (@list (evolver-type 'fill-pool)
                       (pool-size 1))
                'bath-block
                'keep-best

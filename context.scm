@@ -13,7 +13,7 @@
 ;; (compile-options force-compile: #t)
 
 (import (std srfi/1)
-        core/command
+        core/tagged-list
         core/container/n-ary
         core/debugging
         core/list
@@ -62,7 +62,7 @@
               `(,graph
                 (,rooms ; TODO: DOESN'T WORK WITH MORE THAN ONE. IMPORTANT!
                  ,@walls))
-              (@args (split-points intersections))))))
+              (@list (split-points intersections))))))
 
 ;;; Takes a graph, a room and an infinite line and builds the context with
 ;;; the computation of the intersection between the room and the line
@@ -78,7 +78,7 @@
               `(,graph
                 (,room
                  ,@walls))
-              (@args (split-points intersections))))))
+              (@list (split-points intersections))))))
 
 ;-------------------------------------------------------------------------------
 ; Context checking
