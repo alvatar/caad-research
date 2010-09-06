@@ -38,7 +38,7 @@
 (let ((graph (input-from-xml "xml-input/two_rooms.xml")))
   (pp graph)
   (visualize-graph graph)
-  (visualize-title "op:move - wall (original graph)")
+  (visualize-title "op:push - wall (original graph)")
   (visualization:do-loop)
 
   (let ((chosen-wall (graph:nearest-wall
@@ -48,23 +48,23 @@
                         (graph:filter.exterior-walls graph)))))
         (chosen-room (car (graph:filter.rooms graph))))
     (let ((transformed-graph
-           (op:move-invariant graph
-                              (@list (element chosen-wall)
-                                     (constraints
-                                      (@list (method '2-guides)
-                                             (guides (graph:filter.walls-connected/wall/room
-                                                      graph
-                                                      chosen-wall
-                                                      chosen-room))))
-                                     (movement
-                                      (@list (method 'towards)
-                                             (room chosen-room)
-                                             (unit relative)
-                                             (value 0.5)))))))
+           (op:push graph
+                    (@list (element chosen-wall)
+                           (constraints
+                            (@list (method '2-guides)
+                                   (guides (graph:filter.walls-connected/wall/room
+                                            graph
+                                            chosen-wall
+                                            chosen-room))))
+                           (movement
+                            (@list (method 'towards)
+                                   (room chosen-room)
+                                   (unit relative)
+                                   (value 0.5)))))))
       (pp transformed-graph)
       (visualization:forget-all)
       (visualize-graph transformed-graph)
-      (visualize-title "op:move - wall (transformed graph)")
+      (visualize-title "op:push - wall (transformed graph)")
       (visualization:do-loop)
       (visualization:forget-all)))
   (visualization:forget-all))

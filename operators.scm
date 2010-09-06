@@ -12,6 +12,7 @@
 ;; (compile-options force-compile: #t)
 
 (import (std srfi/1
+             srfi/2
              srfi/11
              misc/uuid)
         context
@@ -81,8 +82,8 @@
 (define (op:rename context arguments)
   (%accept (graph? context) "context is not a graph")
   (let ((graph context)
-        (element ($get element arguments))
-        (name ($get name arguments)))
+        (element (@get element arguments))
+        (name (@get name arguments)))
     (op:add
      (op:remove graph element)
      (cond
@@ -92,66 +93,92 @@
       (else
        (error "only room renaming is implemented"))))))
 
-;;; Move an element within a constraining subspace, without changing topology
-;;; @context: a 2-layers context containing the constraining space and the element
-;;; @arguments: movement vector (1d or 2d depending on the constraining space)
+;;; Change an element property
 
-(define (op:move-invariant context arguments) (%accept (graph? context))
-  (@let ((element constraints movement) arguments)
-    (cond
-     ((wall? element)
-      (case (@get method constraints)
-        ;; moving a wall along 2 guides (walls)
-        ((2-guides)
-         (@let ((guides) constraints
-                (method objective unit value) movement)
-           (%accept (and (every wall? guides) (lenght= guides 2)) "wrong guides used for constraining")
-           (let ((guide-1 (car guides))
-                 (guide-2 (cadr guides)))
-             (if (segment:3-in-same-halfplane/middle guide-1 element guide-2)
-                 ;; build the locus describing all possible positions (a pseq trajectory in this case)
-                 (let ((trajectory
-                        (case method
-                          ;; build the trajectory considering movement towards an objective
-                          ((towards)
-                           (cond
-                            ;; move towards room center
-                            ((room? objective)
-                             (error "TODOOOOOOOOOOOOOO"))
-                            ;; move towards wall
-                            ((wall? objective)
-                             (error "defining a wall as a movement objective not implemented"))
-                            ((window? objective)
-                             (error "defining a window as a movement objective not implemented"))
-                            ((door? objective)
-                             (error "defining a door as a movement objective not implemented"))
-                            ((structural? objective)
-                             (error "defining a structural as a movement objective not implemented"))
-                            ((pipe? objective)
-                             (error "defining a pipe as a movement objective not implemented"))
-                            (else (error "cannot move towards this objective (not recognized)"))))
-                          (else (error "movement method not recognized with this constraints")))))
-                   (case unit
-                     ;; uses directly the trajectory locus and take a relative point within it
-                     ((trajectory-relative)
-                      (error "TODOOOOOOOOOOOOOOOOOOO"))
-                     (else (error "unit not recognized with this constraints"))))
-                 ;; the guides don't allow movement, so return the same context
-                 (%log "guides don't allow any movement"
-                       context)))))
-        (else (error "unknown constraining method"))))
-     ((window? element)
-      (error "moving windows not implemented"))
-     ((door? element)
-      (error "moving doors not implemented"))
-     ((room? element)
-      (error "moving rooms not implemented"))
-     (else (error "element can't be moved")))))
+(define (op:element-property context arguments) (%accept (graph? context))
+  (@let ((element property new-value) arguments)
+    'pene 'pene))
 
-;;; Move several elements if they don't change topology when moved together
+;;; Move an element within a constraining subspace, without changing topology.
+;;; Can handle multiple elements, if when moved together don't change topology
 
-(define (op:move-multiple-invariant context arguments)
-  context)
+(define (op:push context arguments) (%accept (graph? context))
+  (let/cc
+   exit
+   (let ((abort (lambda (test text)
+                  (if test (begin (%log test) (step) (exit context))))))
+     (@let ((element constraints movement) arguments)
+       (cond
+        ;; push walls
+        ((wall? element)
+         (case (@get method constraints)
+           ;; moving a wall along 2 guides (walls), respecting direction of moved wall
+           ((2-guides-keep-direction)
+            (@let ((guides) constraints
+                   (unit value) movement)
+              (abort (not (and (every wall? guides) (lenght= guides 2)))
+                     "wrong guides used for constraining")
+              (let ((guide-1 (car guides))
+                    (guide-2 (cadr guides)))
+                (let ((guide-1-pseq (wall-pseq guide-1))
+                      (guide-2-pseq (wall-pseq guide-2))
+                      (element-pseq (wall-pseq element)))
+                 (receive
+                  (node-1 node-2)
+                  (graph:find.wall-connected/2-walls graph element) ; the 2 groups of connected walls
+                  ;; get the two groups of walls connected to each guide
+                  (let ((knot-1 (remove (lambda-equal? element)
+                                        (or (find-rember (lambda-equal? guide-1) node-1)
+                                            (find-rember (lambda-equal? guide-1) node-2))))
+                        (knot-2 (remove (lambda-equal? element)
+                                        (or (find-rember (lambda-equal? guide-2) node-1)
+                                            (find-rember (lambda-equal? guide-2) node-2))))
+                        (good-knot?
+                         (lambda (knot) (or (null? knot-1)
+                                       (and (lenght= knot-1 1)
+                                            (pseq:parallel-pseq? (wall-pseq (car knot-1))
+                                                                 (wall-pseq element-pseq)))))))
+                    ;; both knots must be different, otherwise something is wrong
+                    (abort (equal? knot-1 knot-2)
+                           "both knots are equal, this is a bad sign: aborting")
+                    ;; knots must be empty or just have ONE: a parallel wall to the connected guide
+                    (abort (not (good-knot? knot-1))
+                           "knot-1 forces a topological change: use op:push-hard instead")
+                    (abort (not (good-knot? knot-2))
+                           "knot-2 forces a topological change: use op:push-hard instead")
+                    ;; both guides must lie in the same halfplane
+                    (abort (not (segment:3-in-same-halfplane/middle guide-1-pseq element guide-2-pseq))
+                           "both guides must lie in the same halfplane, otherwise they don't allow any movement")
+                    ;; build the trajectories (pseq) for each one of the points of the wall
+                    (receive
+                     (primary-guide secondary-guide)
+                     (let ((global-trajectory <PERPENDICULAR>))
+                       (let ((trajectory-1 (project.line<-pseq line guide-1-pseq))
+                             (trajectory-2 (project.line<-pseq line guide-2-pseq)))
+                         (if (< (pseq:length trajectory-1)
+                                (pseq:length trajectory-2))
+                             (values guide-1 guide-2)
+                             (values guide-2 guide-1))))
+                     (case unit
+                       ((trajectory-relative)
+                        ;; if the relative point is 1.0, then the primary guide will disappear
+                        (if (= value 1.0)
+                            (error "relative point=1.0 unimplemented")
+                            (let* ((base-point (<point->relative> primary-guide value))
+                                   (second-point (<intersection.$$$$> (point&direction base-point <wall-direction>)
+                                                                      secondary-guide)))
+                              <TACHAAAN>)))
+                       (else (error "unit not recognized with this constraints"))))))))))
+           (else (error "unknown constraining method"))))
+        ((window? element)
+         (error "push windows not implemented"))
+        ((door? element)
+         (error "push doors not implemented"))
+        ((room? element)
+         (error "push rooms not implemented"))
+        ((list? element)
+         (error "push multiple elements not implemented"))
+        (else (error "element(s) can't be moved")))))))
 
 ;-------------------------------------------------------------------------------
 ; Boolean operations
@@ -179,16 +206,9 @@
 
 ;;; Move an element within a constraining subspace, but where topological changes
 ;;; are allowed
-;;; @context: a 2-layers context containing the constraining space and the element
-;;; @arguments: movement vector (1d or 2d depending on the constraining space)
 
-(define (op:move context arguments)
-  (let ((graph (n-ary:extract-level context 0))
-        (constraining-subspace (n-ary:extract-level context 1))
-        (element (car (n-ary:extract-level context 2)))
-        (movement-vect ($get movementt arguments)))
-    (%accept (wall? element) "only walls can be moved at the moment")
-    graph))
+(define (op:push-hard context arguments)
+  (error "unimplemented"))
 
 ;;; The generic CUT operation: given a graph and a set of points with a minimum
 ;;; length of 2, first select the 2 walls where those first and last points lay
@@ -279,7 +299,7 @@
       (let ((graph (n-ary:extract-level context 0))
             (rooms (n-ary:extract-level context 1))
             (walls (n-ary:extract-level context 2))
-            (split-points ($get split-points arguments)))
+            (split-points (@get split-points arguments)))
         (%accept #t "you didn't pass split-points to op:cut as arguments" split-points)
         (%accept (= (length rooms) 1) "can only cut one room currently")
         (let ((wall1 (car walls))
@@ -387,7 +407,7 @@
                                                            wall
                                                            element))))
                                           (movement
-                                           (@list (method 'towards)
+                                           (@list (method 'not-used)
                                                   (objective element)
                                                   (unit unit)
                                                   (value value)))))))

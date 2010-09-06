@@ -4,7 +4,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Generation algorithms defined as strategies. Strategies are combinations
 ;;; of pluggable components for a generation algorithm
-;;; LPC: location/pattern/constraint
+;;; LPC: location/pattern/constraint-convergence
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; (declare (standard-bindings)

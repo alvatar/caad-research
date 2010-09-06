@@ -632,37 +632,49 @@
 (define (min/generator generator lis)
   (most/generator generator < lis))
 
-;;; Recursive substitution in a list
+;;; Substitution in a list
 
-(define (xsubst* f new old l)
+(define (x-substitute maker pred? new l)
   ((letrec ((X (lambda (l)
-    (cond
-      ((null? l)
-       '())
-      ((atom? (car l)) ; Atoms level
-       (cond
-         ((eq? (car l) old)
-          (f new
-             (X (cdr l))))
-         (else
-           (cons (car l)
-                 (X (cdr l))))))
-      ((equal? (car l) old) ; Sublist level
-       (f new (X (cdr l))))
-      (else
-        (cons
-          (X (car l))
-          (X (cdr l)))))))) X) l))
+                 (if (null? l)
+                     '()
+                     (receive (lcar lcdr) (car+cdr l)
+                              (if (pred? lcar)
+                                  (maker new (X lcdr))
+                                  (cons lcar (X lcdr)))))))) X) l))
+(define substitute (curry x-substitute cons))
 
-;;; Recursive substitution in a list
+;;; Substitution in a list, introducing many elements
 
-(define (subst* new old l)
-  (xsubst* cons new old l))
+(define multiple-substitute (curry x-substitute append))
 
-;;; Recursive substitution with multiple insertion
+;;; Recursive substitution in a list, down to atom-level
 
-(define (msubst* lnew old l)
-  (xsubst* append lnew old l))
+(define (x-subst* maker old new l)
+  ((letrec ((X (lambda (l)
+                 (if (null? l)
+                     '()
+                     (receive (lcar lcdr) (car+cdr l)
+                              (cond
+                               ((atom? lcar) ; Atoms level
+                                (cond
+                                 ((eq? lcar old)
+                                  (maker new
+                                         (X lcdr)))
+                                 (else
+                                  (cons lcar
+                                        (X lcdr)))))
+                               ((equal? lcar old) ; Sublist level
+                                (maker new (X lcdr)))
+                               (else
+                                (cons
+                                 (X lcar)
+                                 (X lcdr))))))))) X) l))
+(define subst* (curry x-subst* cons))
+
+;;; Recursive substitution with multiple insertion, down to atom-level
+
+(define multiple-subst* (curry x-subst* append))
 
 ;-------------------------------------------------------------------------------
 ; Skeleton/shape

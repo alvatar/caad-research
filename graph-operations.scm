@@ -368,7 +368,7 @@
           (if (room? e)
               (make-room
                (room-uid e)
-               (msubst* new-uids uid (room-walls e))) ; TODO: Improve, no msubst*!
+               (multiple-substitute (lambda-equal? uid) new-uids (room-walls e)))
               e))
         (graph-architecture graph))))
 
