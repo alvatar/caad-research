@@ -14,7 +14,8 @@
 
 (define-syntax %log
   (syntax-rules ()
-    ((_ ?text ?forms ...) (begin ?forms ...))))
+    ((_ ?text) #f)
+    ((_ ?text ?form ?forms ...) (begin ?form ?forms ...))))
 
 ;;; Log if a condition is met
 

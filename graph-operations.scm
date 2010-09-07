@@ -309,7 +309,47 @@
 ; Graph modification
 ;-------------------------------------------------------------------------------
 
-;;; Create a two new walls where one was before, given a splitting point
+;;; Change an element property
+
+(define (graph:set-property element property value)
+  (make-graph
+   (graph-uid context)
+   (graph-environment context)
+   (substitute
+    (lambda-equal? element)
+    (cond                ; TODO: this *really* needs the object system
+     ((wall? element)
+      (case property
+        ((pseq)
+         (make-wall (wall-uid element)
+                    (wall-metadata element)
+                    value
+                    (wall-windows element)
+                    (wall-doors element)))
+        (else
+         (error "doesn't allow changing any other property than \"pseq\" "))))
+     (else (error "doesn't allow changing any other element than walls")))
+    (graph-architecture context))))
+
+;;; Update refs to walls in rooms
+
+(define (graph:update-wall-refs-in-rooms graph uid new-uids)
+  (make-graph
+   (graph-uid graph)
+   (graph-environment graph)
+   (map (lambda (e)
+          (if (room? e)
+              (make-room
+               (room-uid e)
+               (multiple-substitute (lambda-equal? uid) new-uids (room-walls e)))
+              e))
+        (graph-architecture graph))))
+
+;-------------------------------------------------------------------------------
+; Low-level operations
+;-------------------------------------------------------------------------------
+
+;;; Create two new walls where one was before, given a splitting point
 ;;; @returns 3 vals: 2 new walls + status
 
 (define (graph:split-wall wall split-x uuid1 uuid2) ; TODO: review for mult-segment walls
@@ -357,20 +397,6 @@
                 (if (null? splitted-windows)
                     'ok
                     'lost-window))))))
-
-;;; Update refs to walls in rooms
-
-(define (graph:update-wall-refs-in-rooms graph uid new-uids)
-  (make-graph
-   (graph-uid graph)
-   (graph-environment graph)
-   (map (lambda (e)
-          (if (room? e)
-              (make-room
-               (room-uid e)
-               (multiple-substitute (lambda-equal? uid) new-uids (room-walls e)))
-              e))
-        (graph-architecture graph))))
 
 ;;; Try and merge into one wall if the two given are parallel
 

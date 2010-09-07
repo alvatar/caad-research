@@ -32,15 +32,9 @@
 
 (define-syntax @let
   (syntax-rules ()
-    ((_ ((?arg-name ...) ?args-obj . ?more) ?forms ...)
-     '(let ((?arg-name (@get ?arg-name ?args-obj)) ...)
-       ?forms ...))))
-
-(define-syntax @let
-  (syntax-rules ()
     ((_ ((?arg-name ...) ?args-obj . ?more) ?forms ...) ; entry point
      (@let "recur" ((?arg-name (@get ?arg-name ?args-obj)) ...) ?more ?forms ...))
     ((_ "recur" (?let-bindings ...) () ?forms ...) ; end recursion
-     '(let (?let-bindings ...) ?forms ...))
+     (let (?let-bindings ...) ?forms ...))
     ((_ "recur" (?let-bindings ...) ((?arg-name ...) ?args-obj . ?more) ?forms ...)
      (@let "recur" (?let-bindings ... (?arg-name (@get ?arg-name ?args-obj)) ...) ?more ?forms ...))))
