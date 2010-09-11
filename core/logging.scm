@@ -5,10 +5,10 @@
 ;;; Logging utilities and macros
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declare (standard-bindings)
-         (extended-bindings)
-         (block))
-(compile-options force-compile: #t)
+;; (declare (standard-bindings)
+;;          (extended-bindings)
+;;          (block))
+;; (compile-options force-compile: #t)
 
 ;;; Log with a given text 
 
@@ -26,15 +26,18 @@
 ;;; Effectively activate logs
 
 (define-macro (%activate-log)      ; TODO: nested define-sytax with BH
-  '(define-syntax %log
-     (syntax-rules ()
-       ((_ ?text ?forms ...)
-        (begin (display ?text)
-               (newline)
-               ?forms ...))))
-  '(define-syntax %log-if
-     (syntax-rules ()
-       ((_ ?text ?test ?forms ...)
-        (if ?test
-            (begin (display ?text)
-                   (newline)))))))
+  '(begin
+     (define-syntax %log
+       (syntax-rules ()
+         ((_ ?text ?forms ...)
+          (begin (display ?text)
+                 (newline)
+                 (step)
+                 ?forms ...))))
+     (define-syntax %log-if
+       '(syntax-rules ()
+          ((_ ?text ?test ?forms ...)
+           (if ?test
+               (begin (display ?text)
+                      (newline)
+                      ?forms ...)))))))

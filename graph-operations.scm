@@ -101,9 +101,8 @@
 
 ;;; Is the wall of this room?
 
-(define (graph:room-wall-uid? room wall-uid)
-  (%accept (string? wall-uid) "this doesn't look like an UUID")
-  (find (lambda (wuid) (equal? wuid wall-uid)) (room-walls room)))
+(define (graph:room-wall? room wall) (%accept (and (room? room) (wall? wall)))
+  (find (lambda (wuid) (equal? wuid (wall-uid wall))) (room-walls room)))
 
 ;-------------------------------------------------------------------------------
 ; Finders/Filters
@@ -143,7 +142,8 @@
 ;;; Find walls connected to a given one in a room
 
 (define (graph:filter.walls-connected/wall/room graph wall room)
-  (error "unimplemented"))
+  (apply/values (curry filter (lambda (w) (graph:room-wall? room w)))
+                (graph:filter.walls-connected/wall graph wall)))
 
 ;;; Find longest wall in room
 

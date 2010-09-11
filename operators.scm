@@ -23,6 +23,7 @@
         core/list
         core/logging
         core/prototype
+        core/syntax
         geometry/kernel
         math/exact-algebra
         graph-operations
@@ -82,8 +83,8 @@
 (define (op:rename context arguments)
   (%accept (graph? context) "context is not a graph")
   (let ((graph context)
-        (element ($get element arguments))
-        (name ($get name arguments)))
+        (element (get@ element arguments))
+        (name (get@ name arguments)))
     (op:add
      (op:remove graph element)
      (cond
@@ -99,81 +100,82 @@
 (define (op:push context arguments) (%accept (graph? context))
   (let/cc
    exit
-   (let ((abort (lambda (test text) (if test (begin (%log test) (step) (exit context))))))
-     (@let ((element constraints movement) arguments)
-       (cond
-        ;; push walls
-        ((wall? element)
-         (case ($get method constraints)
-           ;; moving a wall along 2 guides (walls), respecting direction of moved wall
-           ((2-guides-keep-direction)
-            (@let ((guides) constraints
-                   (unit value) movement)
-              (abort (not (and (every wall? guides) (lenght= guides 2)))
-                     "wrong guides used for constraining")
-              (let ((guide-1 (car guides))
-                    (guide-2 (cadr guides)))
-                (let ((guide-1-pseq (wall-pseq guide-1))
-                      (guide-2-pseq (wall-pseq guide-2))
-                      (element-pseq (wall-pseq element)))
-                  (receive
-                   (node-1 node-2)
-                   (graph:find.wall-connected/2-walls graph element) ; the 2 groups of connected walls
-                   ;; get the two groups of walls connected to each guide
-                   (let ((knot-1 (remove (lambda-equal? element)
-                                         (or (find-rember (lambda-equal? guide-1) node-1)
-                                             (find-rember (lambda-equal? guide-1) node-2))))
-                         (knot-2 (remove (lambda-equal? element)
-                                         (or (find-rember (lambda-equal? guide-2) node-1)
-                                             (find-rember (lambda-equal? guide-2) node-2))))
-                         (good-knot?
-                          (lambda (knot) (or (null? knot-1)
-                                        (and (lenght= knot-1 1)
-                                             (pseq:parallel-pseq? (wall-pseq (car knot-1))
-                                                                  (wall-pseq element-pseq)))))))
-                     ;; both knots must be different, otherwise something is wrong
-                     (abort (equal? knot-1 knot-2)
-                            "both knots are equal, this is a bad sign: aborting")
-                     ;; knots must be empty or just have ONE: a parallel wall to the connected guide
-                     (abort (not (good-knot? knot-1))
-                            "knot-1 forces a topological change: use op:push-hard instead")
-                     (abort (not (good-knot? knot-2))
-                            "knot-2 forces a topological change: use op:push-hard instead")
-                     ;; both guides must lie in the same halfplane
-                     (abort (not (segment:3-in-same-halfplane/middle guide-1-pseq element guide-2-pseq))
-                            "both guides must lie in the same halfplane, otherwise they don't allow any movement")
-                     ;; build the trajectories (pseq) for each one of the points of the wall
-                     (receive
-                      (primary-guide secondary-guide)
-                      ;; calculate the movement direction
-                      (let ((trajectory-1 (project.line<-pseq line guide-1-pseq))
-                            (trajectory-2 (project.line<-pseq line guide-2-pseq)))
-                        (if (< (pseq:length trajectory-1)
-                               (pseq:length trajectory-2))
-                            (values guide-1 guide-2)
-                            (values guide-2 guide-1)))
-                      (case unit
-                        ((trajectory-relative)
-                         ;; if the relative point is 1.0, then the primary guide will disappear
-                         (if (= value 1.0)
-                             (error "relative point=1.0 unimplemented")
-                             (let* ((base-point (pseq:1d-coord->point primary-guide value))
-                                    (second-point (intersect.line-pseq (point&direction->line
-                                                                        base-point
-                                                                        (segment->direction (pseq->segment element-pseq)))
-                                                                       secondary-guide)))
-                               <TACHAAAN******************************>)))
-                        (else (error "unit not recognized with this constraints"))))))))))
-           (else (error "unknown constraining method"))))
-        ((window? element)
-         (error "push windows not implemented"))
-        ((door? element)
-         (error "push doors not implemented"))
-        ((room? element)
-         (error "push rooms not implemented"))
-        ((list? element)
-         (error "push multiple elements not implemented"))
-        (else (error "element(s) can't be moved")))))))
+   (let ((abort (lambda (test text) (if test (begin (%log text) (exit context))))))
+     (let@ ((element constraints movement) arguments)
+           (cond
+            ;; push walls
+            ((wall? element)
+             (case (get@ method constraints)
+               ;; moving a wall along 2 guides (walls), respecting direction of moved wall
+               ((2-guides-keep-direction)
+                (let@ ((guides) constraints
+                       (unit value) movement)
+                      (abort (not (and (every wall? guides) (length= guides 2)))
+                             "wrong guides used for constraining")
+                      (let ((guide-1 (car guides))
+                            (guide-2 (cadr guides)))
+                        (let ((guide-1-pseq (wall-pseq guide-1))
+                              (guide-2-pseq (wall-pseq guide-2))
+                              (element-pseq (wall-pseq element)))
+                          ;; get the two groups of walls connected to each guide
+                          (receive
+                           (node-1 node-2)
+                           (graph:filter.walls-connected/wall graph element)
+                           ;; identify the corresponding knot for each guide
+                           (let ((knot-1 (remove (lambda-equal? element)
+                                                 (or (find-rember (lambda-equal? guide-1) node-1)
+                                                     (find-rember (lambda-equal? guide-1) node-2))))
+                                 (knot-2 (remove (lambda-equal? element)
+                                                 (or (find-rember (lambda-equal? guide-2) node-1)
+                                                     (find-rember (lambda-equal? guide-2) node-2))))
+                                 (good-knot?
+                                  (lambda (knot) (or (null? knot-1)
+                                                (and (lenght= knot-1 1)
+                                                     (pseq:parallel-pseq? (wall-pseq (car knot-1))
+                                                                          (wall-pseq element-pseq)))))))
+                             ;; both knots must be different, otherwise something is wrong
+                             (abort (equal? knot-1 knot-2)
+                                    "both knots are equal, this is a bad sign: aborting")
+                             ;; knots must be empty or just have ONE: a parallel wall to the connected guide
+                             (abort (not (good-knot? knot-1))
+                                    "knot-1 forces a topological change: use op:push-hard instead")
+                             (abort (not (good-knot? knot-2))
+                                    "knot-2 forces a topological change: use op:push-hard instead")
+                             ;; both guides must lie in the same halfplane
+                             (abort (not (segment:3-in-same-halfplane/middle guide-1-pseq element guide-2-pseq))
+                                    "both guides must lie in the same halfplane, otherwise they don't allow any movement")
+                             ;; build the trajectories (pseq) for each one of the points of the wall
+                             (receive
+                              (primary-guide secondary-guide)
+                              ;; calculate the movement direction
+                              (let ((trajectory-1 (project.line<-pseq line guide-1-pseq))
+                                    (trajectory-2 (project.line<-pseq line guide-2-pseq)))
+                                (if (< (pseq:length trajectory-1)
+                                       (pseq:length trajectory-2))
+                                    (values guide-1 guide-2)
+                                    (values guide-2 guide-1)))
+                              (case unit
+                                ((trajectory-relative)
+                                 ;; if the relative point is 1.0, then the primary guide will disappear
+                                 (if (= value 1.0)
+                                     (error "relative point=1.0 unimplemented")
+                                     (let* ((base-point (pseq:1d-coord->point primary-guide value))
+                                            (second-point (intersect.line-pseq (point&direction->line
+                                                                                base-point
+                                                                                (segment->direction (pseq->segment element-pseq)))
+                                                                               secondary-guide)))
+                                       <TACHAAAN******************************>)))
+                                (else (error "unit not recognized with this constraints"))))))))))
+               (else (error "unknown constraining method"))))
+            ((window? element)
+             (error "push windows not implemented"))
+            ((door? element)
+             (error "push doors not implemented"))
+            ((room? element)
+             (error "push rooms not implemented"))
+            ((list? element)
+             (error "push multiple elements not implemented"))
+            (else (error "element(s) can't be moved")))))))
 
 ;-------------------------------------------------------------------------------
 ; Boolean operations
@@ -294,7 +296,7 @@
       (let ((graph (n-ary:extract-level context 0))
             (rooms (n-ary:extract-level context 1))
             (walls (n-ary:extract-level context 2))
-            (split-points ($get split-points arguments)))
+            (split-points (get@ split-points arguments)))
         (%accept #t "you didn't pass split-points to op:cut as arguments" split-points)
         (%accept (= (length rooms) 1) "can only cut one room currently")
         (let ((wall1 (car walls))
@@ -330,9 +332,8 @@
            (wall-bifurcations-1 wall-bifurcations-2)
            (apply/values
             (lambda (wall-list)
-              (filter (lambda (w) (let ((wuid (wall-uid w)))
-                               (or (graph:room-wall-uid? room-a wuid)
-                                   (graph:room-wall-uid? room-b wuid))))
+              (filter (lambda (w) (or (graph:room-wall? room-a w)
+                                 (graph:room-wall? room-b w)))
                       wall-list))
             (graph:filter.walls-connected/wall graph
                                                (graph:find.wall/uid graph

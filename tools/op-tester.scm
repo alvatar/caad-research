@@ -49,17 +49,19 @@
         (chosen-room (car (graph:filter.rooms graph))))
     (let ((transformed-graph
            (op:push graph
-                    (@list (element chosen-wall)
+                    (list@ (element chosen-wall)
                            (constraints
-                            (@list (method '2-guides)
-                                   (guides (graph:filter.walls-connected/wall/room
-                                            graph
-                                            chosen-wall
-                                            chosen-room))))
+                            (list@ (method '2-guides-keep-direction)
+                                   (guides (map car
+                                                (values->list
+                                                 (graph:filter.walls-connected/wall/room
+                                                  graph
+                                                  chosen-wall
+                                                  chosen-room))))))
                            (movement
-                            (@list (method 'towards)
+                            (list@ (method 'towards)
                                    (room chosen-room)
-                                   (unit relative)
+                                   (unit 'relative)
                                    (value 0.5)))))))
       (pp transformed-graph)
       (visualization:forget-all)
