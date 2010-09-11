@@ -102,7 +102,7 @@
 ;;; Is point in a hole
 
 (define (graph:point-in-a-hole? wall point)
-  (error "unimplemented"))
+  #f)
 
 ;;; Is the wall of this room?
 
@@ -361,16 +361,16 @@
                (graph-architecture graph))))))
     (if (list? properties)
         (let ((values (cons val1 vals)))
-         (if (and (list? values) (= (length properties) (length values)))
-             (let recur ((graph graph)
-                         (properties properties)
-                         (values values))
-               (if (null? properties)
-                   graph
-                   (recur (S graph (car properties) (car values))
-                          (cdr properties)
-                          (cdr values))))
-             (error "not a proper combination of properties/values")))
+          (if (and (list? values) (= (length properties) (length values)))
+              (let recur ((graph graph)
+                          (properties properties)
+                          (values values))
+                (if (null? properties)
+                    graph
+                    (recur (S graph (car properties) (car values))
+                           (cdr properties)
+                           (cdr values))))
+              (error "not a proper combination of properties/values")))
         (S graph properties val1)))) ; which are actually a single property and value
 
 ;;; Update refs to walls in rooms

@@ -168,37 +168,27 @@
                                                                  (not (graph:point-in-a-hole? secondary-point
                                                                                               secondary-point)))))
                                          ;; check if primary or secondary points step on a hole
-                                         (let ((make-updated-segment
-                                                (lambda (fixed segment)
-                                                  (if good-points?
-                                                      (cond ((segment:end-point? element-segment (segment-a segment))
-                                                             (list fixed (segment-b segment)))
-                                                            ((segment:end-point? element-segment (segment-b segment))
-                                                             (list (segment-a segment) fixed))
-                                                            (else (error "can't find the proper guide end point to move")))
-                                                      segment)))
-                                               (make-updated-windows
-                                                (lambda (segment windows) windows))
-                                               (make-updated-doors
-                                                (lambda (segment doors) doors)))
+                                         (let ((set-pseq&windows&doors
+                                                (lambda (graph fixed-point update-wall update-segment)
+                                                  (graph:set-property graph
+                                                                      update-wall
+                                                                      'pseq
+                                                                      (if good-points?
+                                                                          (cond ((segment:end-point? element-segment (segment-a update-segment))
+                                                                                 (list fixed-point (segment-b update-segment)))
+                                                                                ((segment:end-point? element-segment (segment-b update-segment))
+                                                                                 (list (segment-a update-segment) fixed-point))
+                                                                                (else (error "can't find the proper guide end point to move")))
+                                                                          update-segment)))))
                                            (graph:set-property
-                                            (graph:set-property
-                                             (graph:set-property
-                                              (graph:set-property
-                                               (graph:set-property
-                                                context
-                                                secondary-mirror-wall
-                                                '(pseq windows doors) ; AQUI -> make-wall mejor?
-                                                (make-updated-segment secondary-point secondary-mirror))
-                                               primary-mirror-wall
-                                               'pseq
-                                               (make-updated-segment primary-point primary-mirror))
-                                              secondary-guide
-                                              'pseq
-                                              (make-updated-segment secondary-point secondary-segment))
-                                             primary-guide
-                                             'pseq
-                                             (make-updated-segment primary-point primary-segment))
+                                            (set-pseq&windows&doors
+                                             (set-pseq&windows&doors
+                                              (set-pseq&windows&doors
+                                               (set-pseq&windows&doors
+                                                context secondary-point secondary-mirror-wall secondary-mirror)
+                                               primary-point primary-mirror-wall primary-mirror)
+                                              secondary-point secondary-guide secondary-segment)
+                                             primary-point primary-guide primary-segment)
                                             element
                                             'pseq
                                             (list primary-point secondary-point))))))
