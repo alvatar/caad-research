@@ -88,7 +88,7 @@
              (case (get@ method constraints)
                ;; moving a wall along 2 guides (walls), respecting direction of moved wall
                ((keep-direction)
-                (let@ ((guides) constraints
+                (let@ ((guides traits) constraints
                        (unit value) movement)
                       (abort (not (and (every wall? guides) (length= guides 2)))
                              "wrong guides used for constraining")
@@ -153,62 +153,56 @@
                                     (primary-mirror (pseq->segment (wall-pseq primary-mirror-wall)))
                                     (secondary-segment (pseq->segment (wall-pseq secondary-guide)))
                                     (secondary-mirror (pseq->segment (wall-pseq secondary-mirror-wall))))
-                               (case unit
-                                 ((trajectory-relative)
-                                  ;; check if new point is equal to any point of the guide, so that one line is removed
-                                  (if (= value 1)
-                                      (error "relative point=1.0 unimplemented")
-                                      (let* ((primary-point (segment:1d-coord->point primary-segment value))
-                                             (secondary-point (intersect.line-segment
-                                                               (point&direction->line primary-point
-                                                                                      (segment->direction element-segment))
-                                                               secondary-segment)))
-                                        ;; check if primary or secondary points step on a hole
-                                        #;(if (or (graph:point-in-a-window? wall primary-point)
-                                                (graph:point-in-a-window? wall secondary-point))
-                                            ******)
-                                        (graph:set-property
-                                         (graph:set-property
-                                          (graph:set-property
+                                (case unit
+                                  ((trajectory-relative)
+                                   ;; check if new point is equal to any point of the guide, so that one line is removed
+                                   (if (= value 1)
+                                       (error "relative point=1.0 unimplemented")
+                                       (let* ((primary-point (segment:1d-coord->point primary-segment value))
+                                              (secondary-point (intersect.line-segment
+                                                                (point&direction->line primary-point
+                                                                                       (segment->direction element-segment))
+                                                                secondary-segment))
+                                              (good-points? (and (not (graph:point-in-a-hole? primary-point
+                                                                                              primary-point))
+                                                                 (not (graph:point-in-a-hole? secondary-point
+                                                                                              secondary-point)))))
+                                         ;; check if primary or secondary points step on a hole
+                                         (let ((make-updated-segment
+                                                (lambda (fixed segment)
+                                                  (if good-points?
+                                                      (cond ((segment:end-point? element-segment (segment-a segment))
+                                                             (list fixed (segment-b segment)))
+                                                            ((segment:end-point? element-segment (segment-b segment))
+                                                             (list (segment-a segment) fixed))
+                                                            (else (error "can't find the proper guide end point to move")))
+                                                      segment)))
+                                               (make-updated-windows
+                                                (lambda (segment windows) windows))
+                                               (make-updated-doors
+                                                (lambda (segment doors) doors)))
                                            (graph:set-property
                                             (graph:set-property
-                                             context
-                                             secondary-mirror-wall
+                                             (graph:set-property
+                                              (graph:set-property
+                                               (graph:set-property
+                                                context
+                                                secondary-mirror-wall
+                                                '(pseq windows doors) ; AQUI -> make-wall mejor?
+                                                (make-updated-segment secondary-point secondary-mirror))
+                                               primary-mirror-wall
+                                               'pseq
+                                               (make-updated-segment primary-point primary-mirror))
+                                              secondary-guide
+                                              'pseq
+                                              (make-updated-segment secondary-point secondary-segment))
+                                             primary-guide
                                              'pseq
-                                             (cond
-                                              ((segment:end-point? element-segment (segment-a secondary-mirror))
-                                               (list secondary-point (segment-b secondary-mirror)))
-                                              ((segment:end-point? element-segment (segment-b secondary-mirror))
-                                               (list (segment-a secondary-mirror) secondary-point))
-                                              (else (error "can't find the proper guide end point to move"))))
-                                            primary-mirror-wall
+                                             (make-updated-segment primary-point primary-segment))
+                                            element
                                             'pseq
-                                            (cond
-                                             ((segment:end-point? element-segment (segment-a primary-mirror))
-                                              (list primary-point (segment-b primary-mirror)))
-                                             ((segment:end-point? element-segment (segment-b primary-mirror))
-                                              (list (segment-a primary-mirror) primary-point))
-                                             (else (error "can't find the proper guide end point to move"))))
-                                           secondary-guide
-                                           'pseq
-                                           (cond
-                                            ((segment:end-point? element-segment (segment-a secondary-segment))
-                                             (list secondary-point (segment-b secondary-segment)))
-                                            ((segment:end-point? element-segment (segment-b secondary-segment))
-                                             (list (segment-a secondary-segment) secondary-point))
-                                            (else (error "can't find the proper guide end point to move"))))
-                                          primary-guide
-                                          'pseq
-                                          (cond
-                                           ((segment:end-point? element-segment (segment-a primary-segment))
-                                            (list primary-point (segment-b primary-segment)))
-                                           ((segment:end-point? element-segment (segment-b primary-segment))
-                                            (list (segment-a primary-segment) primary-point))
-                                           (else (error "can't find the proper guide end point to move"))))
-                                         element
-                                         'pseq
-                                         (list primary-point secondary-point)))))
-                                 (else (error "unit not recognized with this constraints")))))))))))
+                                            (list primary-point secondary-point))))))
+                                  (else (error "unit not recognized with this constraints")))))))))))
                (else (error "unknown constraining method"))))
             ((window? element)
              (error "glide windows not implemented"))

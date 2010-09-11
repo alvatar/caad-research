@@ -99,6 +99,11 @@
 (define (graph:point-inside? graph point)
   (pseq:point-inside? (graph:limits graph) point))
 
+;;; Is point in a hole
+
+(define (graph:point-in-a-hole? wall point)
+  (error "unimplemented"))
+
 ;;; Is the wall of this room?
 
 (define (graph:room-wall? room wall) (%accept (and (room? room) (wall? wall)))
@@ -399,10 +404,10 @@
                                    (let ((new-from (normalize (window-from w) ref1 ref2))
                                          (new-to (normalize (window-to w) ref1 ref2))
                                          (new-pseq (pseq:slice wall-pseq ref1 ref2)))
-                                    (make-window (list (pseq:1d-coord->point new-pseq new-from)
-                                                       (pseq:1d-coord->point new-pseq new-to))
-                                                 new-from
-                                                 new-to)))
+                                     (make-window (list (pseq:1d-coord->point new-pseq new-from)
+                                                        (pseq:1d-coord->point new-pseq new-to))
+                                                  new-from
+                                                  new-to)))
                                  wl))))
       (receive (first-side-windows second-side-windows splitted-windows)
                (fold/values (lambda (w a b c)

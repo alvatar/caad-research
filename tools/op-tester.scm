@@ -57,7 +57,8 @@
                                                   (graph:filter.walls-connected/wall/room
                                                    graph
                                                    chosen-wall
-                                                   chosen-room))))))
+                                                   chosen-room))))
+                                    (traits 'remove-holes)))
                             (movement
                              (list@ (method 'towards)
                                     (room chosen-room)
