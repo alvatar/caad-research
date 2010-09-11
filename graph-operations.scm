@@ -10,8 +10,8 @@
 ;;          (block))
 ;; (compile-options force-compile: #t)
 
-(import (std srfi/1))
-(import core/list
+(import (std srfi/1)
+        core/list
         core/functional
         core/syntax
         core/debugging
@@ -136,8 +136,8 @@
                           (lambda (w) (equal? wall w))
                           (graph:filter.walls graph))))
     (values
-     (filter (lambda (w) (pseq:is-end-point? (wall-pseq w) (first wallp))) inspected-walls)
-     (filter (lambda (w) (pseq:is-end-point? (wall-pseq w) (last wallp))) inspected-walls))))
+     (filter (lambda (w) (pseq:end-point? (wall-pseq w) (first wallp))) inspected-walls)
+     (filter (lambda (w) (pseq:end-point? (wall-pseq w) (last wallp))) inspected-walls))))
 
 ;;; Find walls connected to a given one in a room
 
@@ -158,11 +158,6 @@
               maxw))
         (car walls)
         (cdr walls))))
-
-;;; Find a wall connected with 2 walls at the same time
-
-(define (graph:find.wall-connected/2-walls graph w1 w2)
-  (error "unimplemented"))
 
 ;-------------------------------------------------------------------------------
 ; Geometrical calculations
@@ -216,14 +211,14 @@
 
 ;;; Calculate a wall's perpendicular through a point
 
-(define (graph:wall-perpendicular wall #!optional p)
-  (if p
-      (error "unimplemented with perpendicular-through-point")
-      (direction:perpendicular
-       (segment->direction
-        (pseq->segment
-         (wall-pseq
-          wall))))))
+;; (define (graph:wall-perpendicular wall #!optional p)
+;;   (if p
+;;       (error "unimplemented with perpendicular-through-point")
+;;       (direction:perpendicular
+;;        (segment->direction
+;;         (pseq->segment
+;;          (wall-pseq
+;;           wall))))))
 
 ;;; Calculate the closest wall to a point
 
@@ -309,27 +304,69 @@
 ; Graph modification
 ;-------------------------------------------------------------------------------
 
-;;; Change an element property
+;;; Add a new element to the graph
 
-(define (graph:set-property element property value)
+(define (op:add graph arguments) (%accept (graph? graph))
+  ;; TODO: A context with the graph and a room would allow adding the element and reference
   (make-graph
-   (graph-uid context)
-   (graph-environment context)
-   (substitute
-    (lambda-equal? element)
-    (cond                ; TODO: this *really* needs the object system
-     ((wall? element)
-      (case property
-        ((pseq)
-         (make-wall (wall-uid element)
-                    (wall-metadata element)
-                    value
-                    (wall-windows element)
-                    (wall-doors element)))
-        (else
-         (error "doesn't allow changing any other property than \"pseq\" "))))
-     (else (error "doesn't allow changing any other element than walls")))
-    (graph-architecture context))))
+   (graph-uid graph)
+   (graph-environment graph)
+   (cons arguments (graph-architecture graph))))
+
+;;; Remove any element from the graph
+
+(define (graph:remove graph element) (%accept (graph? graph) "context is not a graph")
+  ;; TODO: remove references, too. IMPORTANT
+  (make-graph
+   (graph-uid graph)
+   (graph-environment graph)
+   (remove (lambda-equal? element) (graph-architecture graph))))
+
+;;; Remove element-list from graph
+
+(define (graph:remove-multiple graph le) (%accept (graph? graph))
+  ;; TODO: remove references, too. IMPORTANT
+  (make-graph
+   (graph-uid graph)
+   (graph-environment graph)
+   (remove (lambda (e) (any (lambda-equal? e) le)) (graph-architecture graph))))
+
+;;; Change an element property. Multiple properties can be changed if a list is
+;;; along with multiple tail arguments
+
+(define (graph:set-property graph element properties val1 . vals)
+  (let ((S (lambda (graph property value)
+             (make-graph
+              (graph-uid graph)
+              (graph-environment graph)
+              (substitute
+               (lambda-equal? element)
+               (cond     ; TODO: this *really* needs the object system
+                ((wall? element)
+                 (case property
+                   ((pseq)
+                    (make-wall (wall-uid element)
+                               (wall-metadata element)
+                               value
+                               (wall-windows element)
+                               (wall-doors element)))
+                   (else
+                    (error "doesn't allow changing any other property than \"pseq\" "))))
+                (else (error "doesn't allow changing any other element than walls")))
+               (graph-architecture graph))))))
+    (if (list? properties)
+        (let ((values (cons val1 vals)))
+         (if (and (list? values) (= (length properties) (length values)))
+             (let recur ((graph graph)
+                         (properties properties)
+                         (values values))
+               (if (null? properties)
+                   graph
+                   (recur (S graph (car properties) (car values))
+                          (cdr properties)
+                          (cdr values))))
+             (error "not a proper combination of properties/values")))
+        (S graph properties val1)))) ; which are actually a single property and value
 
 ;;; Update refs to walls in rooms
 
@@ -411,10 +448,10 @@
       (let ((wall-a-points (wall-pseq (car wall-list)))
             (wall-b-points (wall-pseq (cadr wall-list))))
         (if (pseq:parallel-pseq? wall-a-points wall-b-points)
-            (let ((first-point (if (pseq:is-end-point? wall-b-points (car wall-a-points))
+            (let ((first-point (if (pseq:end-point? wall-b-points (car wall-a-points))
                                    (cadr wall-a-points)
                                    (car wall-a-points)))
-                  (second-point (if (pseq:is-end-point? wall-a-points (car wall-b-points))
+                  (second-point (if (pseq:end-point? wall-a-points (car wall-b-points))
                                     (cadr wall-b-points)
                                     (car wall-b-points))))
               (list (make-wall-plain

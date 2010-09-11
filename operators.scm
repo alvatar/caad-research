@@ -40,53 +40,31 @@
 ;;; Identity
 
 (define (op:identity context arguments)
-  (%accept (graph? context) "context is not a graph")
+  (%accept (graph? context))
   context)
 
-;;; Add element
+;;; Add element (respecting integrity!)
 
 (define (op:add context arguments)
-  (%accept (graph? context) "context is not a graph")
-  (let ((graph context))
-    ;; TODO: A context with the graph and a room would allow adding the element and reference
-    (make-graph
-     (graph-uid graph)
-     (graph-environment graph)
-     (cons arguments (graph-architecture graph)))))
+  (%accept (graph? context))
+  (error "unimplemented"))
 
-;;; Remove element from graph
+;;; Remove element from graph. In order to respect integrity, removes other things if
+;;; necessary, like references or limits of a space to keep closed spaces
 
 (define (op:remove context arguments)
-  (%accept (graph? context) "context is not a graph")
-  (let ((graph context)
-        (element arguments))
-    ;; TODO: remove references, too. IMPORTANT
-    (make-graph
-     (graph-uid graph)
-     (graph-environment graph)
-     (remove (lambda-equal? element) (graph-architecture graph)))))
-
-;;; Remove element-list from graph
-
-(define (op:remove-multiple context arguments)
-  (%accept (graph? context) "context is not a graph")
-  (let ((graph context)
-        (le arguments))
-    ;; TODO: remove references, too. IMPORTANT
-    (make-graph
-     (graph-uid graph)
-     (graph-environment graph)
-     (remove (lambda (e) (any (lambda-equal? e) le)) (graph-architecture graph)))))
+  (%accept (graph? context))
+  (error "unimplemented"))
 
 ;;; Rename element
 
 (define (op:rename context arguments)
-  (%accept (graph? context) "context is not a graph")
+  (%accept (graph? context))
   (let ((graph context)
         (element (get@ element arguments))
         (name (get@ name arguments)))
-    (op:add
-     (op:remove graph element)
+    (graph:add
+     (graph:remove graph element)
      (cond
       ((room? element) ; TODO: this, of course, would be better off with an object system
        (make-room name
@@ -99,7 +77,7 @@
 
 ;; TODO: consider chains of guides
 
-(define (op:push context arguments) (%accept (graph? context))
+(define (op:glide context arguments) (%accept (graph? context))
   (let/cc
    exit
    (let ((abort (lambda (test text) (if test (begin (%log text) (exit context))))))
@@ -109,7 +87,7 @@
             ((wall? element)
              (case (get@ method constraints)
                ;; moving a wall along 2 guides (walls), respecting direction of moved wall
-               ((2-guides-keep-direction)
+               ((keep-direction)
                 (let@ ((guides) constraints
                        (unit value) movement)
                       (abort (not (and (every wall? guides) (length= guides 2)))
@@ -121,9 +99,9 @@
                               (element-segment (pseq->segment (wall-pseq element))))
                           ;; get the two groups of walls connected to each guide
                           (receive
-                           (node-1 node-2)
+                           (node-1 node-2) ; nodes are all the set of walls connected to a wall
                            (graph:filter.walls-connected/wall context element)
-                           ;; identify the corresponding knot for each guide
+                           ;; identify the corresponding sets of walls connected to each guide and the wall
                            (let ((knot-1 (remove (lambda-equal? element)
                                                  (or (find-rember (lambda-equal? guide-1) node-1)
                                                      (find-rember (lambda-equal? guide-1) node-2))))
@@ -142,17 +120,19 @@
                                     "both knots are equal, this is a bad sign: aborting")
                              ;; knots must be empty or just have ONE: a parallel wall to the connected guide
                              (abort (not (good-knot? knot-1 guide-1-segment))
-                                    "knot-1 forces a topological change: use op:push-hard instead")
+                                    "knot-1 forces a topological change: use op:glide-hard instead")
                              (abort (not (good-knot? knot-2 guide-2-segment))
-                                    "knot-2 forces a topological change: use op:push-hard instead")
+                                    "knot-2 forces a topological change: use op:glide-hard instead")
                              ;; both guides must lie in the same halfplane
                              (abort (not (segment:3-in-same-halfplane/middle guide-1-segment
                                                                              element-segment
                                                                              guide-2-segment)) 
                                     "both guides must lie in the same halfplane, otherwise they don't allow any movement")
-                             ;; build the trajectories (pseq) for each one of the points of the wall
+                             ;; build the trajectories (pseq) for each one of the points of the wall and assign the
+                             ;; primary and secondary guide
                              (receive
-                              (primary-guide secondary-guide)
+                              ;; the mirrors are the connected walls parallel to the guides
+                              (primary-guide primary-mirror-wall secondary-guide secondary-mirror-wall)
                               ;; calculate the movement direction
                               (let ((movement-line (point&direction->line
                                                     (segment:1d-coord->point element-segment 1/2)
@@ -165,30 +145,79 @@
                                                                            guide-2-segment)))
                                   (if (< (segment:squaredlength trajectory-1)
                                          (segment:squaredlength trajectory-2))
-                                      (values guide-1 guide-2)
-                                      (values guide-2 guide-1))))
-                              (case unit
-                                ((trajectory-relative)
-                                 ;; if the relative point is 1.0, then the primary guide will disappear
-                                 (if (= value 1)
-                                     (error "relative point=1.0 unimplemented")
-                                     (let* ((base-point (pseq:1d-coord->point primary-guide value))
-                                            (second-point (intersect.line-pseq
-                                                           (point&direction->line
-                                                            base-point
-                                                            (segment->direction (pseq->segment element-pseq)))
-                                                           secondary-guide)))
-                                       <TACHAAAN******************************>)))
-                                (else (error "unit not recognized with this constraints"))))))))))
+                                      (values guide-1 (car knot-1)
+                                              guide-2 (car knot-2))
+                                      (values guide-2 (car knot-2)
+                                              guide-1 (car knot-1)))))
+                              (let ((primary-segment (pseq->segment (wall-pseq primary-guide)))
+                                    (primary-mirror (pseq->segment (wall-pseq primary-mirror-wall)))
+                                    (secondary-segment (pseq->segment (wall-pseq secondary-guide)))
+                                    (secondary-mirror (pseq->segment (wall-pseq secondary-mirror-wall))))
+                               (case unit
+                                 ((trajectory-relative)
+                                  ;; check if new point is equal to any point of the guide, so that one line is removed
+                                  (if (= value 1)
+                                      (error "relative point=1.0 unimplemented")
+                                      (let* ((primary-point (segment:1d-coord->point primary-segment value))
+                                             (secondary-point (intersect.line-segment
+                                                               (point&direction->line primary-point
+                                                                                      (segment->direction element-segment))
+                                                               secondary-segment)))
+                                        ;; check if primary or secondary points step on a hole
+                                        #;(if (or (graph:point-in-a-window? wall primary-point)
+                                                (graph:point-in-a-window? wall secondary-point))
+                                            ******)
+                                        (graph:set-property
+                                         (graph:set-property
+                                          (graph:set-property
+                                           (graph:set-property
+                                            (graph:set-property
+                                             context
+                                             secondary-mirror-wall
+                                             'pseq
+                                             (cond
+                                              ((segment:end-point? element-segment (segment-a secondary-mirror))
+                                               (list secondary-point (segment-b secondary-mirror)))
+                                              ((segment:end-point? element-segment (segment-b secondary-mirror))
+                                               (list (segment-a secondary-mirror) secondary-point))
+                                              (else (error "can't find the proper guide end point to move"))))
+                                            primary-mirror-wall
+                                            'pseq
+                                            (cond
+                                             ((segment:end-point? element-segment (segment-a primary-mirror))
+                                              (list primary-point (segment-b primary-mirror)))
+                                             ((segment:end-point? element-segment (segment-b primary-mirror))
+                                              (list (segment-a primary-mirror) primary-point))
+                                             (else (error "can't find the proper guide end point to move"))))
+                                           secondary-guide
+                                           'pseq
+                                           (cond
+                                            ((segment:end-point? element-segment (segment-a secondary-segment))
+                                             (list secondary-point (segment-b secondary-segment)))
+                                            ((segment:end-point? element-segment (segment-b secondary-segment))
+                                             (list (segment-a secondary-segment) secondary-point))
+                                            (else (error "can't find the proper guide end point to move"))))
+                                          primary-guide
+                                          'pseq
+                                          (cond
+                                           ((segment:end-point? element-segment (segment-a primary-segment))
+                                            (list primary-point (segment-b primary-segment)))
+                                           ((segment:end-point? element-segment (segment-b primary-segment))
+                                            (list (segment-a primary-segment) primary-point))
+                                           (else (error "can't find the proper guide end point to move"))))
+                                         element
+                                         'pseq
+                                         (list primary-point secondary-point)))))
+                                 (else (error "unit not recognized with this constraints")))))))))))
                (else (error "unknown constraining method"))))
             ((window? element)
-             (error "push windows not implemented"))
+             (error "glide windows not implemented"))
             ((door? element)
-             (error "push doors not implemented"))
+             (error "glide doors not implemented"))
             ((room? element)
-             (error "push rooms not implemented"))
+             (error "a room can't be glided"))
             ((list? element)
-             (error "push multiple elements not implemented"))
+             (error "glide multiple elements not implemented"))
             (else (error "element(s) can't be moved")))))))
 
 ;-------------------------------------------------------------------------------
@@ -218,7 +247,7 @@
 ;;; Move an element within a constraining subspace, but where topological changes
 ;;; are allowed
 
-(define (op:push-hard context arguments)
+(define (op:glide-hard context arguments)
   (error "unimplemented"))
 
 ;;; The generic CUT operation: given a graph and a set of points with a minimum
@@ -291,7 +320,7 @@
                           ,splitted-wall-2b))))
                    (graph:fix-wall-order
                     ;; Remove touched walls
-                    (op:remove-multiple
+                    (graph:remove-multiple
                      ;; Update references of rooms to old walls
                      (graph:update-wall-refs-in-rooms
                       (graph:update-wall-refs-in-rooms
@@ -408,23 +437,28 @@
           ;; TODO: implement several/all walls shrinking, How? Maybe different from scaling:
           ;; could modify topology, or not keep relations between walls
           (@let ((wall unit value) arguments)
-                (op:move-invariant context
-                                   (@list (element wall)
-                                          (constraints
-                                           (@list (method '2-guides)
-                                                  (guides (graph:filter.walls-connected/wall/room
-                                                           context
-                                                           wall
-                                                           element))))
-                                          (movement
-                                           (@list (method 'not-used)
-                                                  (objective element)
-                                                  (unit unit)
-                                                  (value value)))))))
+                (op:push context
+                         (@list (element wall)
+                                (constraints
+                                 (@list (method '2-guides)
+                                        (guides (graph:filter.walls-connected/wall/room
+                                                 context
+                                                 wall
+                                                 element))))
+                                (movement
+                                 (@list (method 'not-used)
+                                        (objective element)
+                                        (unit unit)
+                                        (value value)))))))
          ((or (eq? element 'limits)
               (graph? element))
           (error "limits shrinking not implemented"))
          (else (error "unrecognized element for shrinking")))))
+
+;;; Push moves a wall towards the interior of the given space if it belongs to it
+
+(define (op:push context arguments)
+  (error "unimplemented"))
 
 ;-------------------------------------------------------------------------------
 ; Post-operations

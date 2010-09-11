@@ -38,7 +38,7 @@
 (let ((graph (input-from-xml "xml-input/two_rooms.xml")))
   (pp graph)
   (visualize-graph graph)
-  (visualize-title "op:push - wall (original graph)")
+  (visualize-title "op:glide - wall (original graph)")
   (visualization:do-loop)
 
   (let ((chosen-wall (graph:nearest-wall
@@ -48,25 +48,25 @@
                         (graph:filter.exterior-walls graph)))))
         (chosen-room (car (graph:filter.rooms graph))))
     (let ((transformed-graph
-           (op:push graph
-                    (list@ (element chosen-wall)
-                           (constraints
-                            (list@ (method '2-guides-keep-direction)
-                                   (guides (map car
-                                                (values->list
-                                                 (graph:filter.walls-connected/wall/room
-                                                  graph
-                                                  chosen-wall
-                                                  chosen-room))))))
-                           (movement
-                            (list@ (method 'towards)
-                                   (room chosen-room)
-                                   (unit 'trajectory-relative)
-                                   (value 0.5)))))))
+           (op:glide graph
+                     (list@ (element chosen-wall)
+                            (constraints
+                             (list@ (method 'keep-direction)
+                                    (guides (map car
+                                                 (values->list
+                                                  (graph:filter.walls-connected/wall/room
+                                                   graph
+                                                   chosen-wall
+                                                   chosen-room))))))
+                            (movement
+                             (list@ (method 'towards)
+                                    (room chosen-room)
+                                    (unit 'trajectory-relative)
+                                    (value 1/2)))))))
       (pp transformed-graph)
       (visualization:forget-all)
       (visualize-graph transformed-graph)
-      (visualize-title "op:push - wall (transformed graph)")
+      (visualize-title "op:glide - wall (transformed graph)")
       (visualization:do-loop)
       (visualization:forget-all)))
   (visualization:forget-all))

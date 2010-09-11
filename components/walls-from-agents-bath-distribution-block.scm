@@ -75,8 +75,11 @@
                                                                       'distribution)))))
                                                (point&direction->line
                                                 base-point
-                                                (graph:wall-perpendicular
-                                                 (graph:nearest-wall graph base-point))))
+                                                (direction:perpendicular
+                                                 (segment->direction
+                                                  (pseq->segment
+                                                   (wall-pseq
+                                                    (graph:nearest-wall graph base-point)))))))
                                              (/ corridor-width 2))
                                         ;(visualization:line-now parallel-1)
                                         ;(visualization:line-now parallel-2)
