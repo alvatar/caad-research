@@ -14,7 +14,7 @@
 ((lambda ()
    (random-source-randomize! default-random-source)
    (output-pool
-    (evolution (@list (evolver-type 'fill-pool)
+    (evolution (list@ (evolver-type 'fill-pool)
                       (pool-size 1))
                'bath-block
                'keep-best

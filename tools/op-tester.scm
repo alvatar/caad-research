@@ -61,7 +61,7 @@
                            (movement
                             (list@ (method 'towards)
                                    (room chosen-room)
-                                   (unit 'relative)
+                                   (unit 'trajectory-relative)
                                    (value 0.5)))))))
       (pp transformed-graph)
       (visualization:forget-all)

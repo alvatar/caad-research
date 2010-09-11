@@ -208,7 +208,7 @@
 
 ;;; Calculate squared vector length
 
-(define (vect2:squaremagnitude vec)
+(define (vect2:squaredmagnitude vec)
   (+ (square (vect2-x vec))
      (square (vect2-y vec))))
 

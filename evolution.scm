@@ -33,7 +33,7 @@
                    generator-type
                    selector-type
                    seed-data)
-  ((case (@get evolver-type evolver-configuration)
+  ((case (get@ evolver-type evolver-configuration)
      ;; Stops when the max iterations are reached, choosing the given amount
      ((choose-bests)
       (let ((arg-max-iterations (get-arg evolver-args 'max-iterations))
@@ -61,7 +61,7 @@
                           (add1 n-iterations)))))))))
      ;; Stops when the results pool is full
      ((fill-pool)
-      (let ((arg-pool-size (@get pool-size evolver-configuration)))
+      (let ((arg-pool-size (get@ pool-size evolver-configuration)))
         (lambda (seed-data)
           (let ((generate (generator generator-type
                                      seed-data))
