@@ -163,36 +163,37 @@
                                                                 (point&direction->line primary-point
                                                                                        (segment->direction element-segment))
                                                                 secondary-segment))
+                                              ;; check if primary or secondary points step on a hole
                                               (good-points? (and (not (graph:point-in-a-hole? primary-point
                                                                                               primary-point))
                                                                  (not (graph:point-in-a-hole? secondary-point
-                                                                                              secondary-point)))))
-                                         ;; check if primary or secondary points step on a hole
-                                         (let ((set-pseq&windows&doors
-                                                (lambda (graph fixed-point update-wall update-segment)
-                                                  (graph:set-property graph
-                                                                      update-wall
-                                                                      'pseq
-                                                                      (if good-points?
-                                                                          (cond ((segment:end-point? element-segment (segment-a update-segment))
-                                                                                 (list fixed-point (segment-b update-segment)))
-                                                                                ((segment:end-point? element-segment (segment-b update-segment))
-                                                                                 (list (segment-a update-segment) fixed-point))
-                                                                                (else (error "can't find the proper guide end point to move")))
-                                                                          update-segment)))))
-                                           (graph:set-property
+                                                                                              secondary-point))))
+                                              (set-pseq&windows&doors
+                                               (lambda (graph fixed-point update-wall update-segment)
+                                                 (graph:update-element
+                                                  graph
+                                                  update-wall
+                                                  'pseq
+                                                  (if good-points?
+                                                      (cond ((segment:end-point? element-segment (segment-a update-segment))
+                                                             (list fixed-point (segment-b update-segment)))
+                                                            ((segment:end-point? element-segment (segment-b update-segment))
+                                                             (list (segment-a update-segment) fixed-point))
+                                                            (else (error "can't find the proper guide end point to move")))
+                                                      update-segment)))))
+                                         (graph:update-element
+                                          (set-pseq&windows&doors
+                                           (set-pseq&windows&doors
                                             (set-pseq&windows&doors
                                              (set-pseq&windows&doors
-                                              (set-pseq&windows&doors
-                                               (set-pseq&windows&doors
-                                                context secondary-point secondary-mirror-wall secondary-mirror)
-                                               primary-point primary-mirror-wall primary-mirror)
-                                              secondary-point secondary-guide secondary-segment)
-                                             primary-point primary-guide primary-segment)
-                                            element
-                                            'pseq
-                                            (list primary-point secondary-point))))))
-                                  (else (error "unit not recognized with this constraints")))))))))))
+                                              context secondary-point secondary-mirror-wall secondary-mirror)
+                                             primary-point primary-mirror-wall primary-mirror)
+                                            secondary-point secondary-guide secondary-segment)
+                                           primary-point primary-guide primary-segment)
+                                          element
+                                          'pseq
+                                          (list primary-point secondary-point)))))
+                                  (else (error "unit not recognized with these constraints")))))))))))
                (else (error "unknown constraining method"))))
             ((window? element)
              (error "glide windows not implemented"))
@@ -259,7 +260,7 @@
                              (let ((create-walls (curry graph:split-wall
                                                         first-wall
                                                         first-split-point)))
-                               (if (pseq:is-end-point?
+                               (if (pseq:end-point?
                                     (graph:wall-list->pseq (map (lambda (u) (graph:find.wall/uid graph u)) (cdr fore)))
                                     (first (wall-pseq first-wall)))
                                    (create-walls first-wall-uid-1-half first-wall-uid-2-half)
@@ -268,7 +269,7 @@
                              (let ((create-walls (curry graph:split-wall
                                                         second-wall
                                                         second-split-point)))
-                               (if (pseq:is-end-point?
+                               (if (pseq:end-point?
                                     (graph:wall-list->pseq (map (lambda (u) (graph:find.wall/uid graph u)) (cdr aft)))
                                     (first (wall-pseq second-wall)))
                                    (create-walls second-wall-uid-1-half second-wall-uid-2-half)

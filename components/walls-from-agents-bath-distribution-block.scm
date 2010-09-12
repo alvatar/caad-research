@@ -179,7 +179,7 @@
             (begin (display "No agent found in a room!!\n")
                    graph)
             (op:rename graph
-                       (@list (element room)
+                       (list@ (element room)
                               (name (symbol->string
                                      (agent-label
                                       (car agent)))))))))

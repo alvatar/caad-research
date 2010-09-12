@@ -306,12 +306,12 @@
   (rotate.point/O vec -pi/2)) ; TODO: perpendicular
 
 ;-------------------------------------------------------------------------------
-; Graph modification
+; Low-level operations
 ;-------------------------------------------------------------------------------
 
 ;;; Add a new element to the graph
 
-(define (op:add graph arguments) (%accept (graph? graph))
+(define (graph:add graph arguments) (%accept (graph? graph))
   ;; TODO: A context with the graph and a room would allow adding the element and reference
   (make-graph
    (graph-uid graph)
@@ -336,42 +336,59 @@
    (graph-environment graph)
    (remove (lambda (e) (any (lambda-equal? e) le)) (graph-architecture graph))))
 
-;;; Change an element property. Multiple properties can be changed if a list is
-;;; along with multiple tail arguments
+;;; Change an element property or the whole element
+;;; Multiple properties can be changed if a list is along with multiple tail arguments
+;;; (_ graph element new-element)
+;;; (_ graph element property new-value)
+;;; (_ graph element (properties) (new-values))
 
-(define (graph:set-property graph element properties val1 . vals)
-  (let ((S (lambda (graph property value)
-             (make-graph
-              (graph-uid graph)
-              (graph-environment graph)
-              (substitute
-               (lambda-equal? element)
-               (cond     ; TODO: this *really* needs the object system
-                ((wall? element)
-                 (case property
-                   ((pseq)
-                    (make-wall (wall-uid element)
-                               (wall-metadata element)
-                               value
-                               (wall-windows element)
-                               (wall-doors element)))
-                   (else
-                    (error "doesn't allow changing any other property than \"pseq\" "))))
-                (else (error "doesn't allow changing any other element than walls")))
-               (graph-architecture graph))))))
-    (if (list? properties)
-        (let ((values (cons val1 vals)))
-          (if (and (list? values) (= (length properties) (length values)))
+(define (graph:update-element graph element new-element/properties . values)
+  (let ((update-property
+         (lambda (graph property value)
+           (make-graph
+            (graph-uid graph)
+            (graph-environment graph)
+            (substitute (lambda-equal? element)
+                        ;; <-- TODO: this *really* needs the object system
+                        (cond
+                         ((wall? element)
+                          (case property
+                            ((pseq)
+                             (make-wall (wall-uid element)
+                                        (wall-metadata element)
+                                        value
+                                        (wall-windows element)
+                                        (wall-doors element)))
+                            (else
+                             (error "doesn't allow changing any other property than \"pseq\" "))))
+                         (else (error "doesn't allow changing any other element than walls")))
+                        ;; <-- until here
+                        (graph-architecture graph)))))
+        (update-whole-element
+         (lambda (new-element)
+           (make-graph
+            (graph-uid graph)
+            (graph-environment graph)
+            (substitute (lambda-equal? element) new-element (graph-architecture graph))))))
+    (if (pair? values)
+        ;; properties update
+        (if (list? new-element/properties)
+            ;; a list of properties to update
+            (begin
+              (%accept (list? values) (= (length new-element/properties) (length values))
+                       "not a proper combination of properties/values")
               (let recur ((graph graph)
-                          (properties properties)
+                          (properties new-element/properties)
                           (values values))
                 (if (null? properties)
                     graph
-                    (recur (S graph (car properties) (car values))
+                    (recur (update-property graph (car properties) (car values))
                            (cdr properties)
-                           (cdr values))))
-              (error "not a proper combination of properties/values")))
-        (S graph properties val1)))) ; which are actually a single property and value
+                           (cdr values)))))
+            ;; a single property to update
+            (update-property graph new-element/properties (car values)))
+        ;; whole element update
+        (update-whole-element new-element/properties))))
 
 ;;; Update refs to walls in rooms
 
@@ -387,9 +404,36 @@
               e))
         (graph-architecture graph))))
 
-;-------------------------------------------------------------------------------
-; Low-level operations
-;-------------------------------------------------------------------------------
+;;; Classify the windows of a wall in three groups depending on their position
+;;; respect a reference relative point: one side, the other, in-between
+
+(define (graph:partition-windows/point wall split-x)
+  (fold/values (lambda (w a b c)
+                 (cond
+                  ;; both points fall into the first side
+                  ((and (< (window-from w) split-x)
+                        (< (window-to w) split-x))
+                   (values (cons w a) b c))
+                  ;; both points fall into the second side
+                  ((and (> (window-from w) split-x)
+                        (> (window-to w) split-x))
+                   (values a (cons w b) c))
+                  ;; the window is in between
+                  (else
+                   (values a b (cons w c)))))
+               '(() () ())
+               (wall-windows wall)))
+
+;;; Transform a window according to new references (1d-coords) inside the wall
+
+(define (graph:adjust-window current-pseq w new-ref1 new-ref2)
+  (let ((new-from (normalize (window-from w) new-ref1 new-ref2))
+        (new-to (normalize (window-to w) new-ref1 new-ref2))
+        (new-pseq (pseq:slice current-pseq new-ref1 new-ref2)))
+    (make-window (list (pseq:1d-coord->point new-pseq new-from)
+                       (pseq:1d-coord->point new-pseq new-to))
+                 new-from
+                 new-to)))
 
 ;;; Create two new walls where one was before, given a splitting point
 ;;; @returns 3 vals: 2 new walls + status
@@ -399,32 +443,11 @@
     (let ((split-point (pseq:1d-coord->point wall-pseq split-x))
           (first-point (first wall-pseq))
           (second-point (last wall-pseq))
-          (adjust-windows (lambda (ref1 ref2 wl)
-                            (map (lambda (w)
-                                   (let ((new-from (normalize (window-from w) ref1 ref2))
-                                         (new-to (normalize (window-to w) ref1 ref2))
-                                         (new-pseq (pseq:slice wall-pseq ref1 ref2)))
-                                     (make-window (list (pseq:1d-coord->point new-pseq new-from)
-                                                        (pseq:1d-coord->point new-pseq new-to))
-                                                  new-from
-                                                  new-to)))
-                                 wl))))
+          (adjust-windows
+           (lambda (ref1 ref2 wl)
+             (map (lambda (w) (graph:adjust-window wall-pseq w ref1 ref2)) wl))))
       (receive (first-side-windows second-side-windows splitted-windows)
-               (fold/values (lambda (w a b c)
-                              (cond
-                               ;; both points fall into the first wall
-                               ((and (< (window-from w) split-x)
-                                     (< (window-to w) split-x))
-                                (values (cons w a) b c))
-                               ;; both points fall into the second wall
-                               ((and (> (window-from w) split-x)
-                                     (> (window-to w) split-x))
-                                (values a (cons w b) c))
-                               ;; the window is in between
-                               (else
-                                (values a b (cons w c)))))
-                            '(() () ())
-                            (wall-windows wall))
+               (graph:partition-windows/point wall split-x)
                (values
                 (make-wall uuid1
                            '((type "new"))

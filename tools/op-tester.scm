@@ -72,28 +72,28 @@
       (visualization:forget-all)))
   (visualization:forget-all))
 
-;; (let ((graph (input-from-xml "xml-input/one_room.xml")))
-;;   (pp graph)
-;;   (visualize-graph graph)
-;;   (visualize-title "op:cut (original graph)")
-;;   (visualization:do-loop)
+(let ((graph (input-from-xml "xml-input/one_room.xml")))
+  (pp graph)
+  (visualize-graph graph)
+  (visualize-title "op:cut (original graph)")
+  (visualization:do-loop)
 
-;;   (let* ((graph-limits (graph:wall-list->pseq
-;;                         (graph:filter.exterior-walls graph)))
-;;          (transformed-graph
-;;           ((compose op:cut line->context+arguments) 
-;;            graph
-;;            (point&point->line
-;;             (pseq:centroid graph-limits)
-;;             (vect2:*scalar (generate.random-point)
-;;                            (vect2:max-component
-;;                             (bbox:size-segment (pseq:bbox graph-limits))))))))
-;;     (pp transformed-graph)
-;;     (visualization:forget-all)
-;;     (visualize-graph transformed-graph)
-;;     (visualize-title "op:cut (transformed graph)")
-;;     (visualization:do-loop))
-;;   (visualization:forget-all))
+  (let* ((graph-limits (graph:wall-list->pseq
+                        (graph:filter.exterior-walls graph)))
+         (transformed-graph
+          ((compose op:cut line->context+arguments) 
+           graph
+           (point&point->line
+            (pseq:centroid graph-limits)
+            (vect2:*scalar (generate.random-point)
+                           (vect2:max-component
+                            (bbox:size-segment (pseq:bbox graph-limits))))))))
+    (pp transformed-graph)
+    (visualization:forget-all)
+    (visualize-graph transformed-graph)
+    (visualize-title "op:cut (transformed graph)")
+    (visualization:do-loop))
+  (visualization:forget-all))
 
 ;; (let ((graph (input-from-xml "xml-input/two_rooms.xml")))
 ;;   (pp graph)
