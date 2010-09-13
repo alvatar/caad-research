@@ -99,11 +99,6 @@
 (define (graph:point-inside? graph point)
   (pseq:point-inside? (graph:limits graph) point))
 
-;;; Is point in a hole
-
-(define (graph:point-in-a-hole? wall point)
-  #f)
-
 ;;; Is the wall of this room?
 
 (define (graph:room-wall? room wall) (%accept (and (room? room) (wall? wall)))
@@ -339,12 +334,12 @@
 ;;; Change an element property or the whole element
 ;;; Multiple properties can be changed if a list is along with multiple tail arguments
 ;;; (_ graph element new-element)
-;;; (_ graph element property new-value)
+;;; (_ graph element property (new-values))
 ;;; (_ graph element (properties) (new-values))
 
-(define (graph:update-element graph element new-element/properties . values)
-  (let ((update-property
-         (lambda (graph property value)
+(define (graph:update-element graph element new-element/properties . values) ; TODO: current implementation is unneficient
+  (let ((update-properties
+         (lambda (props&vals)
            (make-graph
             (graph-uid graph)
             (graph-environment graph)
@@ -352,43 +347,30 @@
                         ;; <-- TODO: this *really* needs the object system
                         (cond
                          ((wall? element)
-                          (case property
-                            ((pseq)
-                             (make-wall (wall-uid element)
-                                        (wall-metadata element)
-                                        value
-                                        (wall-windows element)
-                                        (wall-doors element)))
-                            (else
-                             (error "doesn't allow changing any other property than \"pseq\" "))))
+                          (make-wall (uif (assq 'uid props&vals) (cadr ?it) (wall-uid element))
+                                     (uif (assq 'metadata props&vals) (cadr ?it) (wall-metadata element))
+                                     (uif (assq 'pseq props&vals) (cadr ?it) (wall-pseq element))
+                                     (uif (assq 'windows props&vals) (cadr ?it) (wall-windows element))
+                                     (uif (assq 'doors props&vals) (cadr ?it) (wall-doors element))))
                          (else (error "doesn't allow changing any other element than walls")))
                         ;; <-- until here
                         (graph-architecture graph)))))
         (update-whole-element
-         (lambda (new-element)
+         (lambda ()
            (make-graph
             (graph-uid graph)
             (graph-environment graph)
-            (substitute (lambda-equal? element) new-element (graph-architecture graph))))))
-    (if (pair? values)
+            (substitute (lambda-equal? element) new-element/properties (graph-architecture graph))))))
+    (if (null? new-element/properties)
+        ;; whole element update
+        (update-whole-element)
         ;; properties update
         (if (list? new-element/properties)
-            ;; a list of properties to update
             (begin
-              (%accept (list? values) (= (length new-element/properties) (length values))
+              (%accept (and (list? values) (= (length new-element/properties) (length values)))
                        "not a proper combination of properties/values")
-              (let recur ((graph graph)
-                          (properties new-element/properties)
-                          (values values))
-                (if (null? properties)
-                    graph
-                    (recur (update-property graph (car properties) (car values))
-                           (cdr properties)
-                           (cdr values)))))
-            ;; a single property to update
-            (update-property graph new-element/properties (car values)))
-        ;; whole element update
-        (update-whole-element new-element/properties))))
+              (update-properties (zip new-element/properties values)))
+            (update-properties (list (cons new-element/properties values)))))))
 
 ;;; Update refs to walls in rooms
 

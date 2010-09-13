@@ -153,7 +153,7 @@
                                     (primary-mirror (pseq->segment (wall-pseq primary-mirror-wall)))
                                     (secondary-segment (pseq->segment (wall-pseq secondary-guide)))
                                     (secondary-mirror (pseq->segment (wall-pseq secondary-mirror-wall))))
-                                ;; choose the proper measuring unit
+                                ;; choose the proper measuring unit (probably this should come lower in hierarchy)
                                 (case unit
                                   ((trajectory-relative)
                                    ;; check if new point is equal to any point of the guide, so that one line is removed
@@ -173,31 +173,42 @@
                                              (graph:partition-windows/point element secondary-point))
                                             ;; build the new walls (for the guides and the guide mirrors)
                                             ((set-pseq&windows&doors)
-                                             (lambda (graph fixed-point update-wall update-segment)
-                                               (graph:update-element
-                                                graph
-                                                update-wall
-                                                'pseq
-                                                (cond
+                                             (if (and (null? primary-in-between)
+                                                      (null? secondary-in-between))
                                                  ;; there is no conflict between holes and new wall
-                                                 ((and (null? primary-in-between)
-                                                       (null? secondary-in-between))
-                                                  (cond ((segment:end-point? element-segment (segment-a update-segment))
-                                                         (list fixed-point (segment-b update-segment)))
-                                                        ((segment:end-point? element-segment (segment-b update-segment))
-                                                         (list (segment-a update-segment) fixed-point))
-                                                        (else (error "can't find the proper guide end point to move"))))
-                                                 ;; there is a conflict:
-                                                 ;; remove the affected holes
-                                                 ((equal? traits 'remove-holes)
-                                                  (cond ((segment:end-point? element-segment (segment-a update-segment))
-                                                         (list fixed-point (segment-b update-segment)))
-                                                        ((segment:end-point? element-segment (segment-b update-segment))
-                                                         (list (segment-a update-segment) fixed-point))
-                                                        (else (error "can't find the proper guide end point to move"))))
-                                                 ;; don't do anything
-                                                 (else
-                                                  update-segment))))))
+                                                 (lambda (graph fixed-point update-wall update-segment)
+                                                   (graph:update-element
+                                                    graph
+                                                    update-wall
+                                                    '(pseq windows)
+                                                    (cond ((segment:end-point? element-segment (segment-a update-segment))
+                                                           (list fixed-point (segment-b update-segment)))
+                                                          ((segment:end-point? element-segment (segment-b update-segment))
+                                                           (list (segment-a update-segment) fixed-point))
+                                                          (else (error "can't find the proper guide end point to move")))
+                                                    ;; TODO: recalculate windows!
+                                                    (wall-windows update-wall)))
+                                                 ;; there is conflict, so choose the right action depending on traits
+                                                 (cond
+                                                  ;; respect holes
+                                                  ((equal? traits 'respect-holes)
+                                                   graph)
+                                                  ;; remove holes
+                                                  ((equal? traits 'remove-holes)
+                                                   (lambda (graph fixed-point update-wall update-segment)
+                                                     (graph:update-element
+                                                      graph
+                                                      update-wall
+                                                      '(pseq windows)
+                                                      (cond ((segment:end-point? element-segment (segment-a update-segment))
+                                                             (list fixed-point (segment-b update-segment)))
+                                                            ((segment:end-point? element-segment (segment-b update-segment))
+                                                             (list (segment-a update-segment) fixed-point))
+                                                            (else (error "can't find the proper guide end point to move")))
+                                                      ;; TODO: recalculate windows and choose the right ones!
+                                                      '())))
+                                                  (else
+                                                   (error "unrecognized traits"))))))
                                          (graph:update-element
                                           (set-pseq&windows&doors
                                            (set-pseq&windows&doors
