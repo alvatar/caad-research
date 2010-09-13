@@ -50,14 +50,14 @@
             <wall uid="B06528DA-C0B9-4583-A7AF-8A3E788DB6EF">
                 <pt x="8.0" y="0.0"/>
                 <pt x="8.0" y="6.0"/>
-                <window from="0.4" to="0.5"/>
+                <window from="0.3" to="0.4"/>
                 <window from="0.6" to="0.7"/>
             </wall>
 
             <wall uid="C06528DA-C0B9-4583-A7AF-8A3E788DB6EF">
                 <pt x="8.0" y="6.0"/>
                 <pt x="8.0" y="12.0"/>
-                <window from="0.4" to="0.5"/>
+                <window from="0.3" to="0.4"/>
                 <window from="0.6" to="0.7"/>
             </wall>
 

@@ -337,7 +337,7 @@
 ;;; (_ graph element property (new-values))
 ;;; (_ graph element (properties) (new-values))
 
-(define (graph:update-element graph element new-element/properties . values) ; TODO: current implementation is unneficient
+(define (graph:update-element graph element new-element/properties . values)
   (let ((update-properties
          (lambda (props&vals)
            (make-graph
@@ -390,7 +390,7 @@
 ;;; respect a reference relative point:
 ;;; @returns: one side, the other, in-between
 
-(define (graph:partition-windows/point wall split-x)
+(define (graph:partition-windows/point wall-windows split-x)
   (fold/values (lambda (w a b c)
                  (cond
                   ;; both points fall into the first side
@@ -405,7 +405,7 @@
                   (else
                    (values a b (cons w c)))))
                '(() () ())
-               (wall-windows wall)))
+               wall-windows))
 
 ;;; Transform a window according to new references (1d-coords) inside the wall
 
@@ -430,7 +430,7 @@
            (lambda (ref1 ref2 wl)
              (map (lambda (w) (graph:adjust-window wall-pseq w ref1 ref2)) wl))))
       (receive (first-side-windows second-side-windows splitted-windows)
-               (graph:partition-windows/point wall split-x)
+               (graph:partition-windows/point (wall-windows wall) split-x)
                (values
                 (make-wall uuid1
                            '((type "new"))

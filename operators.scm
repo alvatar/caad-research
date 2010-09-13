@@ -99,9 +99,10 @@
                               (element-segment (pseq->segment (wall-pseq element))))
                           ;; get the two groups of walls connected to each guide
                           (receive
-                           (node-1 node-2) ; nodes are all the set of walls connected to a wall
+                           ;; nodes are all the set of walls connected to a wall
+                           (node-1 node-2)
                            (graph:filter.walls-connected/wall context element)
-                           ;; identify the corresponding sets of walls connected to each guide and the wall
+                           ;; knots identify the corresponding sets of walls connected to each guide and the wall
                            (let ((knot-1 (remove (lambda-equal? element)
                                                  (or (find-rember (lambda-equal? guide-1) node-1)
                                                      (find-rember (lambda-equal? guide-1) node-2))))
@@ -132,13 +133,13 @@
                              ;; primary and secondary guide
                              (receive
                               ;; the mirrors are the connected walls parallel to the guides
-                              (primary-guide primary-mirror-wall secondary-guide secondary-mirror-wall)
+                              (primary-guide primary-mirror secondary-guide secondary-mirror)
                               ;; calculate the movement direction
                               (let ((movement-line (point&direction->line
                                                     (segment:1d-coord->point element-segment 1/2)
                                                     (direction:perpendicular
                                                      (segment->direction element-segment)))))
-                                ;; TODO!! Now trajectory only considers single guide
+                                ;; TODO!! Now trajectory only considers segment guide, not chained walls
                                 (let ((trajectory-1 (project.line<-segment movement-line
                                                                            guide-1-segment))
                                       (trajectory-2 (project.line<-segment movement-line
@@ -149,10 +150,12 @@
                                               guide-2 (car knot-2))
                                       (values guide-2 (car knot-2)
                                               guide-1 (car knot-1)))))
-                              (let ((primary-segment (pseq->segment (wall-pseq primary-guide)))
-                                    (primary-mirror (pseq->segment (wall-pseq primary-mirror-wall)))
-                                    (secondary-segment (pseq->segment (wall-pseq secondary-guide)))
-                                    (secondary-mirror (pseq->segment (wall-pseq secondary-mirror-wall))))
+                              ;; important! primary and secondary segments point outwards form the node.
+                              ;; direction matters to make some of the next parts easier
+                              (let ((primary-guide-segment> (pseq->segment (wall-pseq primary-guide)))
+                                    (primary-mirror-segment> (pseq->segment (wall-pseq primary-mirror)))
+                                    (secondary-guide-segment> (pseq->segment (wall-pseq secondary-guide)))
+                                    (secondary-mirror-segment> (pseq->segment (wall-pseq secondary-mirror))))
                                 ;; choose the proper measuring unit (probably this should come lower in hierarchy)
                                 (case unit
                                   ((trajectory-relative)
@@ -161,66 +164,108 @@
                                        (error "relative point=1.0 unimplemented")
                                        (let*-values
                                            ;; find points of new wall's segment
-                                           (((primary-point) (segment:1d-coord->point primary-segment value))
-                                            ((secondary-point) (intersect.line-segment
-                                                                (point&direction->line primary-point
-                                                                                       (segment->direction element-segment))
-                                                                secondary-segment))
+                                           (((primary-point secondary-point)
+                                             (values (segment:1d-coord->point primary-guide-segment value)
+                                                     (intersect.line-segment
+                                                      (point&direction->line primary-point
+                                                                             (segment->direction element-segment))
+                                                      secondary-guide-segment)))
+                                            ((primary-point-1d secondary-point-1d)
+                                             (values value ; just the input value from the operation arguments
+                                                     (segment:point->1d-coord
+                                                      secondary-guide-segment
+                                                      secondary-point)))
                                             ;; partition holes depending on the side of the wall the fall in given the previous points
-                                            ((primary-first-side primary-second-side primary-in-between)
-                                             (graph:partition-windows/point element primary-point))
-                                            ((secondary-first-side secondary-second-side secondary-in-between)
-                                             (graph:partition-windows/point element secondary-point))
+                                            ((w-primary-first-side w-primary-second-side w-primary-in-between)
+                                             (graph:partition-windows/point (wall-windows primary-guide)
+                                                                            primary-point-1d))
+                                            ((w-secondary-first-side w-secondary-second-side w-secondary-in-between)
+                                             (graph:partition-windows/point (wall-windows secondary-guide)
+                                                                            secondary-point-1d))
+                                            ;; are the holes affected by the new points?
+                                            ((holes-ok?) (and (null? w-primary-in-between)
+                                                              (null? w-secondary-in-between)))
                                             ;; build the new walls (for the guides and the guide mirrors)
                                             ((set-pseq&windows&doors)
-                                             (if (and (null? primary-in-between)
-                                                      (null? secondary-in-between))
+                                             (if holes-ok?
                                                  ;; there is no conflict between holes and new wall
-                                                 (lambda (graph fixed-point update-wall update-segment)
+                                                 (lambda (graph fixed-point update-wall update-segment new-origin new-windows)
+                                                   new-windows
                                                    (graph:update-element
                                                     graph
                                                     update-wall
                                                     '(pseq windows)
+                                                    ;; TODO: change with directed segments
                                                     (cond ((segment:end-point? element-segment (segment-a update-segment))
                                                            (list fixed-point (segment-b update-segment)))
                                                           ((segment:end-point? element-segment (segment-b update-segment))
                                                            (list (segment-a update-segment) fixed-point))
                                                           (else (error "can't find the proper guide end point to move")))
                                                     ;; TODO: recalculate windows!
-                                                    (wall-windows update-wall)))
+                                                    ;; negative origin implies expanding wall  -0.5-----X------0.5----->1.0
+                                                    (if (< new-origin 0)
+                                                        ;; include both the new windows and the old ones, is an expanding wall
+                                                        new-windows
+                                                        ;; include only the new windows, is a shrinking wall
+                                                        new-windows)))
                                                  ;; there is conflict, so choose the right action depending on traits
-                                                 (cond
-                                                  ;; respect holes
-                                                  ((equal? traits 'respect-holes)
-                                                   graph)
-                                                  ;; remove holes
-                                                  ((equal? traits 'remove-holes)
-                                                   (lambda (graph fixed-point update-wall update-segment)
-                                                     (graph:update-element
-                                                      graph
-                                                      update-wall
-                                                      '(pseq windows)
-                                                      (cond ((segment:end-point? element-segment (segment-a update-segment))
-                                                             (list fixed-point (segment-b update-segment)))
-                                                            ((segment:end-point? element-segment (segment-b update-segment))
-                                                             (list (segment-a update-segment) fixed-point))
-                                                            (else (error "can't find the proper guide end point to move")))
-                                                      ;; TODO: recalculate windows and choose the right ones!
-                                                      '())))
-                                                  (else
-                                                   (error "unrecognized traits"))))))
+                                                 (case traits
+                                                   ;; respect holes
+                                                   ((respect-holes)
+                                                    graph)
+                                                   ;; remove holes
+                                                   ((remove-holes)
+                                                    (lambda (graph fixed-point update-wall update-segment new-windows)
+                                                      (graph:update-element
+                                                       graph
+                                                       update-wall
+                                                       '(pseq windows)
+                                                       (cond ((segment:end-point? element-segment (segment-a update-segment))
+                                                              (list fixed-point (segment-b update-segment)))
+                                                             ((segment:end-point? element-segment (segment-b update-segment))
+                                                              (list (segment-a update-segment) fixed-point))
+                                                             (else (error "can't find the proper guide end point to move")))
+                                                       ;; TODO: recalculate windows and choose the right ones!
+                                                       '())))
+                                                   (else
+                                                    (error "unrecognized traits"))))))
                                          (graph:update-element
                                           (set-pseq&windows&doors
                                            (set-pseq&windows&doors
                                             (set-pseq&windows&doors
                                              (set-pseq&windows&doors
-                                              context secondary-point secondary-mirror-wall secondary-mirror)
-                                             primary-point primary-mirror-wall primary-mirror)
-                                            secondary-point secondary-guide secondary-segment)
-                                           primary-point primary-guide primary-segment)
+                                              context
+                                              secondary-point
+                                              secondary-mirror
+                                              secondary-mirror-segment
+                                              ;; for the mirror of the guides we need the relative point (out of 0-1 range!)
+                                              (segment:point->1d-coord* secondary-mirror-segment secondary-point)
+                                              w-secondary-second-side)
+                                             primary-point
+                                             primary-mirror
+                                             primary-mirror-segment
+                                             ;; ditto
+                                             (segment:point->1d-coord* primary-mirror-segment primary-point)
+                                             w-primary-second-side)
+                                            secondary-point
+                                            secondary-guide
+                                            secondary-guide-segment
+                                            secondary-point-1d
+                                            w-secondary-first-side)
+                                           primary-point
+                                           primary-guide
+                                           primary-guide-segment
+                                           primary-point-1d
+                                           w-primary-first-side)
                                           element
                                           'pseq
-                                          (list primary-point secondary-point)))))
+                                          (if holes-ok?
+                                              (list primary-point secondary-point)
+                                              (case traits
+                                                ((respect-holes)
+                                                 (wall-pseq element))
+                                                (else
+                                                 (list primary-point secondary-point))))))))
                                   (else (error "unit not recognized with these constraints")))))))))))
                (else (error "unknown constraining method"))))
             ((window? element)
