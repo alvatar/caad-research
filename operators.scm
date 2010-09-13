@@ -83,7 +83,7 @@
    (let ((abort (lambda (test text) (if test (begin (%log text) (exit context))))))
      (let@ ((element constraints movement) arguments)
            (cond
-            ;; push walls
+            ;; glide walls
             ((wall? element)
              (case (get@ method constraints)
                ;; moving a wall along 2 guides (walls), respecting direction of moved wall
@@ -153,34 +153,51 @@
                                     (primary-mirror (pseq->segment (wall-pseq primary-mirror-wall)))
                                     (secondary-segment (pseq->segment (wall-pseq secondary-guide)))
                                     (secondary-mirror (pseq->segment (wall-pseq secondary-mirror-wall))))
+                                ;; choose the proper measuring unit
                                 (case unit
                                   ((trajectory-relative)
                                    ;; check if new point is equal to any point of the guide, so that one line is removed
                                    (if (= value 1)
                                        (error "relative point=1.0 unimplemented")
-                                       (let* ((primary-point (segment:1d-coord->point primary-segment value))
-                                              (secondary-point (intersect.line-segment
+                                       (let*-values
+                                           ;; find points of new wall's segment
+                                           (((primary-point) (segment:1d-coord->point primary-segment value))
+                                            ((secondary-point) (intersect.line-segment
                                                                 (point&direction->line primary-point
                                                                                        (segment->direction element-segment))
                                                                 secondary-segment))
-                                              ;; check if primary or secondary points step on a hole
-                                              (good-points? (and (not (graph:point-in-a-hole? primary-point
-                                                                                              primary-point))
-                                                                 (not (graph:point-in-a-hole? secondary-point
-                                                                                              secondary-point))))
-                                              (set-pseq&windows&doors
-                                               (lambda (graph fixed-point update-wall update-segment)
-                                                 (graph:update-element
-                                                  graph
-                                                  update-wall
-                                                  'pseq
-                                                  (if good-points?
-                                                      (cond ((segment:end-point? element-segment (segment-a update-segment))
-                                                             (list fixed-point (segment-b update-segment)))
-                                                            ((segment:end-point? element-segment (segment-b update-segment))
-                                                             (list (segment-a update-segment) fixed-point))
-                                                            (else (error "can't find the proper guide end point to move")))
-                                                      update-segment)))))
+                                            ;; partition holes depending on the side of the wall the fall in given the previous points
+                                            ((primary-first-side primary-second-side primary-in-between)
+                                             (graph:partition-windows/point element primary-point))
+                                            ((secondary-first-side secondary-second-side secondary-in-between)
+                                             (graph:partition-windows/point element secondary-point))
+                                            ;; build the new walls (for the guides and the guide mirrors)
+                                            ((set-pseq&windows&doors)
+                                             (lambda (graph fixed-point update-wall update-segment)
+                                               (graph:update-element
+                                                graph
+                                                update-wall
+                                                'pseq
+                                                (cond
+                                                 ;; there is no conflict between holes and new wall
+                                                 ((and (null? primary-in-between)
+                                                       (null? secondary-in-between))
+                                                  (cond ((segment:end-point? element-segment (segment-a update-segment))
+                                                         (list fixed-point (segment-b update-segment)))
+                                                        ((segment:end-point? element-segment (segment-b update-segment))
+                                                         (list (segment-a update-segment) fixed-point))
+                                                        (else (error "can't find the proper guide end point to move"))))
+                                                 ;; there is a conflict:
+                                                 ;; remove the affected holes
+                                                 ((equal? traits 'remove-holes)
+                                                  (cond ((segment:end-point? element-segment (segment-a update-segment))
+                                                         (list fixed-point (segment-b update-segment)))
+                                                        ((segment:end-point? element-segment (segment-b update-segment))
+                                                         (list (segment-a update-segment) fixed-point))
+                                                        (else (error "can't find the proper guide end point to move"))))
+                                                 ;; don't do anything
+                                                 (else
+                                                  update-segment))))))
                                          (graph:update-element
                                           (set-pseq&windows&doors
                                            (set-pseq&windows&doors

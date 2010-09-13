@@ -405,7 +405,8 @@
         (graph-architecture graph))))
 
 ;;; Classify the windows of a wall in three groups depending on their position
-;;; respect a reference relative point: one side, the other, in-between
+;;; respect a reference relative point:
+;;; @returns: one side, the other, in-between
 
 (define (graph:partition-windows/point wall split-x)
   (fold/values (lambda (w a b c)
