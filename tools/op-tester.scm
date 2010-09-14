@@ -95,23 +95,23 @@
     (visualization:do-loop))
   (visualization:forget-all))
 
-;; (let ((graph (input-from-xml "xml-input/two_rooms.xml")))
-;;   (pp graph)
-;;   (visualize-graph graph)
-;;   (visualize-title "op:merge (original graph)")
-;;   (visualization:do-loop)
+(let ((graph (input-from-xml "xml-input/two_rooms.xml")))
+  (pp graph)
+  (visualize-graph graph)
+  (visualize-title "op:merge (original graph)")
+  (visualization:do-loop)
 
-;;   (let ((transformed-graph
-;;          (op:merge (apply many->context
-;;                           graph
-;;                           (graph:filter.rooms graph)))))
-;;     (pp transformed-graph)
-;;     (visualization:forget-all)
-;;     (visualize-graph transformed-graph)
+  (let ((transformed-graph
+         (op:merge (apply many->context
+                          graph
+                          (graph:filter.rooms graph)))))
+    (pp transformed-graph)
+    (visualization:forget-all)
+    (visualize-graph transformed-graph)
 
-;;     (visualize-title "op:merge (transformed graph)")
-;;     (visualization:do-loop)
-;;     (visualization:forget-all))
-;;   (visualization:forget-all))
+    (visualize-title "op:merge (transformed graph)")
+    (visualization:do-loop)
+    (visualization:forget-all))
+  (visualization:forget-all))
 
 (display "\n--- VISUAL TESTS EXECUTED WITH NO RUNTIME ERROR ---\n\n")

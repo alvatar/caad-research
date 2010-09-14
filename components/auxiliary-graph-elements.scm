@@ -40,7 +40,7 @@
 (define (~distance.agent<->window agent window)
   (~distance.point-pseq
    (car (agent-positions agent)) ; TODO: multi-nodal agents
-   (window-pseq window)))
+   (window-plan window)))
 
 ;;; Distance agent-agent
 

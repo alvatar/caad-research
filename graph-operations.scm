@@ -379,33 +379,30 @@
 ;;; respect a reference relative point:
 ;;; @returns: one side, the other, in-between
 
-(define (graph:partition-windows/point wall-windows split-x)
-  (fold/values (lambda (w a b c)
-                 (cond
-                  ;; both points fall into the first side
-                  ((and (< (window-from w) split-x)
-                        (< (window-to w) split-x))
-                   (values (cons w a) b c))
-                  ;; both points fall into the second side
-                  ((and (> (window-from w) split-x)
-                        (> (window-to w) split-x))
-                   (values a (cons w b) c))
-                  ;; the window is in between
-                  (else
-                   (values a b (cons w c)))))
-               '(() () ())
-               wall-windows))
-
-;;; Transform a window according to new references (1d-coords) inside the wall
-
-(define (graph:adjust-window ref-pseq w new-ref1 new-ref2)
-  (let ((new-from (normalize (window-from w) new-ref1 new-ref2))
-        (new-to (normalize (window-to w) new-ref1 new-ref2))
-        (new-pseq (pseq:slice ref-pseq new-ref1 new-ref2)))
-    (make-window (list (pseq:1d-coord->point new-pseq new-from)
-                       (pseq:1d-coord->point new-pseq new-to))
-                 new-from
-                 new-to)))
+(define (graph:partition-windows/point wall split-x)
+  (let ((wall-segment (pseq->segment (wall-pseq wall))))
+    (fold/values (lambda (w a b c)
+                   (let ((window-segment (pseq->segment (window-plan w))))
+                     (let ((window-from
+                            (segment:point->1d-coord wall-segment
+                                                     (segment-a window-segment)))
+                           (window-to
+                            (segment:point->1d-coord wall-segment
+                                                     (segment-b window-segment))))
+                       (cond
+                        ;; both points fall into the first side
+                        ((and (< window-from split-x)
+                              (< window-to split-x))
+                         (values (cons w a) b c))
+                        ;; both points fall into the second side
+                        ((and (> window-from split-x)
+                              (> window-to split-x))
+                         (values a (cons w b) c))
+                        ;; the window is in between
+                        (else
+                         (values a b (cons w c)))))))
+                 '(() () ())
+                 (wall-windows wall))))
 
 ;;; Create two new walls where one was before, given a splitting point
 ;;; @returns 3 vals: 2 new walls + status
@@ -414,22 +411,19 @@
   (let ((wall-pseq (wall-pseq wall)))
     (let ((split-point (pseq:1d-coord->point wall-pseq split-x))
           (first-point (first wall-pseq))
-          (second-point (last wall-pseq))
-          (adjust-windows
-           (lambda (ref1 ref2 wl)
-             (map (lambda (w) (graph:adjust-window wall-pseq w ref1 ref2)) wl))))
+          (second-point (last wall-pseq)))
       (receive (first-side-windows second-side-windows splitted-windows)
-               (graph:partition-windows/point (wall-windows wall) split-x)
+               (graph:partition-windows/point wall split-x)
                (values
                 (make-wall uuid1
                            '((type "new"))
                            (list first-point split-point)
-                           (adjust-windows 0.0 split-x first-side-windows)
+                           first-side-windows
                            '())
                 (make-wall uuid2
                            '((type "new"))
                            (list split-point second-point)
-                           (adjust-windows split-x 1.0 second-side-windows)
+                           second-side-windows
                            '())
                 (if (null? splitted-windows)
                     'ok

@@ -185,10 +185,10 @@
                                                        secondary-point)))
                                              ;; partition holes depending on the side of the wall the fall in given the previous points
                                              ((w-primary-first-side w-primary-second-side w-primary-in-between)
-                                              (graph:partition-windows/point (wall-windows primary-guide)
+                                              (graph:partition-windows/point primary-guide
                                                                              primary-point-1d))
                                              ((w-secondary-first-side w-secondary-second-side w-secondary-in-between)
-                                              (graph:partition-windows/point (wall-windows secondary-guide)
+                                              (graph:partition-windows/point secondary-guide
                                                                              secondary-point-1d))
                                              ;; are the holes affected by the new points?
                                              ((holes-ok?) (and (null? w-primary-in-between)

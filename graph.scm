@@ -32,11 +32,9 @@
 ;;   (windows wall-windows)
 ;;   (doors wall-doors))
 ;; (define-list-record-type window
-;;   (make-window pseq from to)
+;;   (make-window plan)
 ;;   window?
-;;   (pseq window-pseq)
-;;   (from window-from)
-;;   (to window-to))
+;;   (plan window-plan))
 ;; (define-list-record-type door
 ;;   (make-door pseq from to)
 ;;   door?
@@ -67,7 +65,7 @@
 
 (define-type graph uid environment architecture)
 (define-type wall uid metadata pseq windows doors)
-(define-type window pseq from to)
+(define-type window plan)
 (define-type door pseq from to)
 (define-type room uid walls)
 (define-type structural uid pseq)

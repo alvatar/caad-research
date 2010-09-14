@@ -5,10 +5,10 @@
 ;;; Graph definition and low-level operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(declare (standard-bindings)
-         (extended-bindings)
-         (block))
-(compile-options force-compile: #t)
+;; (declare (standard-bindings)
+;;          (extended-bindings)
+;;          (block))
+;; (compile-options force-compile: #t)
 
 (import (std srfi/1
              string/xml-to-sxml
@@ -181,27 +181,36 @@
 ;;; Make a SXML wall
 
 (define (sxml:make-wall e)
-  `(wall
-    (@ (uid ,(wall-uid e))
-       ,(assoc 'type (wall-metadata e)))
-    ,@(map (lambda (p)
-             (%accept (point? p))
-             (sxml:point->archpoint p))
-           (wall-pseq e))
-    ,@(map (lambda (w)
-             (%accept (window? w))
-             `(window (@ (from ,(number->string
-                                 (exact->inexact (window-from w))))
-                         (to ,(number->string
-                               (exact->inexact (window-to w)))))))
-           (wall-windows e))
-    ,@(map (lambda (d)
-             (%accept (door? d))
-             `(door (@ (from ,(number->string
-                               (exact->inexact (door-from d))))
-                       (to ,(number->string
-                             (exact->inexact (door-to d)))))))
-           (wall-doors e))))
+  (let ((wall-pseq (wall-pseq e)))
+   `(wall
+     (@ (uid ,(wall-uid e))
+        ,(assoc 'type (wall-metadata e)))
+     ,@(map (lambda (p)
+              (%accept (point? p))
+              (sxml:point->archpoint p))
+            wall-pseq)
+     ,@(map (lambda (w)
+              (%accept (window? w))
+              (let ((window-from
+                     (segment:point->1d-coord (pseq->segment wall-pseq)
+                                              (segment-a (pseq->segment
+                                                          (window-plan w)))))
+                    (window-to
+                     (segment:point->1d-coord (pseq->segment wall-pseq)
+                                              (segment-b (pseq->segment
+                                                          (window-plan w))))))
+                `(window (@ (from ,(number->string
+                                    (exact->inexact window-from)))
+                            (to ,(number->string
+                                  (exact->inexact window-to)))))))
+            (wall-windows e))
+     ,@(map (lambda (d)
+              (%accept (door? d))
+              `(door (@ (from ,(number->string
+                                (exact->inexact (door-from d))))
+                        (to ,(number->string
+                              (exact->inexact (door-to d)))))))
+            (wall-doors e)))))
 
 ;;; Get all wall points
 
@@ -447,9 +456,7 @@
                           (let ((windows (sxml:wall-windows e)))
                             (map (lambda (w)
                                    (make-window
-                                    (sxml:wall-element->pseq w e)
-                                    (sxml:wall-element-relative-points 'from w)
-                                    (sxml:wall-element-relative-points 'to w))) windows))
+                                    (sxml:wall-element->pseq w e))) windows))
                           (let ((doors (sxml:wall-doors e)))
                             (map (lambda (d)
                                    (make-door
