@@ -374,11 +374,14 @@
                                         ,new-wall-uid
                                         ,first-wall-uid-2-half))
                           ;; Splitting wall
-                          ,(make-wall-plain
+                          ,(make-wall
                             new-wall-uid
+                            '((type "new"))
                             (list
                              (pseq:1d-coord->point (wall-pseq first-wall) first-split-point)
-                             (pseq:1d-coord->point (wall-pseq second-wall) second-split-point)))
+                             (pseq:1d-coord->point (wall-pseq second-wall) second-split-point))
+                            '()
+                            '())
                           ;; Split touched walls at the splitting point (add 2 new ones)
                           ,splitted-wall-1a
                           ,splitted-wall-1b

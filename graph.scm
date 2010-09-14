@@ -80,8 +80,3 @@
 ;; (define-prototype-record structural uid pseq)
 ;; (define-prototype-record entry pseq wall-uid door-number wall-point)
 ;; (define-prototype-record pipe position)
-
-;;; Make a wall without metadata, doors or windows
-
-(define (make-wall-plain uid pseq)
-  (make-wall uid '((type "new")) pseq '() '()))

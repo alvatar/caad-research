@@ -407,7 +407,7 @@
 ;;; Create two new walls where one was before, given a splitting point
 ;;; @returns 3 vals: 2 new walls + status
 
-(define (graph:split-wall wall split-x uuid1 uuid2) ; TODO: review for mult-segment walls
+(define (graph:split-wall wall split-x uuid1 uuid2) ; TODO: make segment-based walls
   (let ((wall-pseq (wall-pseq wall)))
     (let ((split-point (pseq:1d-coord->point wall-pseq split-x))
           (first-point (first wall-pseq))
@@ -429,31 +429,28 @@
                     'ok
                     'lost-window))))))
 
-;;; Try and merge into one wall if the two given are parallel
+;;; Try to merge into one wall if the two given are parallel
 
-(define (graph:try-to-merge-if-parallel-walls wall-list new-uid)
-  (let ((wlen (length wall-list)))
-    (cond
-     ((null? wall-list)
-      (error "trying to merge a null list of walls"))
-     ((= wlen 1)
-      wall-list)
-     ((= wlen 2)
-      (let ((wall-a-points (wall-pseq (car wall-list)))
-            (wall-b-points (wall-pseq (cadr wall-list))))
-        (if (pseq:parallel-pseq? wall-a-points wall-b-points)
-            (let ((first-point (if (pseq:end-point? wall-b-points (car wall-a-points))
-                                   (cadr wall-a-points)
-                                   (car wall-a-points)))
-                  (second-point (if (pseq:end-point? wall-a-points (car wall-b-points))
-                                    (cadr wall-b-points)
-                                    (car wall-b-points))))
-              (list (make-wall-plain
-                     new-uid
-                     (list first-point second-point))))
-            wall-list)))
-     (else
-      (error "unimplemented for more than 2 walls")))))
+(define (graph:try-to-merge-if-parallel-walls walls new-uid) (%accept (and (list? walls)))
+  (let ((wall-a (car walls))
+        (wall-b (cadr walls)))
+    (let ((wall-a-points (wall-pseq wall-a))
+          (wall-b-points (wall-pseq wall-b)))
+      (if (pseq:parallel-pseq? wall-a-points wall-b-points)
+          (let ((first-point (if (pseq:end-point? wall-b-points (car wall-a-points))
+                                 (cadr wall-a-points)
+                                 (car wall-a-points)))
+                (second-point (if (pseq:end-point? wall-a-points (car wall-b-points))
+                                  (cadr wall-b-points)
+                                  (car wall-b-points))))
+            (list (make-wall
+                   new-uid
+                   '((type "new"))
+                   (list first-point second-point)
+                   (append (wall-windows wall-a)
+                           (wall-windows wall-b))
+                   '()))) ; TODO: we drop doors, because in the future everything will be holes
+          walls))))
 
 ;;; Break in two lists from where a wall was found
 ;;; Warning! This assumes that rooms contain topologically connected walls
@@ -468,10 +465,11 @@
 ;;; Fix order of walls in a room
 
 (define (graph:sort.room-walls graph room)
-  (make-room (room-uid room)
-             (map (lambda (w)
-                    (wall-uid w))
-                  (graph:sort.wall-list-connected graph (graph:filter.room-walls graph room)))))
+  (make-room
+   (room-uid room)
+   (map (lambda (w)
+          (wall-uid w))
+        (graph:sort.wall-list-connected graph (graph:filter.room-walls graph room)))))
 
 ;;; Sort walls in a wall list so they are connected properly
 
