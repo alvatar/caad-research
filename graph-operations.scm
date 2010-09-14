@@ -209,17 +209,6 @@
         (ws2 (wall-pseq w2)))
     (~distance.pseq-pseq/endpoints ws1 ws2)))
 
-;;; Calculate a wall's perpendicular through a point
-
-;; (define (graph:wall-perpendicular wall #!optional p)
-;;   (if p
-;;       (error "unimplemented with perpendicular-through-point")
-;;       (direction:perpendicular
-;;        (segment->direction
-;;         (pseq->segment
-;;          (wall-pseq
-;;           wall))))))
-
 ;;; Calculate the closest wall to a point
 
 (define (graph:nearest-wall graph point)
