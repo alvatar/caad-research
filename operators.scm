@@ -213,7 +213,7 @@
                                                      ;; negative origin implies expanding wall  -0.5-----X------0.5----->1.0
                                                      (if (< new-origin 0)
                                                          ;; include both the new windows and the old ones, is an expanding wall
-                                                         new-windows
+                                                         (append new-windows (wall-windows update-wall))
                                                          ;; include only the new windows, is a shrinking wall
                                                          new-windows)))
                                                   ;; there is conflict, so choose the right action depending on traits

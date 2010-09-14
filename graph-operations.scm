@@ -398,10 +398,10 @@
 
 ;;; Transform a window according to new references (1d-coords) inside the wall
 
-(define (graph:adjust-window current-pseq w new-ref1 new-ref2)
+(define (graph:adjust-window ref-pseq w new-ref1 new-ref2)
   (let ((new-from (normalize (window-from w) new-ref1 new-ref2))
         (new-to (normalize (window-to w) new-ref1 new-ref2))
-        (new-pseq (pseq:slice current-pseq new-ref1 new-ref2)))
+        (new-pseq (pseq:slice ref-pseq new-ref1 new-ref2)))
     (make-window (list (pseq:1d-coord->point new-pseq new-from)
                        (pseq:1d-coord->point new-pseq new-to))
                  new-from
