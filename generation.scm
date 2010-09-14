@@ -1,11 +1,11 @@
 ;;; Copyright (c) 2010 by Álvaro Castro-Castilla, All Rights Reserved.
 ;;; Licensed under the GPLv3 license, see LICENSE file for full description.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Generation algorithms defined as strategies. Strategies are combinations
 ;;; of pluggable components for a generation algorithm
 ;;; LPC: location/pattern/constraint-convergence
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; (declare (standard-bindings)
 ;;          (extended-bindings)
@@ -31,9 +31,11 @@
               (cond
                ((null? steps) graph)
                (else
-                (receive (g w)
-                         ((car steps) graph world)
-                         (execute-step (cdr steps) g w)))))))
+                (receive (g w k)
+                         (call/cc (lambda (k) ((car steps) graph world k)))
+                         (if (not g)
+                             (execute-step steps graph world)
+                             (execute-step (cdr steps) g w))))))))
     (lambda (input)
       (execute-step steps (graph:fix.everything input) #f))))
 
@@ -46,7 +48,7 @@
                ((null? steps) graph)
                (else
                 (receive (g w)
-                         ((car steps) graph world)
+                         (call/cc (lambda (k) ((car steps) graph world k)))
                          (execute-step (cdr steps) g w)))))))
     (lambda (input)
       (execute-step steps #f #f))))
@@ -70,6 +72,11 @@
 ;-------------------------------------------------------------------------------
 ; Strategies
 ;-------------------------------------------------------------------------------
+
+;;; Strategy components must have the following interface:
+;;; (graph world exit)
+;;; and return the same as (values new-graph new-world exit)
+;;; or use the continuation (exit #f #f #f)
 
 ;;; Strategy definition
 

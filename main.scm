@@ -14,10 +14,10 @@
 ((lambda ()
    (random-source-randomize! default-random-source)
    (output-pool
-    (evolution (list@ (evolver-type 'fill-pool)
-                      (pool-size 1))
+    (evolution (list@ (evolver-type 'choose-bests)
+                      (max-iterations 100)
+                      (pool-size 5))
                'bath-block
-               'keep-best
                (input-from-xml "xml-input/plan_1.xml")))
    (visualization:exit)
    (exit 0)))

@@ -51,15 +51,14 @@
 (define agents-regenerator
   (lambda (limit-polygon)
     (let ((slots (generate.point-mesh-centered (pseq:bbox limit-polygon)
-                                                1.0
-                                                2.0
-                                                2.0
-                                                (lambda (p) (vect2:inexact->exact
-                                                        (make-point
-                                                         (+ (point-x p) (* (random-exact*) 0.1))
-                                                         (+ (point-y p) (* (random-exact*) 0.1)))))))
-          (make-agent-simple (cut make-agent <> <> '() '())))
-      
+                                               1.0
+                                               2.0
+                                               2.0
+                                               (lambda (p) (vect2:inexact->exact
+                                                       (make-point
+                                                        (+ (point-x p) (* (random-exact*) 0.1))
+                                                        (+ (point-y p) (* (random-exact*) 0.1)))))))
+          (make-agent-simple (cute make-agent <> <> '() '())))
       (lambda (graph agents)
         (map-fold
          (lambda (a foldedslots)
@@ -100,32 +99,34 @@
 
 ;;; Evolutionary algorithm
 
-(define (agents-hinted-evolutionary-distribution graph world)
-  (let ((limit-polygon (graph:limits graph)))
-    
-    (let ((regenerate-agents (agents-regenerator limit-polygon)))
-      (let evolve ((old-agents (agent-seeds limit-polygon))
-                   (old-score 0.0)
-                   (num-iterations 0))
-        (let ((new-agents (regenerate-agents graph old-agents))) ; TODO: we are regenerating//it is calculated even if not used
-          (cond
-           ((> num-iterations 100)
-            (values graph (make-world
-                           old-agents
-                           '())))
-           ((< old-score (score new-agents
-                                graph
-                                limit-polygon))
-            (visualization:forget-all)
-            (visualize-graph graph)
-            (visualize-world (make-world old-agents '()) graph)
-            (visualization:do-now)
-            (evolve new-agents
-                    (score new-agents
-                           graph
-                           limit-polygon)
-                    (add1 num-iterations)))
-           (else
-            (evolve old-agents
-                    old-score
-                    (add1 num-iterations)))))))))
+(define (agents-hinted-evolutionary-distribution graph world exit)
+  (let* ((limit-polygon (graph:limits graph))
+         (regenerate-agents (agents-regenerator limit-polygon)))
+    (let evolve ((old-agents (agent-seeds limit-polygon))
+                 (old-score 0.0)
+                 (num-iterations 0))
+      (let ((new-agents (regenerate-agents graph old-agents))) ; TODO: we are regenerating//it is calculated even if not used
+        (cond
+         ((> num-iterations 100)
+          (values graph
+                  (make-world
+                   old-agents
+                   '())
+                  exit))
+         ((< old-score (score new-agents
+                              graph
+                              limit-polygon))
+          ;; <---- DEBUG VISUALIZATION
+          (visualization:forget-all)
+          (visualize-graph graph)
+          (visualize-world (make-world old-agents '()) graph)
+          (visualization:do-now)
+          (evolve new-agents
+                  (score new-agents
+                         graph
+                         limit-polygon)
+                  (add1 num-iterations)))
+         (else
+          (evolve old-agents
+                  old-score
+                  (add1 num-iterations))))))))

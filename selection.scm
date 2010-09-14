@@ -26,31 +26,28 @@
 
 ;;; Produce a selector function
 
-(define (selector type)
-  (case type
-    ((keep-best)
-     (lambda (pool new-graph)
-       (let ((new-score (total-score new-graph)))
-         (when (> new-score 0) ; TODO: select only if better than all in the pool
-               (begin
-                 (display "Solution selected!\n")
-                 (visualization:forget-all)
-                 (visualize-graph new-graph)
-                 (visualize-room-uids new-graph)
-                 (visualization:do-loop)
-                 (make-evaluated-graph new-graph
-                                       (exact->inexact
-                                        new-score)))))))
-    (else
-     (error "selector type not implemented"))))
+(define selector
+  (lambda (pool new-graph)
+    (let ((new-score (total-score new-graph)))
+      (when (> new-score 0)
+            (begin
+              (display "Solution selected!\n")
+              (visualization:forget-all)
+              (visualize-graph new-graph)
+              (visualize-room-uids new-graph)
+              (visualization:do-loop)
+              (make-evaluated-graph new-graph
+                                    (exact->inexact
+                                     new-score))))))
+  (else
+   (error "selector type not implemented")))
 
 ;;; Evaluation for selection
 
 (define (total-score graph)
-  #;(if (correct-room-aspect-ratios? graph)
+  (if (correct-room-aspect-ratios? graph)
       (score-room-sizes graph)
-      0)
-  1)
+      0))
 
 ;;; Score room sizes
 

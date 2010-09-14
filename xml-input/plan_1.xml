@@ -98,7 +98,7 @@
                 <center x="5.323483" y="7.485937"></center>
                 <dim a="0.295437" b="0.295482"></dim>
             </structural>
-            <entry wall-uid="d1e5d2fe-a950-11df-9664-49a8df010816" pt="0.927411"></entry>
+            <entry wall-uid="d1e5d2fe-a950-11df-9664-49a8df010816" pt="0.427411"></entry>
             <pipe x="5.360579" y="5.360579"></pipe>
         </architecture>
     </floorplan>

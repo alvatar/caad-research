@@ -32,7 +32,6 @@
          ((_ ?text ?forms ...)
           (begin (display ?text)
                  (newline)
-                 (step)
                  ?forms ...))))
      (define-syntax %log-if
        '(syntax-rules ()

@@ -33,7 +33,7 @@
 
 ;;; First step of wall generation
 
-(define (add-bath-corridor-container graph world)
+(define (add-bath-corridor-container graph world exit)
   (let ((corridor-width #e1.6)
         (push-away-non-corridor-agents
          (lambda (graph)
@@ -95,11 +95,12 @@
                 ;; Passes also the distribution direction
                 (cons (line->direction parallel-1)
                       ;; Push away all agents that fall inside the corridor
-                      (push-away-non-corridor-agents new-graph)))))))
+                      (push-away-non-corridor-agents new-graph))
+                exit)))))
 
 ;;; Second step of wall generation
 
-(define (add-rest-of-rooms graph relief)
+(define (add-rest-of-rooms graph relief exit)
   (let ((distribution-direction (car relief))
         (world (cdr relief)))
     (let ((find-next-room-to-partition
@@ -138,11 +139,12 @@
                (room-cycle new-graph
                            agents))
              (values graph
-                     world))))))
+                     world
+                     exit))))))
 
 ;;; Check if there is the proper relationship between agents and rooms, fix if needed
 
-(define (merge-residual-space graph world)
+(define (merge-residual-space graph world exit)
   (define-choice! "choose-room-to-merge"
     (choose-merge-room room)
     (find (lambda (r)
@@ -163,11 +165,11 @@
                             (many->context graph
                                            wrong-room
                                            (choose-merge-room wrong-room))))
-         (values graph world))))
+         (values graph world exit))))
 
 ;;; Give the proper name to rooms
 
-(define (name-rooms graph world)
+(define (name-rooms graph world exit)
   (values
    (fold
     (lambda (room graph)
@@ -185,27 +187,40 @@
                                       (car agent)))))))))
     graph
     (graph:filter.rooms graph))
-   world))
+   world
+   exit))
+
+;;; Adjust the measures of the spaces, so doors can be added
+
+(define (adjust-measures graph world exit)
+  (values graph world exit))
+
+;;; Add the doors 
+
+(define (add-doors graph world exit)
+  (values graph world exit))
 
 ;;; Utility drawing step
 
-(define (draw-result graph world)
+(define (draw-result graph world exit)
   (visualization:forget-all)
   (visualize-graph graph)
   (visualize-world world graph)
   (visualization:do-now)
-  (values graph world))
+  (values graph world exit))
 
 ;;; The component
 
-(define (walls-from-agents/distribution&bath-block graph world)
+(define (walls-from-agents/distribution&bath-block graph world exit)
   (let ((finished-agents (world-agents world)))
     ((compose-right
       add-bath-corridor-container
       add-rest-of-rooms
-      draw-result
       merge-residual-space
-      name-rooms
-      draw-result)
+      adjust-measures
+      add-doors
+      ;; draw-result
+      name-rooms)
      graph
-     (make-world finished-agents '()))))
+     (make-world finished-agents '())
+     exit)))
