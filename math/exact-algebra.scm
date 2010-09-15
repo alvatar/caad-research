@@ -189,6 +189,16 @@
        (= (vect2-y v1)
           (vect2-y v2))))
 
+;;; Are these vectors proportional?
+
+(define (vect2:proportional? v1 v2)
+  (let ((v1x (vect2-x v1)) (v1y (vect2-y v1))
+        (v2x (vect2-x v2)) (v2y (vect2-y v2)))
+   (cond ((zero? v2x) (zero? v1x))
+         ((zero? v2y) (zero? v1y))
+         (else (= (/ v1x v2x)
+                  (/ v1y v2y))))))
+
 ;;; Exact conversion
 
 (define (vect2:inexact->exact v)

@@ -136,14 +136,22 @@
                           (lambda (w) (equal? wall w))
                           (graph:filter.walls graph))))
     (values
-     (filter (lambda (w) (pseq:end-point? (wall-pseq w) (first wallp))) inspected-walls)
-     (filter (lambda (w) (pseq:end-point? (wall-pseq w) (last wallp))) inspected-walls))))
+     (aif connected-walls
+          null?
+          (filter (lambda (w) (pseq:end-point? (wall-pseq w) (first wallp))) inspected-walls)
+          (abort "can't find any wall connected to this one: inconsistency")
+          connected-walls)
+     (aif connected-walls
+          null?
+          (filter (lambda (w) (pseq:end-point? (wall-pseq w) (last wallp))) inspected-walls)
+          (abort "can't find any wall connected to this one: inconsistency")
+          connected-walls))))
 
 ;;; Find walls connected to a given one in a room
 
 (define (graph:filter.walls-connected/wall/room graph wall room)
-  (apply/values (curry filter (lambda (w) (graph:room-wall? room w)))
-                (graph:filter.walls-connected/wall graph wall)))
+  (map car (values->list (apply/values (curry filter (lambda (w) (graph:room-wall? room w)))
+                                       (graph:filter.walls-connected/wall graph wall)))))
 
 ;;; Find longest wall in room
 

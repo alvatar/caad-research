@@ -52,12 +52,10 @@
                      (list@ (element chosen-wall)
                             (constraints
                              (list@ (method 'keep-direction)
-                                    (guides (map car
-                                                 (values->list
-                                                  (graph:filter.walls-connected/wall/room
-                                                   graph
-                                                   chosen-wall
-                                                   chosen-room))))
+                                    (guides (graph:filter.walls-connected/wall/room
+                                             graph
+                                             chosen-wall
+                                             chosen-room))
                                     (traits 'remove-holes)))
                             (movement
                              (list@ (method 'towards)

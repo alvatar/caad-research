@@ -194,9 +194,40 @@
 ;;; Adjust the measures of the spaces, so doors can be added
 
 (define (adjust-measures graph world exit)
-  (values graph world exit))
+  (values (let ((min-dist-wall-structural 0.5))
+            (fold
+             (lambda (str-center graph)
+               (aif wall-to-move
+                    (find (lambda (w)
+                            (and (not (graph:exterior-wall? w graph))
+                                 (< (~distance.point-pseq str-center
+                                                          (wall-pseq w))
+                                    min-dist-wall-structural)))
+                          (graph:filter.walls graph))
+                    (let ((room (find (lambda (r) (graph:point-in-room? graph r str-center))
+                                      (graph:filter.rooms graph))))
+                      (op:glide graph
+                                (list@ (element wall-to-move)
+                                       (constraints
+                                        (list@ (method 'keep-direction)
+                                               (guides (graph:filter.walls-connected/wall/room
+                                                        graph
+                                                        wall-to-move
+                                                        room))
+                                               (traits 'remove-holes)))
+                                       (movement
+                                        (list@ (method 'towards)
+                                               (room room)
+                                               (unit 'trajectory-relative) ; TODO
+                                               (value 1/100)))))) ; TODO
+                    graph))
+             graph
+             (map (lambda (str) (pseq:centroid (structural-pseq str)))
+                  (graph:filter.structurals graph))))
+          world
+          exit))
 
-;;; Add the doors 
+;;; Add the doors
 
 (define (add-doors graph world exit)
   (values graph world exit))
