@@ -254,7 +254,7 @@
 (define (visualization:paint-circle-fill cairo x y r) ;; TODO INEXACT
   (cairo-new-path cairo)
   (cairo-move-to cairo (exact->inexact x) (exact->inexact y))
-  (cairo-arc cairo (exact->inexact x) (exact->inexact y) (exact->inexact r) 0.0 pi2)
+  (cairo-arc cairo (exact->inexact x) (exact->inexact y) (exact->inexact r) 0.0 ~pi2)
   (cairo-fill cairo))
 
 ;;; Paint a circle border given a point and a radius
@@ -262,7 +262,7 @@
 (define (visualization:paint-circle-border cairo x y r) ;; TODO INEXACT 
   (cairo-new-path cairo)
   (cairo-move-to cairo (exact->inexact x) (exact->inexact y))
-  (cairo-arc cairo (exact->inexact x) (exact->inexact y) (exact->inexact r) 0.0 pi2)
+  (cairo-arc cairo (exact->inexact x) (exact->inexact y) (exact->inexact r) 0.0 ~pi2)
   (cairo-stroke cairo))
 
 ;;; Set line cap

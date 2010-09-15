@@ -114,14 +114,15 @@
                                                                       (world-agents world)
                                                                       room)))
                     (reference-point (agent-head-position (car agents))))
-               (generate.random-point/two-points
-                reference-point
-                (car (agent-positions (most (lambda (a b)
-                                              (min (~distance.point-point (car (agent-positions a))
-                                                                          reference-point)
-                                                   (~distance.point-point (car (agent-positions b))
-                                                                          reference-point)))
-                                            (cdr agents)))))))))
+               (vect2:inexact->exact
+                (~generate.random-point/two-points
+                 reference-point
+                 (car (agent-positions (most (lambda (a b)
+                                               (min (~distance.point-point (car (agent-positions a))
+                                                                           reference-point)
+                                                    (~distance.point-point (car (agent-positions b))
+                                                                           reference-point)))
+                                             (cdr agents))))))))))
 
       (let room-cycle ((graph graph)
                        (agents (world-agents world)))

@@ -168,7 +168,7 @@
                                    ((trajectory-relative)
                                     ;; check if new point is equal to any point of the guide, so that one line is removed
                                     (if (= value 1)
-                                        (error "relative point=1.0 unimplemented")
+                                        (raise "relative point=1.0 unimplemented")
                                         (let*-values
                                             ;; find points of new wall's segment
                                             (((primary-point)
@@ -208,7 +208,7 @@
                                                             (list fixed-point (segment-b update-segment)))
                                                            ((segment:end-point? element-segment (segment-b update-segment))
                                                             (list (segment-a update-segment) fixed-point))
-                                                           (else (error "can't find the proper guide end point to move")))
+                                                           (else (raise "can't find the proper guide end point to move")))
                                                      ;; TODO: recalculate windows!
                                                      ;; negative origin implies expanding wall  -0.5-----X------0.5----->1.0
                                                      (if (< new-origin 0)
@@ -232,11 +232,11 @@
                                                                (list fixed-point (segment-b update-segment)))
                                                               ((segment:end-point? element-segment (segment-b update-segment))
                                                                (list (segment-a update-segment) fixed-point))
-                                                              (else (error "can't find the proper guide end point to move")))
+                                                              (else (raise "can't find the proper guide end point to move")))
                                                         ;; TODO: recalculate windows and choose the right ones!
                                                         '())))
                                                     (else
-                                                     (error "unrecognized traits"))))))
+                                                     (raise "unrecognized traits"))))))
                                           (graph:update-element
                                            (set-pseq&windows&doors
                                             (set-pseq&windows&doors
@@ -274,17 +274,17 @@
                                                   (wall-pseq element))
                                                  (else
                                                   (list primary-point secondary-point))))))))
-                                   (else (error "unit not recognized with these constraints"))))))))))))
-               (else (error "unknown constraining method"))))
+                                   (else (raise "unit not recognized with these constraints"))))))))))))
+               (else (raise "unknown constraining method"))))
             ((window? element)
-             (error "glide windows not implemented"))
+             (raise "glide windows not implemented"))
             ((door? element)
-             (error "glide doors not implemented"))
+             (raise "glide doors not implemented"))
             ((room? element)
-             (error "a room can't be glided"))
+             (raise "a room can't be glided"))
             ((list? element)
-             (error "glide multiple elements not implemented"))
-            (else (error "element(s) can't be moved")))))))
+             (raise "glide multiple elements not implemented"))
+            (else (raise "element(s) can't be moved")))))))
 
 ;-------------------------------------------------------------------------------
 ; Boolean operations
@@ -415,9 +415,9 @@
               (wall2 (cadr walls)))
           (cond
            ((equal? wall1 wall2)        ; same wall
-            (error "same wall splitting is not implemented"))
+            (raise "same wall op:cut is not implemented"))
            ((graph:walls-are-connected? wall1 wall2) ; connected walls
-            (error "connected walls splitting is not implemented"))
+            (raise "connected walls op:cut is not implemented"))
            (else                        ; opposing walls
             (cut-room-opposed graph
                               (car rooms)
@@ -438,7 +438,7 @@
              (graph:filter.common-room-walls room-a room-b)))
         (%deny (null? common-wall-uid-lis) "The rooms to merge don't have common walls")
         (let ((common-wall-uid (if (> (length common-wall-uid-lis) 2)
-                                   (error "trying to merge rooms that share more than one wall")
+                                   (raise "trying to merge rooms that share more than one wall")
                                    (car common-wall-uid-lis)))) ; TODO: consider when more than one wall is common
           (receive
            (wall-bifurcations-1 wall-bifurcations-2)
@@ -521,8 +521,8 @@
                                         (value value)))))))
          ((or (eq? element 'limits)
               (graph? element))
-          (error "limits shrinking not implemented"))
-         (else (error "unrecognized element for shrinking")))))
+          (raise "limits shrinking not implemented"))
+         (else (raise "unrecognized element for shrinking")))))
 
 ;;; Push moves a wall towards the interior of the given space if it belongs to it
 

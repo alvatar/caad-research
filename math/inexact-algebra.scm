@@ -18,13 +18,13 @@
 ; Constants
 ;-------------------------------------------------------------------------------
 
-(define pi (angle -inf.0))
-(define pi2 (* #i2 pi))
-(define pi/2 (/ pi #i2))
-(define -pi/2 (/ pi #i-2))
-(define pi/4 (/ pi #i4))
-(define -pi/4 (/ pi #i-4))
-(define pi3/4 (* #i3 (/ #i4 pi)))
+(define ~pi (angle -inf.0))
+(define ~pi2 (* #i2 ~pi))
+(define ~pi/2 (/ ~pi #i2))
+(define ~-pi/2 (/ ~pi #i-2))
+(define ~pi/4 (/ ~pi #i4))
+(define ~-pi/4 (/ ~pi #i-4))
+(define ~pi3/4 (* #i3 (/ #i4 ~pi)))
 
 (define equal-accuracy 0.000001)
 

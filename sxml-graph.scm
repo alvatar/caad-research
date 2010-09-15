@@ -29,7 +29,7 @@
 ; Constants
 ;-------------------------------------------------------------------------------
 
-(define wall-thickness 0.15)
+(define wall-thickness #e0.15)
 (define graph-space-size-x maxx)
 (define graph-space-size-y maxy)
 
@@ -361,10 +361,11 @@
               (< door-number (length doors)))
          (sxml:wall-element->pseq (list-ref doors door-number)
                                   wall)
-         (let ((entry-point (string->number (sxml:entry-wall-point entry)))
+         (let ((entry-point (sxml:entry-wall-point entry))
                (wallp (sxml:wall->pseq wall)))
            (let ((center (pseq:1d-coord->point wallp entry-point))
-                 (direction (pseq:~normalized-tangent-in-relative wallp entry-point))) ; TODO: WRONG! normalized!
+                 (direction (vect2:inexact->exact
+                             (pseq:~normalized-tangent-in-relative wallp entry-point)))) ; TODO: WRONG! normalized!
              (list (vect2+ center (vect2:*scalar direction #e0.4))
                    (vect2+ center (vect2:*scalar (direction:reverse direction) #e0.4)))))))))
 
@@ -386,7 +387,8 @@
 (define (sxml:entry-wall-point entry)
   (aif wpsxml null? ((sxpath '(@ (pt 1))) entry)
        #f
-       (cadar wpsxml)))
+       (inexact->exact
+        (string->number (cadar wpsxml)))))
 
 ;-------------------------------------------------------------------------------
 ; Structure

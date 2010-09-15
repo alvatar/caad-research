@@ -76,16 +76,16 @@
     (any (lambda (room) (graph:point-in-room? graph room p))
          (graph:filter.rooms graph)))
   (let* ((wall-points (wall-pseq wall))
-         (mid-p (pseq:1d-coord->point wall-points 0.5))
-         (tangent-p (pseq:tangent-in-relative wall-points 0.5))
+         (mid-p (pseq:1d-coord->point wall-points 1/2))
+         (tangent-p (pseq:tangent-in-relative wall-points 1/2))
          (p1 (rotate.point/ref mid-p
                                (vect2+ mid-p
                                        (vect2:*scalar tangent-p equal-accuracy))
-                               pi/2))
+                               ~pi/2))
          (p2 (rotate.point/ref mid-p
                                (vect2+ mid-p
                                        (vect2:*scalar tangent-p equal-accuracy))
-                               -pi/2)))
+                               ~-pi/2)))
     (not (and (point-in-any-room? p1)
               (point-in-any-room? p2)))))
 
@@ -277,17 +277,17 @@
 ;;; Calculate south from north direction
 
 (define (graph:north->south vec)
-  (rotate.point/O vec pi))
+  (rotate.point/O vec (inexact->exact ~pi)))
 
 ;;; Calculate north-east from north direction
 
 (define (graph:north->north-east vec)
-  (rotate.point/O vec -pi/4))
+  (rotate.point/O vec (inexact->exact ~-pi/4)))
 
 ;;; Calculate east from north direction
 
 (define (graph:north->east vec)
-  (rotate.point/O vec -pi/2)) ; TODO: perpendicular
+  (rotate.point/O vec (inexact->exact ~-pi/2)))        ; TODO: perpendicular
 
 ;-------------------------------------------------------------------------------
 ; Low-level operations
