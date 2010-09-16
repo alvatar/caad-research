@@ -191,36 +191,45 @@
    world
    exit))
 
-;;; Adjust the measures of the spaces, so doors can be added
+;;; Adjust the measures of the spaces to snap near structurals
 
-(define (adjust-measures graph world exit)
-  (values (let ((min-dist-wall-structural 0.5))
+(define (snap-to-structurals graph world exit)
+  (values (let ((min-dist-wall-structural 1.0))
             (fold
              (lambda (str-center graph)
-               (aif wall-to-move
-                    (find (lambda (w)
-                            (and (not (graph:exterior-wall? w graph))
-                                 (< (~distance.point-pseq str-center
-                                                          (wall-pseq w))
-                                    min-dist-wall-structural)))
-                          (graph:filter.walls graph))
-                    (let ((room (find (lambda (r) (graph:point-in-room? graph r str-center))
-                                      (graph:filter.rooms graph))))
-                      (op:glide graph
-                                (list@ (element wall-to-move)
-                                       (constraints
-                                        (list@ (method 'keep-direction)
-                                               (guides (graph:filter.walls-connected/wall/room
-                                                        graph
-                                                        wall-to-move
-                                                        room))
-                                               (traits 'remove-holes)))
-                                       (movement
-                                        (list@ (method 'towards)
-                                               (room room)
-                                               (unit 'trajectory-relative) ; TODO
-                                               (value 1/100)))))) ; TODO
-                    graph))
+               ;; adjust each wall to the current structural
+               (let recur ((graph graph)
+                           (walls (graph:filter.walls graph)))
+                 (if (null? walls)
+                     graph
+                      ;; find walls that are too close to a structural
+                     (let ((wall-to-move (car walls)))
+                      (if (and (not (graph:exterior-wall? wall-to-move graph))
+                               (< (~distance.point-pseq str-center
+                                                        (wall-pseq wall-to-move))
+                                  min-dist-wall-structural))
+                          ;; find the room 
+                          (recur (let* ((room (find (lambda (r) (graph:point-in-room? graph r str-center))
+                                                    (graph:filter.rooms graph)))
+                                        (guides
+                                         (graph:filter.walls-connected/wall/room graph wall-to-move room)))
+                                   (if (null? guides)
+                                       graph
+                                       (op:glide graph
+                                                 (list@ (element wall-to-move)
+                                                        (constraints
+                                                         (list@ (method 'keep-direction)
+                                                                (guides guides)
+                                                                (traits 'remove-holes)))
+                                                        (movement
+                                                         (list@ (method 'towards)
+                                                                (room room)
+                                                                (unit 'exact)
+                                                                (value (~distance.point-pseq
+                                                                        str-center
+                                                                        (wall-pseq wall-to-move)))))))))
+                                 (cdr walls))
+                          (recur graph (cdr walls)))))))
              graph
              (map (lambda (str) (pseq:centroid (structural-pseq str)))
                   (graph:filter.structurals graph))))
@@ -249,10 +258,11 @@
       add-bath-corridor-container
       add-rest-of-rooms
       merge-residual-space
-      adjust-measures
+      name-rooms
+      snap-to-structurals
       add-doors
       ;; draw-result
-      name-rooms)
+      )
      graph
      (make-world finished-agents '())
      exit)))

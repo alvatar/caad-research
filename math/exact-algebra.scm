@@ -30,6 +30,10 @@
 
 (define (square x) (* x x))
 
+;;; One?
+
+(define one? (curry = 1))
+
 ;;; Exact random
 
 (define (random-exact)
@@ -37,7 +41,7 @@
 
 ;;; Exact random from -1 to +1
 
-(define (random-exact*)
+(define (random-exact+)
   (inexact->exact (fl+ -1.0 (fl* (random-real) 2.0))))
 
 ;-------------------------------------------------------------------------------
@@ -53,7 +57,7 @@
 
 ;;; Normalize value in a range
 
-(define (normalize x lo hi) ; TODO: should check boundaries? yes, if debug
+(define (normalize x lo hi)
   (%accept "value is outside normalization boundaries"
            (or (< x lo)
                (> x hi)))

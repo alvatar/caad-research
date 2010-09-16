@@ -139,19 +139,23 @@
      (aif connected-walls
           null?
           (filter (lambda (w) (pseq:end-point? (wall-pseq w) (first wallp))) inspected-walls)
-          (abort "can't find any wall connected to this one: inconsistency")
+          (error "can't find any wall connected to this one: inconsistency")
           connected-walls)
      (aif connected-walls
           null?
           (filter (lambda (w) (pseq:end-point? (wall-pseq w) (last wallp))) inspected-walls)
-          (abort "can't find any wall connected to this one: inconsistency")
+          (error "can't find any wall connected to this one: inconsistency")
           connected-walls))))
 
 ;;; Find walls connected to a given one in a room
 
 (define (graph:filter.walls-connected/wall/room graph wall room)
-  (map car (values->list (apply/values (curry filter (lambda (w) (graph:room-wall? room w)))
-                                       (graph:filter.walls-connected/wall graph wall)))))
+  (let ((lists (values->list
+                (apply/values (curry filter (lambda (w) (graph:room-wall? room w)))
+                              (graph:filter.walls-connected/wall graph wall)))))
+    (if (any null? lists)
+        '()
+        (map car lists))))
 
 ;;; Find longest wall in room
 
@@ -388,29 +392,34 @@
 ;;; @returns: one side, the other, in-between
 
 (define (graph:partition-windows/point wall split-x)
-  (let ((wall-segment (pseq->segment (wall-pseq wall))))
-    (fold/values (lambda (w a b c)
-                   (let ((window-segment (pseq->segment (window-plan w))))
-                     (let ((window-from
-                            (segment:point->1d-coord wall-segment
-                                                     (segment-a window-segment)))
-                           (window-to
-                            (segment:point->1d-coord wall-segment
-                                                     (segment-b window-segment))))
-                       (cond
-                        ;; both points fall into the first side
-                        ((and (< window-from split-x)
-                              (< window-to split-x))
-                         (values (cons w a) b c))
-                        ;; both points fall into the second side
-                        ((and (> window-from split-x)
-                              (> window-to split-x))
-                         (values a (cons w b) c))
-                        ;; the window is in between
-                        (else
-                         (values a b (cons w c)))))))
-                 '(() () ())
-                 (wall-windows wall))))
+  (let/cc exit
+   (let ((wall-segment (pseq->segment (wall-pseq wall))))
+     (fold/values (lambda (w a b c)
+                    (let ((window-segment (pseq->segment (window-plan w))))
+                      (let ((window-from
+                             (segment:point->1d-coord wall-segment
+                                                      (segment-a window-segment)))
+                            (window-to
+                             (segment:point->1d-coord wall-segment
+                                                      (segment-b window-segment))))
+                        (cond
+                         ;; TODO: HORRIBLE HACK DUE TO SOME NON-COLLINEARITY OF WINDOWS
+                         ((not (and (number? window-from)
+                                    (number? window-to)))
+                          (values #f #f #f))
+                         ;; both points fall into the first side
+                         ((and (< window-from split-x)
+                               (< window-to split-x))
+                          (values (cons w a) b c))
+                         ;; both points fall into the second side
+                         ((and (> window-from split-x)
+                               (> window-to split-x))
+                          (values a (cons w b) c))
+                         ;; the window is in between
+                         (else
+                          (values a b (cons w c)))))))
+                  '(() () ())
+                  (wall-windows wall)))))
 
 ;;; Create two new walls where one was before, given a splitting point
 ;;; @returns 3 vals: 2 new walls + status

@@ -56,8 +56,8 @@
                                                2.0
                                                (lambda (p) (vect2:inexact->exact
                                                        (make-point
-                                                        (+ (point-x p) (* (random-exact*) 0.1))
-                                                        (+ (point-y p) (* (random-exact*) 0.1)))))))
+                                                        (+ (point-x p) (* (random-exact+) 0.1))
+                                                        (+ (point-y p) (* (random-exact+) 0.1)))))))
           (make-agent-simple (cute make-agent <> <> '() '())))
       (lambda (graph agents)
         (map-fold
