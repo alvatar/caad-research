@@ -202,21 +202,23 @@
                            (walls (graph:filter.walls graph)))
                  (if (null? walls)
                      graph
-                      ;; find walls that are too close to a structural
-                     (let ((wall-to-move (car walls)))
-                      (if (and (not (graph:exterior-wall? wall-to-move graph))
+                     ;; find walls that are too close to a structural
+                     (receive
+                      (wall walls-tail)
+                      (car+cdr walls)
+                      (if (and (not (graph:exterior-wall? wall graph))
                                (< (~distance.point-pseq str-center
-                                                        (wall-pseq wall-to-move))
+                                                        (wall-pseq wall))
                                   min-dist-wall-structural))
                           ;; find the room 
                           (recur (let* ((room (find (lambda (r) (graph:point-in-room? graph r str-center))
                                                     (graph:filter.rooms graph)))
                                         (guides
-                                         (graph:filter.walls-connected/wall/room graph wall-to-move room)))
+                                         (graph:filter.walls-connected/wall/room graph wall room)))
                                    (if (null? guides)
                                        graph
                                        (op:glide graph
-                                                 (list@ (element wall-to-move)
+                                                 (list@ (element wall)
                                                         (constraints
                                                          (list@ (method 'keep-direction)
                                                                 (guides guides)
@@ -227,9 +229,9 @@
                                                                 (unit 'exact)
                                                                 (value (~distance.point-pseq
                                                                         str-center
-                                                                        (wall-pseq wall-to-move)))))))))
-                                 (cdr walls))
-                          (recur graph (cdr walls)))))))
+                                                                        (wall-pseq wall)))))))))
+                                 walls-tail)
+                          (recur graph walls-tail))))))
              graph
              (map (lambda (str) (pseq:centroid (structural-pseq str)))
                   (graph:filter.structurals graph))))
@@ -260,6 +262,7 @@
       merge-residual-space
       name-rooms
       snap-to-structurals
+      snap-to-pipe
       add-doors
       ;; draw-result
       )
