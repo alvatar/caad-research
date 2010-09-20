@@ -137,27 +137,25 @@
   (letrec
       ((smart-assq! (let ((short-count 2))
                      (lambda (sym)
-                       (let count-loop ([count 0][alist name-method-alist])
+                       (let count-loop ((count 0) (alist name-method-alist))
                          (cond
-                          [(null? alist) #f] ;; failed
-                          [(eq? sym (caar alist)) (car alist)] ; success
-                          [(< count short-count)
-                           (count-loop (+ count 1) (cdr alist))]
-                          [else ;; ASSERT: (>= count short-count)
-                           (let move-loop ([last alist][current (cdr alist)])
+                          ((null? alist) #f) ;; failed
+                          ((eq? sym (caar alist)) (car alist)) ; success
+                          ((< count short-count)
+                           (count-loop (+ count 1) (cdr alist)))
+                          (else ;; ASSERT: (>= count short-count)
+                           (let move-loop ((last alist) (current (cdr alist)))
                              (cond
-                              [(null? current) #f]      ;; failed
-                              [(eq? sym (caar current)) ; success
+                              ((null? current) #f)      ;; failed
+                              ((eq? sym (caar current)) ; success
                                ;; splice out found
                                (set-cdr! last (cdr current))
                                ;; move found to front
                                (set-cdr! current name-method-alist)
                                (set! name-method-alist current)
                                ;; return found (name . method) pair
-                               (car current)
-                               ]
-                              [else (move-loop (cdr last) (cdr current))]))
-                           ])))))
+                               (car current))
+                              (else (move-loop (cdr last) (cdr current)))))))))))
        (find-method
         (lambda (sym)
           (cond ((eq? sym 'lookup) (lambda (obj) find-method))
@@ -189,8 +187,8 @@
                  (field-names-method (cdr field-names-bucket))
                  (field-names-list (field-names-method obj)))
             (when (memq to-remove field-names-list)
-                  (let ([new-field-names
-                         (remove (lambda-eq? to-remove) field-names-list)])
+                  (let ((new-field-names
+                         (remove (lambda-eq? to-remove) field-names-list)))
                     (set-cdr! field-names-bucket
                               (lambda (self) new-field-names))))))))
     find-method))
@@ -219,7 +217,7 @@
 
 (define (deep-clone obj)
   (let* ((cloned (shallow-clone obj))
-         (del (assq 'delegate [$ methods cloned])))
+         (del (assq 'delegate ($ methods cloned))))
     (when del
           (let* ((delegate ((cdr del) cloned))
                  (cloned-delegate

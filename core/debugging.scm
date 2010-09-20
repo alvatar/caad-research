@@ -88,7 +88,9 @@
 
 (define-macro (%activate-checks) ; TODO: port to nested define-checks with new BH
   '(begin
-     ;; Test the procedure and issue an error if #f, otherwise continue running
+     
+;;; Test the procedure and issue an error if #f, otherwise continue running
+     
      (define-syntax %accept
        (syntax-rules ()
          ((_ test)
@@ -107,7 +109,9 @@
             (if (test result)
                 result
                 (raise msg))))))
-     ;; Test the procedure and issue an error if #t, otherwise continue running
+     
+;;; Test the procedure and issue an error if #t, otherwise continue running
+     
      (define-syntax %deny
        (syntax-rules ()
          ((_ test)

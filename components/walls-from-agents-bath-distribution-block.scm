@@ -262,7 +262,6 @@
       merge-residual-space
       name-rooms
       snap-to-structurals
-      snap-to-pipe
       add-doors
       ;; draw-result
       )
