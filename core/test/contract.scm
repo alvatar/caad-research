@@ -6,7 +6,7 @@
         ../contract)
 
 ;-------------------------------------------------------------------------------
-(test-begin "contracts")
+(test-begin "contracts" 9)
 ;-------------------------------------------------------------------------------
 
 (%activate-contracts)
@@ -29,6 +29,10 @@
                        symbol?))
   (values (* a b) 'ok))
 
+(define·io (ioB a b) ((number? number?) -> ((lambda (x) (and (number? x) (> x 9)))
+                                            symbol?))
+  (values (* a b) 'ok))
+
 (test-equal "input ok" (inputA "say" "hello") 'ok)
 (test-equal "input ok" (inputB 2 2) 'ok)
 (test-error "input bad" (inputB 2 0))
@@ -39,7 +43,8 @@
                       (values 16 'ok)))
 (test-error "input ok - output bad" (ioA 2 2))
 (test-error "input bad - output ?" (ioA 2 "hey!"))
+(test-error "input ok - output bad" (ioB 2 2))
 
 ;-------------------------------------------------------------------------------
 (test-end "contracts")
-;-------------------------------------------------------------------------------
+;------------------------------------------------------------------------------

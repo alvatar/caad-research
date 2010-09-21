@@ -66,11 +66,13 @@
                              (list "output contracts not satisfied"
                                    ?proc)))))))))))))
 
-;;; Input/output contracts
+;;; Input/output contracts (allows using -> as a separator as an alternate syntax)
 
      (define-syntax define·io
-       (syntax-rules ()
+       (syntax-rules (->)
          ((_ (?proc ?args ...) ((?i-contracts ...) (?o-contracts ...)) . ?exprs)
+          (define·io (?proc ?args ...) ((?i-contracts ...) -> (?o-contracts ...)) . ?exprs))
+         ((_ (?proc ?args ...) ((?i-contracts ...) -> (?o-contracts ...)) . ?exprs)
           (define (?proc ?args ...)
             (if (and (?i-contracts ?args) ...)
                 (let ((res (begin . ?exprs)))
