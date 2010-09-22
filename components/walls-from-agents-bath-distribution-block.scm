@@ -101,7 +101,7 @@
 ;;; Second step of wall generation
 
 (define (add-rest-of-rooms graph relief exit)
-  (let ((distribution-direction (car relief))
+  (let ((distribution-direction (car relief))  ; TODO: instead of relief, use room-axis
         (world (cdr relief)))
     (let ((find-next-room-to-partition
            (lambda (graph)
@@ -238,6 +238,32 @@
           world
           exit))
 
+;;; Add bathroom
+
+(define (add-bathroom graph world exit)
+  (let* ((distribution-room (graph:find.room/uid graph "distribution"))
+         #;(new-wall-point ((compose op:cut room&line->context+arguments)
+                          graph
+                          distribution-room
+                          (point&direction->line
+                           (pseq:centroid
+                            (graph:room->pseq
+                             graph
+                             distribution-room))
+                           (direction:perpendicular
+                            (find.direction/longest-midsegment
+                             (graph:room->pseq graph distribution-room))))))) ; TODO: guard for squared rooms
+   (values
+    graph
+    (make-world
+     (cons (world-agents world)
+           (make-agent 'bathroom
+                       (list (make-point 0.0 0.0))
+                       '()
+                       '()))
+     (world-fields world))
+    exit)))
+
 ;;; Add the doors
 
 (define (add-doors graph world exit)
@@ -262,6 +288,7 @@
       merge-residual-space
       name-rooms
       snap-to-structurals
+      add-bathroom
       add-doors
       ;; draw-result
       )

@@ -55,6 +55,14 @@
        (begin (display "UID: ")(display uid)(newline)
               (error "Wall with such UID not found"))))
 
+(define (graph:find.room/uid graph uid)
+  (aif element (find
+                (lambda (r) (equal? uid (room-uid r)))
+                (graph:filter.rooms graph))
+       element
+       (begin (display "uid: ")(display uid)(newline)
+              (error "Room with such UID not found"))))
+
 (define (graph:filter.room-walls graph room)
   (map (lambda (r) (graph:find.wall/uid graph r)) (room-walls room)))
 
