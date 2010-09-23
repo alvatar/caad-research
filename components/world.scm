@@ -7,6 +7,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (import ../geometry/kernel
+        ../geometry/bounding-box
         ../graph-operations
         ../visualization
         agent)

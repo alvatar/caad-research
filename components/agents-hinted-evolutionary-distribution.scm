@@ -14,6 +14,7 @@
         ../core/debugging
         ../geometry/generation
         ../geometry/kernel
+        ../geometry/bounding-box
         ../graph
         ../graph-operations
         ../graph-visualization

@@ -16,7 +16,6 @@
         ../core/syntax
         ../geometry/generation
         ../geometry/kernel
-        ../geometry/locus
         ../geometry/query
         ../graph
         ../graph-visualization
@@ -242,7 +241,7 @@
 
 (define (add-bathroom graph world exit)
   (let* ((distribution-room (graph:find.room/uid graph "distribution"))
-         #;(new-wall-point ((compose op:cut room&line->context+arguments)
+         (new-wall-point ((compose op:cut room&line->context+arguments)
                           graph
                           distribution-room
                           (point&direction->line
@@ -251,18 +250,19 @@
                              graph
                              distribution-room))
                            (direction:perpendicular
-                            (find.direction/longest-midsegment
-                             (graph:room->pseq graph distribution-room))))))) ; TODO: guard for squared rooms
-   (values
-    graph
-    (make-world
-     (cons (world-agents world)
-           (make-agent 'bathroom
-                       (list (make-point 0.0 0.0))
-                       '()
-                       '()))
-     (world-fields world))
-    exit)))
+                            (segment->direction
+                             (find.longest-midsegment
+                              (graph:room->pseq graph distribution-room)))))))) ; TODO: guard for squared rooms
+    (values
+     graph
+     (make-world
+      (cons (world-agents world)
+            (make-agent 'bathroom
+                        (list (make-point 0.0 0.0))
+                        '()
+                        '()))
+      (world-fields world))
+     exit)))
 
 ;;; Add the doors
 

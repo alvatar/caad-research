@@ -13,6 +13,7 @@
         ../core/functional
         ../core/debugging
         ../geometry/kernel
+        ../geometry/bounding-box
         ../graph
         ../graph-operations
         ../math/exact-algebra

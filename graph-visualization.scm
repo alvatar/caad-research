@@ -12,6 +12,7 @@
 
 (import core/list
         geometry/kernel
+        geometry/bounding-box
         math/exact-algebra
         graph-operations
         graph

@@ -16,6 +16,7 @@
         core/syntax
         core/debugging
         geometry/kernel
+        geometry/bounding-box
         math/exact-algebra
         math/inexact-algebra
         graph)
