@@ -169,7 +169,7 @@
 
 ;;; Give the proper name to rooms
 
-(define (name-rooms graph world exit)
+(define (rename-rooms graph world exit)
   (values
    (fold
     (lambda (room graph)
@@ -241,26 +241,36 @@
 
 (define (add-bathroom graph world exit)
   (let* ((distribution-room (graph:find.room/uid graph "distribution"))
-         (new-wall-point ((compose op:cut room&line->context+arguments)
-                          graph
-                          distribution-room
-                          (point&direction->line
-                           (pseq:centroid
-                            (graph:room->pseq
-                             graph
-                             distribution-room))
-                           (direction:perpendicular
-                            (segment->direction
-                             (find.longest-midsegment
-                              (graph:room->pseq graph distribution-room)))))))) ; TODO: guard for squared rooms
+         (longest-midsegment (find.longest-midsegment
+                              (graph:room->pseq graph distribution-room)))
+         (distr-agent-pos (car
+                           (agent-positions
+                            (find (lambda (a) (equal? 'distribution (agent-label a)))
+                                  (world-agents world)))))
+         (longest-midsegment> (if (> (squareddistance.point-point distr-agent-pos
+                                                                  (segment-a longest-midsegment))
+                                     (squareddistance.point-point distr-agent-pos
+                                                                  (segment-b longest-midsegment)))
+                                  longest-midsegment
+                                  (segment:reverse longest-midsegment)))
+         (wall-point (segment:1d-coord->point longest-midsegment> 1/4)) ; TODO: REAL X-COORDS
+         (wall-line (point&direction->line
+                     wall-point
+                     (direction:perpendicular
+                      (segment->direction
+                       longest-midsegment))))
+         (agent-point (segment:1d-coord->point longest-midsegment> 1/5))) ; TODO: REAL X-COORDS
     (values
-     graph
+     ((compose op:cut room&line->context+arguments)
+      graph
+      distribution-room
+      wall-line)
      (make-world
-      (cons (world-agents world)
-            (make-agent 'bathroom
-                        (list (make-point 0.0 0.0))
+      (cons (make-agent 'bathroom
+                        (list agent-point)
                         '()
-                        '()))
+                        '())
+            (world-agents world))
       (world-fields world))
      exit)))
 
@@ -286,9 +296,10 @@
       add-bath-corridor-container
       add-rest-of-rooms
       merge-residual-space
-      name-rooms
+      rename-rooms
       snap-to-structurals
       add-bathroom
+      rename-rooms ; repeat because bathroom was added
       add-doors
       ;; draw-result
       )
