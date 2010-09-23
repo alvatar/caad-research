@@ -253,13 +253,13 @@
                                                                   (segment-b longest-midsegment)))
                                   longest-midsegment
                                   (segment:reverse longest-midsegment)))
-         (wall-point (segment:1d-coord->point longest-midsegment> 1/4)) ; TODO: REAL X-COORDS
+         (wall-point (segment:normalized-1d->point longest-midsegment> 1/4)) ; TODO: REAL X-COORDS
          (wall-line (point&direction->line
                      wall-point
                      (direction:perpendicular
                       (segment->direction
                        longest-midsegment))))
-         (agent-point (segment:1d-coord->point longest-midsegment> 1/5))) ; TODO: REAL X-COORDS
+         (agent-point (segment:normalized-1d->point longest-midsegment> 1/5))) ; TODO: REAL X-COORDS
     (values
      ((compose op:cut room&line->context+arguments)
       graph

@@ -139,7 +139,7 @@
                               (primary-guide primary-mirror secondary-guide secondary-mirror)
                               ;; calculate the movement direction
                               (let ((movement-line (point&direction->line
-                                                    (segment:1d-coord->point element-segment 1/2)
+                                                    (segment:normalized-1d->point element-segment 1/2)
                                                     (direction:perpendicular
                                                      (segment->direction element-segment)))))
                                 ;; TODO!! Now trajectory only considers segment guide, not chained walls
@@ -179,7 +179,7 @@
                                     (let*-values
                                         ;; find points of new wall's segment
                                         (((primary-point)
-                                          (segment:1d-coord->point primary-guide-segment> value))
+                                          (segment:normalized-1d->point primary-guide-segment> value))
                                          ((secondary-point)
                                           (intersect.line-segment
                                            (point&direction->line primary-point
@@ -188,7 +188,7 @@
                                          ((primary-point-1d secondary-point-1d)
                                           ;; choose the proper measuring unit (probably this should come lower in hierarchy)
                                           (values value
-                                                  (segment:point->1d-coord
+                                                  (segment:point->normalized-1d
                                                    secondary-guide-segment>
                                                    secondary-point)))
                                          ;; partition holes depending on the side of the wall the fall in given the previous points
@@ -257,13 +257,13 @@
                                            secondary-mirror
                                            secondary-mirror-segment>
                                            ;; for the mirror of the guides we need the relative point (out of 0-1 range!)
-                                           (segment:point->1d-coord* secondary-mirror-segment> secondary-point)
+                                           (segment:point->normalized-1d* secondary-mirror-segment> secondary-point)
                                            w-secondary-second-side)
                                           primary-point
                                           primary-mirror
                                           primary-mirror-segment>
                                           ;; ditto
-                                          (segment:point->1d-coord* primary-mirror-segment> primary-point)
+                                          (segment:point->normalized-1d* primary-mirror-segment> primary-point)
                                           w-primary-second-side)
                                          secondary-point
                                          secondary-guide
@@ -387,8 +387,8 @@
                             new-wall-uid
                             '((type "new"))
                             (list
-                             (pseq:1d-coord->point (wall-pseq first-wall) first-split-point)
-                             (pseq:1d-coord->point (wall-pseq second-wall) second-split-point))
+                             (pseq:normalized-1d->point (wall-pseq first-wall) first-split-point)
+                             (pseq:normalized-1d->point (wall-pseq second-wall) second-split-point))
                             '()
                             '())
                           ;; Split touched walls at the splitting point (add 2 new ones)

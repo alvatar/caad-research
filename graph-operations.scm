@@ -85,7 +85,7 @@
     (any (lambda (room) (graph:point-in-room? graph room p))
          (graph:filter.rooms graph)))
   (let* ((wall-points (wall-pseq wall))
-         (mid-p (pseq:1d-coord->point wall-points 1/2))
+         (mid-p (pseq:normalized-1d->point wall-points 1/2))
          (tangent-p (pseq:tangent-in-relative wall-points 1/2))
          (p1 (rotate.point/ref mid-p
                                (vect2+ mid-p
@@ -266,7 +266,7 @@
                      (and
                       (point? intersection)
                       (list wall
-                            (segment:point->1d-coord
+                            (segment:point->normalized-1d
                              (pseq->segment (wall-pseq wall))
                              intersection)))))
                  (zip walls intersections)))))
@@ -406,11 +406,11 @@
      (fold/values (lambda (w a b c)
                     (let ((window-segment (pseq->segment (window-plan w))))
                       (let ((window-from
-                             (segment:point->1d-coord wall-segment
-                                                      (segment-a window-segment)))
+                             (segment:point->normalized-1d wall-segment
+                                                           (segment-a window-segment)))
                             (window-to
-                             (segment:point->1d-coord wall-segment
-                                                      (segment-b window-segment))))
+                             (segment:point->normalized-1d wall-segment
+                                                           (segment-b window-segment))))
                         (cond
                          ;; TODO: HORRIBLE HACK DUE TO SOME NON-COLLINEARITY OF WINDOWS
                          ((not (and (number? window-from)
@@ -435,7 +435,7 @@
 
 (define (graph:split-wall wall split-x uuid1 uuid2) ; TODO: make segment-based walls
   (let ((wall-pseq (wall-pseq wall)))
-    (let ((split-point (pseq:1d-coord->point wall-pseq split-x))
+    (let ((split-point (pseq:normalized-1d->point wall-pseq split-x))
           (first-point (first wall-pseq))
           (second-point (last wall-pseq)))
       (receive (first-side-windows second-side-windows splitted-windows)

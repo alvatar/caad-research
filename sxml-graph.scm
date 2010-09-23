@@ -192,13 +192,13 @@
      ,@(map (lambda (w)
               (%accept (window? w))
               (let ((window-from
-                     (segment:point->1d-coord (pseq->segment wall-pseq)
-                                              (segment-a (pseq->segment
-                                                          (window-plan w)))))
+                     (segment:normalized-1d->point (pseq->segment wall-pseq)
+                                                   (segment-a (pseq->segment
+                                                               (window-plan w)))))
                     (window-to
-                     (segment:point->1d-coord (pseq->segment wall-pseq)
-                                              (segment-b (pseq->segment
-                                                          (window-plan w))))))
+                     (segment:normalized-1d->point (pseq->segment wall-pseq)
+                                                   (segment-b (pseq->segment
+                                                               (window-plan w))))))
                 `(window (@ (from ,(number->string
                                     (exact->inexact window-from)))
                             (to ,(number->string
@@ -363,7 +363,7 @@
                                   wall)
          (let ((entry-point (sxml:entry-wall-point entry))
                (wallp (sxml:wall->pseq wall)))
-           (let ((center (pseq:1d-coord->point wallp entry-point))
+           (let ((center (pseq:normalized-1d->point wallp entry-point))
                  (direction (vect2:inexact->exact
                              (pseq:~normalized-tangent-in-relative wallp entry-point)))) ; TODO: WRONG! normalized!
              (list (vect2+ center (vect2:*scalar direction #e0.4))
