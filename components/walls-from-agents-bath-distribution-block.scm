@@ -240,7 +240,8 @@
 ;;; Add bathroom
 
 (define (add-bathroom graph world exit)
-  (let* ((distribution-room (graph:find.room/uid graph "distribution"))
+  (let* ((bathroom-depth #e2)
+         (distribution-room (graph:find.room/uid graph "distribution"))
          (longest-midsegment (find.longest-midsegment
                               (graph:room->pseq graph distribution-room)))
          (distr-agent-pos (car
@@ -253,13 +254,13 @@
                                                                   (segment-b longest-midsegment)))
                                   longest-midsegment
                                   (segment:reverse longest-midsegment)))
-         (wall-point (segment:normalized-1d->point longest-midsegment> 1/4)) ; TODO: REAL X-COORDS
+         (wall-point (segment:1d-coord->point longest-midsegment> bathroom-depth))
          (wall-line (point&direction->line
                      wall-point
                      (direction:perpendicular
                       (segment->direction
                        longest-midsegment))))
-         (agent-point (segment:normalized-1d->point longest-midsegment> 1/5))) ; TODO: REAL X-COORDS
+         (agent-point (segment:1d-coord->point longest-midsegment> (/ bathroom-depth 2))))
     (values
      ((compose op:cut room&line->context+arguments)
       graph
