@@ -254,13 +254,15 @@
                                                                   (segment-b longest-midsegment)))
                                   longest-midsegment
                                   (segment:reverse longest-midsegment)))
-         (wall-point (segment:1d-coord->point longest-midsegment> bathroom-depth))
+         (wall-point (vect2:inexact->exact
+                      (segment:~1d-coord->point longest-midsegment> bathroom-depth)))
          (wall-line (point&direction->line
                      wall-point
                      (direction:perpendicular
                       (segment->direction
                        longest-midsegment))))
-         (agent-point (segment:1d-coord->point longest-midsegment> (/ bathroom-depth 2))))
+         (agent-point (vect2:inexact->exact
+                       (segment:~1d-coord->point longest-midsegment> (/ bathroom-depth 2)))))
     (values
      ((compose op:cut room&line->context+arguments)
       graph
@@ -302,7 +304,7 @@
       add-bathroom
       rename-rooms ; repeat because bathroom was added
       add-doors
-      ;; draw-result
+      draw-result
       )
      graph
      (make-world finished-agents '())
