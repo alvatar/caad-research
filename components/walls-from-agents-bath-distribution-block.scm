@@ -32,70 +32,71 @@
 
 ;;; First step of wall generation
 
-(define (add-bath-corridor-container graph world exit)
-  (let ((corridor-width #e1.6)
-        (push-away-non-corridor-agents
-         (lambda (graph)
-           (let ((agents (world-agents world)))
-             (aif wrong-agents
-                  null?
-                  ;; Find out if there are any wrong agents inside the corridor container
-                  (remove
-                   (lambda (a) (eq? (agent-label a) 'distribution))
-                   (find.agents-in-room graph
-                                        agents
-                                        (find.room/agent graph agents 'distribution)))
-                  world
-                  (make-world
-                   ;; Map all the agents -> move the wrong agents
-                   (map-if (lambda (a) (any (lambda (wa) (eq? (agent-label wa) (agent-label a))) wrong-agents))
-                           (lambda (a) (move-agent-head
-                                   a
-                                   (let ((p (agent-head-position a)))
-                                     ;; It will choose another wall if the agent ends up outside
-                                     (let cycle-nearest-walls ((sorted-walls (sort.distance.agent<->walls graph a)))
-                                       (let ((wpseq (wall-pseq (car sorted-walls))))
-                                         (aif valid-point
-                                              (lambda (vp) (graph:point-inside? graph vp))
-                                              (vect2:inexact->exact
-                                               (vect2+ (vect2:*scalar
-                                                        (vect2:~normalize
-                                                         (point&pseq-perpendicular->direction p wpseq))
-                                                        (+ (sqrt (~distance.point-pseq p wpseq)) 1)) ; 1 m. away from wall
-                                                       p))
-                                              valid-point
-                                              (cycle-nearest-walls (cdr sorted-walls))))))))
-                           agents)
-                   '()))))))
-    (receive (parallel-1 parallel-2)
-             (generate.parallels-at-distance (let ((base-point
-                                                    (car (agent-positions
-                                                          (find-agent (world-agents world)
-                                                                      'distribution)))))
-                                               (point&direction->line
-                                                base-point
-                                                (direction:perpendicular
-                                                 (segment->direction
-                                                  (pseq->segment
-                                                   (wall-pseq
-                                                    (graph:nearest-wall graph base-point)))))))
-                                             (/ corridor-width 2))
+(define add-bath-corridor-container
+  (let ((corridor-width #e1.6))
+    (lambda (graph world exit)
+       (let ((push-away-non-corridor-agents
+              (lambda (graph)
+                (let ((agents (world-agents world)))
+                  (aif wrong-agents
+                       null?
+                       ;; Find out if there are any wrong agents inside the corridor container
+                       (remove
+                        (lambda (a) (eq? (agent-label a) 'distribution))
+                        (find.agents-in-room graph
+                                             agents
+                                             (find.room/agent graph agents 'distribution)))
+                       world
+                       (make-world
+                        ;; Map all the agents -> move the wrong agents
+                        (map-if (lambda (a) (any (lambda (wa) (eq? (agent-label wa) (agent-label a))) wrong-agents))
+                                (lambda (a) (move-agent-head
+                                        a
+                                        (let ((p (agent-head-position a)))
+                                          ;; It will choose another wall if the agent ends up outside
+                                          (let cycle-nearest-walls ((sorted-walls (sort.distance.agent<->walls graph a)))
+                                            (let ((wpseq (wall-pseq (car sorted-walls))))
+                                              (aif valid-point
+                                                   (lambda (vp) (graph:point-inside? graph vp))
+                                                   (vect2:inexact->exact
+                                                    (vect2+ (vect2:*scalar
+                                                             (vect2:~normalize
+                                                              (point&pseq-perpendicular->direction p wpseq))
+                                                             (+ (sqrt (~distance.point-pseq p wpseq)) 1)) ; 1 m. away from wall
+                                                            p))
+                                                   valid-point
+                                                   (cycle-nearest-walls (cdr sorted-walls))))))))
+                                agents)
+                        '()))))))
+         (receive (parallel-1 parallel-2)
+                  (generate.parallels-at-distance (let ((base-point
+                                                         (car (agent-positions
+                                                               (find-agent (world-agents world)
+                                                                           'distribution)))))
+                                                    (point&direction->line
+                                                     base-point
+                                                     (direction:perpendicular
+                                                      (segment->direction
+                                                       (pseq->segment
+                                                        (wall-pseq
+                                                         (graph:nearest-wall graph base-point)))))))
+                                                  (/ corridor-width 2))
                                         ;(visualization:line-now parallel-1)
                                         ;(visualization:line-now parallel-2)
-             ;; TODO: IMPORTANT if too close to a wall, add only one
-             (let ((new-graph
-                    ((compose op:cut line->context+arguments)
-                     ((compose op:cut line->context+arguments)
-                      graph
-                      parallel-1)
-                     parallel-2)))
-               (values
-                new-graph
-                ;; Passes also the distribution direction
-                (cons (line->direction parallel-1)
-                      ;; Push away all agents that fall inside the corridor
-                      (push-away-non-corridor-agents new-graph))
-                exit)))))
+                  ;; TODO: IMPORTANT if too close to a wall, add only one
+                  (let ((new-graph
+                         ((compose op:cut line->context+arguments)
+                          ((compose op:cut line->context+arguments)
+                           graph
+                           parallel-1)
+                          parallel-2)))
+                    (values
+                     new-graph
+                     ;; Passes also the distribution direction
+                     (cons (line->direction parallel-1)
+                           ;; Push away all agents that fall inside the corridor
+                           (push-away-non-corridor-agents new-graph))
+                     exit)))))))
 
 ;;; Second step of wall generation
 
@@ -192,50 +193,52 @@
 
 ;;; Adjust the measures of the spaces to snap near structurals
 
-(define (snap-to-structurals graph world exit)
-  (values (let ((min-dist-wall-structural 1.0))
-            (fold
-             (lambda (str-center graph)
-               ;; adjust each wall to the current structural
-               (let recur ((graph graph)
-                           (walls (graph:filter.walls graph)))
-                 (if (null? walls)
-                     graph
-                     ;; find walls that are too close to a structural
-                     (receive
-                      (wall walls-tail)
-                      (car+cdr walls)
-                      (if (and (not (graph:exterior-wall? wall graph))
-                               (< (~distance.point-pseq str-center
-                                                        (wall-pseq wall))
-                                  min-dist-wall-structural))
-                          ;; find the room 
-                          (recur (let* ((room (find (lambda (r) (graph:point-in-room? graph r str-center))
-                                                    (graph:filter.rooms graph)))
-                                        (guides
-                                         (graph:filter.walls-connected/wall/room graph wall room)))
-                                   (if (null? guides)
-                                       graph
-                                       (op:glide graph
-                                                 (list@ (element wall)
-                                                        (constraints
-                                                         (list@ (method 'keep-direction)
-                                                                (guides guides)
-                                                                (traits 'remove-holes)))
-                                                        (movement
-                                                         (list@ (method 'towards)
-                                                                (room room)
-                                                                (unit 'exact)
-                                                                (value (~distance.point-pseq
-                                                                        str-center
-                                                                        (wall-pseq wall)))))))))
-                                 walls-tail)
-                          (recur graph walls-tail))))))
-             graph
-             (map (lambda (str) (pseq:centroid (structural-pseq str)))
-                  (graph:filter.structurals graph))))
-          world
-          exit))
+(define snap-to-structurals
+  (let ((min-dist-wall-structural 1.0))
+    (lambda (graph world exit)
+      (values
+       (fold
+        (lambda (str-center graph)
+          ;; adjust each wall to the current structural
+          (let recur ((graph graph)
+                      (walls (graph:filter.walls graph)))
+            (if (null? walls)
+                graph
+                ;; find walls that are too close to a structural
+                (receive
+                 (wall walls-tail)
+                 (car+cdr walls)
+                 (if (and (not (graph:exterior-wall? wall graph))
+                          (< (~distance.point-pseq str-center
+                                                   (wall-pseq wall))
+                             min-dist-wall-structural))
+                     ;; find the room 
+                     (recur (let* ((room (find (lambda (r) (graph:point-in-room? graph r str-center))
+                                               (graph:filter.rooms graph)))
+                                   (guides
+                                    (graph:filter.walls-connected/wall/room graph wall room)))
+                              (if (null? guides)
+                                  graph
+                                  (op:glide graph
+                                            (list@ (element wall)
+                                                   (constraints
+                                                    (list@ (method 'keep-direction)
+                                                           (guides guides)
+                                                           (traits 'remove-holes)))
+                                                   (movement
+                                                    (list@ (method 'towards)
+                                                           (room room)
+                                                           (unit 'exact)
+                                                           (value (~distance.point-pseq
+                                                                   str-center
+                                                                   (wall-pseq wall)))))))))
+                            walls-tail)
+                     (recur graph walls-tail))))))
+        graph
+        (map (lambda (str) (pseq:centroid (structural-pseq str)))
+             (graph:filter.structurals graph)))
+       world
+       exit))))
 
 ;;; Add bathroom
 
@@ -279,8 +282,44 @@
 
 ;;; Add the doors
 
-(define (add-doors graph world exit)
-  (values graph world exit))
+(define add-doors
+  (let ((door-start 0.2)                ; 20 cm.
+        (door-size 0.7))                ; 70 cm.
+    (lambda (graph world exit)
+      (receive
+       (distr other-spaces)
+       (partition (lambda (s) (equal? "distribution" (room-uid s)))
+                  (graph:filter.rooms graph))
+       (values
+        (let ((distr (car distr)))
+          (fold (lambda (s graph)
+                  (let ((common (graph:filter.common-room-walls s distr)))
+                    (if (null? common)
+                        (exit #f #f #f) ; shortcircuit generation if no common walls found
+                        (let* ((chosen-wall (graph:find.wall/uid graph (car common)))
+                               ;; TODO: picks the first common wall just because is easy
+                               (chosen-segment (pseq->segment
+                                                (wall-pseq
+                                                 chosen-wall))))
+                          (if (> (segment:~length chosen-segment)
+                                 0.9)
+                              (graph:update-element
+                               graph
+                               chosen-wall
+                               'windows
+                               (list
+                                (make-window
+                                 (list
+                                  (vect2:inexact->exact
+                                   (segment:~1d-coord->point chosen-segment door-start))
+                                  (vect2:inexact->exact
+                                   (segment:~1d-coord->point chosen-segment (+ door-start
+                                                                               door-size)))))))
+                              (exit #f #f #f)))))) ; TODO: currently shortcircuits too small walls
+                graph
+                other-spaces))
+        world
+        exit)))))
 
 ;;; Utility drawing step
 

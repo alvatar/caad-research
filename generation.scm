@@ -27,27 +27,28 @@
 
 (define (generate/graph steps)
   (letrec ((execute-step
-            (lambda (steps graph world)
+            (lambda (steps-tail graph world)
               (cond
-               ((null? steps) graph)
+               ((null? steps-tail) graph)
                (else
                 (receive (g w k)
-                         (call/cc (lambda (k) ((car steps) graph world k)))
-                         (if (not g)
-                             (execute-step steps graph world)
-                             (execute-step (cdr steps) g w))))))))
+                         (call/cc (lambda (k) ((car steps-tail) graph world k)))
+                         (if g
+                             (execute-step (cdr steps-tail) g w)
+                             (execute-step steps graph world))))))))
     (lambda (input)
       (execute-step steps (graph:fix.everything input) #f))))
 
 ;;; Generate simply following the steps, no input
 
 (define (generate steps)
+  (error "re-implement like generate/graph")
   (letrec ((execute-step
             (lambda (steps graph world)
               (cond
                ((null? steps) graph)
                (else
-                (receive (g w)
+                (receive (g w k)
                          (call/cc (lambda (k) ((car steps) graph world k)))
                          (execute-step (cdr steps) g w)))))))
     (lambda (input)
