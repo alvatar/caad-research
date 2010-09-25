@@ -100,8 +100,12 @@
           ((type self) 'wall)
           ((->string self) (string-append
                             (format " $wall: ~a ~%" (->string segment))
-                            (if (null? windows) "" (string-concatenate (map ->string windows)))
-                            (if (null? doors) "" (string-concatenate (map ->string doors)))))))
+                            (if (null? windows)
+                                ""
+                                (string-concatenate (map ->string windows)))
+                            (if (null? doors)
+                                ""
+                                (string-concatenate (map ->string doors)))))))
 (define make-wall new-wall)
 (define (wall-uid instance) ($ uid instance))
 (define (wall-metadata instance) ($ metadata instance))
@@ -116,8 +120,9 @@
   (object ((plan plan))
           ((window? self) #t)
           ((type self) 'window)
-          ((->string self) (format "  $window: ~a ~%" (map vect2:exact->inexact
-                                                           plan)))))
+          ((->string self) (format "  $window: ~a ~%"
+                                   (map vect2:exact->inexact
+                                        plan)))))
 (define make-window new-window)
 (define (window-plan instance) ($ plan instance))
 
