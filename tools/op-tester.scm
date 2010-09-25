@@ -16,6 +16,7 @@
         ../core/list
         ../core/prototype
         ../input
+        ../geometry/bounding-box
         ../geometry/kernel
         ../geometry/generation
         ../graph-visualization

@@ -55,14 +55,15 @@
                                         (let ((p (agent-head-position a)))
                                           ;; It will choose another wall if the agent ends up outside
                                           (let cycle-nearest-walls ((sorted-walls (sort.distance.agent<->walls graph a)))
-                                            (let ((wpseq (wall-pseq (car sorted-walls))))
+                                            (let ((wall-seg (wall-segment (car sorted-walls))))
                                               (aif valid-point
                                                    (lambda (vp) (graph:point-inside? graph vp))
                                                    (vect2:inexact->exact
                                                     (vect2+ (vect2:*scalar
                                                              (vect2:~normalize
-                                                              (point&pseq-perpendicular->direction p wpseq))
-                                                             (+ (sqrt (~distance.point-pseq p wpseq)) 1)) ; 1 m. away from wall
+                                                              (point&pseq-perpendicular->direction p (segment->pseq ; TODO: segment conversion
+                                                                                                      wall-seg)))
+                                                             (+ (sqrt (~distance.point-segment p wall-seg)) 1)) ; 1 m. away from wall
                                                             p))
                                                    valid-point
                                                    (cycle-nearest-walls (cdr sorted-walls))))))))
@@ -77,9 +78,8 @@
                                                      base-point
                                                      (direction:perpendicular
                                                       (segment->direction
-                                                       (pseq->segment
-                                                        (wall-pseq
-                                                         (graph:nearest-wall graph base-point)))))))
+                                                       (wall-segment
+                                                        (graph:nearest-wall graph base-point))))))
                                                   (/ corridor-width 2))
                                         ;(visualization:line-now parallel-1)
                                         ;(visualization:line-now parallel-2)
@@ -209,8 +209,8 @@
                  (wall walls-tail)
                  (car+cdr walls)
                  (if (and (not (graph:exterior-wall? wall graph))
-                          (< (~distance.point-pseq str-center
-                                                   (wall-pseq wall))
+                          (< (~distance.point-segment str-center
+                                                      (wall-segment wall))
                              min-dist-wall-structural))
                      ;; find the room 
                      (recur (let* ((room (find (lambda (r) (graph:point-in-room? graph r str-center))
@@ -229,9 +229,9 @@
                                                     (list@ (method 'towards)
                                                            (room room)
                                                            (unit 'exact)
-                                                           (value (~distance.point-pseq
+                                                           (value (~distance.point-segment
                                                                    str-center
-                                                                   (wall-pseq wall)))))))))
+                                                                   (wall-segment wall)))))))))
                             walls-tail)
                      (recur graph walls-tail))))))
         graph
@@ -298,9 +298,8 @@
                         (exit #f #f #f) ; shortcircuit generation if no common walls found
                         (let* ((chosen-wall (graph:find.wall/uid graph (car common)))
                                ;; TODO: picks the first common wall just because is easy
-                               (chosen-segment (pseq->segment
-                                                (wall-pseq
-                                                 chosen-wall))))
+                               (chosen-segment (wall-segment
+                                                chosen-wall)))
                           (if (> (segment:~length chosen-segment)
                                  0.9)
                               (graph:update-element

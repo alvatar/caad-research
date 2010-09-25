@@ -94,9 +94,9 @@
                              "wrong guides used for constraining")
                       (let ((guide-1 (car guides))
                             (guide-2 (cadr guides)))
-                        (let ((guide-1-segment (pseq->segment (wall-pseq guide-1)))
-                              (guide-2-segment (pseq->segment (wall-pseq guide-2)))
-                              (element-segment (pseq->segment (wall-pseq element))))
+                        (let ((guide-1-segment (wall-segment guide-1))
+                              (guide-2-segment (wall-segment guide-2))
+                              (element-segment (wall-segment element)))
                           ;; get the two groups of walls connected to each guide
                           (receive
                            ;; nodes are all the set of walls connected to a wall
@@ -116,7 +116,7 @@
                                   (lambda (wall-knot guide)
                                     (or (null? wall-knot)
                                         (and (length= wall-knot 1)
-                                             (segment:parallel-segment? (pseq->segment (wall-pseq (car wall-knot)))
+                                             (segment:parallel-segment? (wall-segment (car wall-knot))
                                                                         guide))))))
                              ;; both knots must be different, otherwise something is wrong
                              (abort (equal? knot-1 knot-2)
@@ -157,7 +157,7 @@
                               ;; direction matters to make some of the next parts easier
                               (let ((proper-segment-order (lambda (w) (aif segment
                                                                       (lambda (s) (segment:end-point? element-segment (segment-a s)))
-                                                                      (pseq->segment (wall-pseq w))
+                                                                      (wall-segment w)
                                                                       segment
                                                                       (segment:reverse segment)))))
                                 (let ((primary-guide-segment> (proper-segment-order primary-guide))
@@ -210,11 +210,11 @@
                                                 (graph:update-element
                                                  graph
                                                  update-wall
-                                                 '(pseq windows)
+                                                 '(segment windows)
                                                  (cond ((segment:end-point? element-segment (segment-a update-segment))
-                                                        (list fixed-point (segment-b update-segment)))
+                                                        (make-segment fixed-point (segment-b update-segment)))
                                                        ((segment:end-point? element-segment (segment-b update-segment))
-                                                        (list (segment-a update-segment) fixed-point))
+                                                        (make-segment (segment-a update-segment) fixed-point))
                                                        (else (raise "can't find the proper guide end point to move")))
                                                  ;; negative origin implies expanding wall  -0.5-----X------0.5----->1.0
                                                  (if (< new-origin 0)
@@ -233,11 +233,11 @@
                                                    (graph:update-element
                                                     graph
                                                     update-wall
-                                                    '(pseq windows)
+                                                    '(segment windows)
                                                     (cond ((segment:end-point? element-segment (segment-a update-segment))
-                                                           (list fixed-point (segment-b update-segment)))
+                                                           (make-segment fixed-point (segment-b update-segment)))
                                                           ((segment:end-point? element-segment (segment-b update-segment))
-                                                           (list (segment-a update-segment) fixed-point))
+                                                           (make-segment (segment-a update-segment) fixed-point))
                                                           (else (raise "can't find the proper guide end point to move")))
                                                     ;; TODO: recalculate windows and choose the right ones!
                                                     '())))
@@ -276,14 +276,14 @@
                                         primary-point-1d
                                         w-primary-first-side)
                                        element
-                                       'pseq
+                                       'segment
                                        (if holes-ok?
-                                           (list primary-point secondary-point)
+                                           (make-segment primary-point secondary-point)
                                            (case traits
                                              ((respect-holes)
-                                              (wall-pseq element))
+                                              (wall-segment element))
                                              (else
-                                              (list primary-point secondary-point))))))))))))))))
+                                              (make-segment primary-point secondary-point))))))))))))))))
                (else (raise "unknown constraining method"))))
             ((window? element)
              (raise "glide windows not implemented"))
@@ -352,7 +352,7 @@
                                                         first-split-point)))
                                (if (pseq:end-point?
                                     (graph:wall-list->pseq (map (lambda (u) (graph:find.wall/uid graph u)) (cdr fore)))
-                                    (first (wall-pseq first-wall)))
+                                    (segment-a (wall-segment first-wall)))
                                    (create-walls first-wall-uid-1-half first-wall-uid-2-half)
                                    (create-walls first-wall-uid-2-half first-wall-uid-1-half))))
                             ((splitted-wall-2a splitted-wall-2b split-status)
@@ -361,7 +361,7 @@
                                                         second-split-point)))
                                (if (pseq:end-point?
                                     (graph:wall-list->pseq (map (lambda (u) (graph:find.wall/uid graph u)) (cdr aft)))
-                                    (first (wall-pseq second-wall)))
+                                    (segment-a (wall-segment second-wall)))
                                    (create-walls second-wall-uid-1-half second-wall-uid-2-half)
                                    (create-walls second-wall-uid-2-half second-wall-uid-1-half)))))
                  (let
@@ -386,9 +386,9 @@
                           ,(make-wall
                             new-wall-uid
                             '((type "new"))
-                            (list
-                             (pseq:normalized-1d->point (wall-pseq first-wall) first-split-point)
-                             (pseq:normalized-1d->point (wall-pseq second-wall) second-split-point))
+                            (make-segment
+                             (segment:normalized-1d->point (wall-segment first-wall) first-split-point)
+                             (segment:normalized-1d->point (wall-segment second-wall) second-split-point))
                             '()
                             '())
                           ;; Split touched walls at the splitting point (add 2 new ones)

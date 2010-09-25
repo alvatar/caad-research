@@ -46,7 +46,8 @@
          (visualization:paint-set-color backend 0.1 0.1 0.1 1.0)
          (visualization:paint-set-line-cap backend 'square)
          (visualization:paint-set-line-width backend .15)
-         (visualization:paint-path backend (wall-pseq wall))
+         (visualization:paint-path backend (segment->pseq ; TODO: make a paint-segment
+                                            (wall-segment wall)))
          (paint-windows-in-wall wall)
          (paint-doors-in-wall wall))
        ;; Paint doors in the wall
@@ -84,7 +85,7 @@
          (visualization:paint-polygon backend (graph:room->pseq graph room)))
        ;; Paint entry
        (define (paint-entry entry)
-         (let ((door-mid-point (segment:mid-point (pseq->segment (entry-pseq entry)))))
+         (let ((door-mid-point (segment:mid-point (pseq->segment (entry-pseq entry))))) ; TODO: pseq:centroid?!
            (visualization:paint-set-color backend 1.0 0.45 0.45 0.4)
            (visualization:paint-circle-fill backend
                                             (vect2-x door-mid-point)

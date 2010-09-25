@@ -64,7 +64,7 @@
 ;;   (position pipe-position))
 
 (define-type graph uid environment architecture)
-(define-type wall uid metadata pseq windows doors)
+(define-type wall uid metadata segment windows doors)
 (define-type window plan)
 (define-type door pseq from to)
 (define-type room uid walls)

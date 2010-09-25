@@ -158,10 +158,10 @@
 
 ;;; Get coordinate from point
 
-(define (sxml:archpoint-coord coordinate point)
+(define (sxml:archpoint-coord coord point)
   (inexact->exact
    (string->number
-    (cadr (find (lambda (p) (equal? (car p) coordinate)) point)))))
+    (cadr (find (lambda (p) (equal? coord (car p))) (cdr point))))))
 
 ;;; Get point n from point list
 
@@ -181,22 +181,24 @@
 ;;; Make a SXML wall
 
 (define (sxml:make-wall e)
-  (let ((wall-pseq (wall-pseq e)))
+  (let ((wall-seg (wall-segment e)))
    `(wall
      (@ (uid ,(wall-uid e))
         ,(assoc 'type (wall-metadata e)))
-     ,@(map (lambda (p)
-              (%accept (point? p))
-              (sxml:point->archpoint p))
-            wall-pseq)
+     ;; ,@(map (lambda (p)
+     ;;          (%accept (point? p))
+     ;;          (sxml:point->archpoint p))
+     ;;        wall-pseq)
+     ,(sxml:point->archpoint (segment-a wall-seg))
+     ,(sxml:point->archpoint (segment-b wall-seg))
      ,@(map (lambda (w)
               (%accept (window? w))
               (let ((window-from
-                     (segment:normalized-1d->point (pseq->segment wall-pseq)
+                     (segment:normalized-1d->point wall-seg
                                                    (segment-a (pseq->segment
                                                                (window-plan w)))))
                     (window-to
-                     (segment:normalized-1d->point (pseq->segment wall-pseq)
+                     (segment:normalized-1d->point wall-seg
                                                    (segment-b (pseq->segment
                                                                (window-plan w))))))
                 `(window (@ (from ,(number->string
@@ -242,13 +244,16 @@
 
 ;;; Convert a wall into a list of points
 
-(define (sxml:wall->pseq wall)
-  (map (lambda (p) (sxml:archpoint->point (cdr p))) (sxml:wall-points wall)))
+(define (sxml:wall->segment wall)
+  (let ((wall-points (sxml:wall-points wall)))
+    (%accept (length= wall-points 2) "A SXML wall needs to have exactly 2 points")
+    (make-segment (sxml:archpoint->point (car wall-points))
+                  (sxml:archpoint->point (cadr wall-points)))))
 
 ;;; Convert a list of walls into a list of segments
 
-(define (sxml:wall-list->pseq-list walls)
-  (map (lambda (w) (sxml:wall->pseq w)) walls))
+(define (sxml:wall-list->segment-list walls)
+  (map (lambda (w) (sxml:wall->segment w)) walls))
 
 ;;; Find the element with that specific uid
 
@@ -284,7 +289,8 @@
 ;;; Calculate wall element (door, wall...) points a list
 
 (define (sxml:wall-element->pseq element wall)
-  (pseq:slice (sxml:wall->pseq wall)
+  (pseq:slice (segment->pseq
+               (sxml:wall->segment wall))
               (sxml:wall-element-relative-points 'from element)
               (sxml:wall-element-relative-points 'to element)))
 
@@ -331,7 +337,7 @@
 ;;; Get the pipe's position
 
 (define (sxml:pipe->center-position pipe)
-  (sxml:archpoint->point ((sxpath '(@ *)) pipe)))
+  (sxml:archpoint->point (car ((sxpath '(@)) pipe))))
 
 ;;; Get all centers of a pipe list
 
@@ -362,10 +368,12 @@
          (sxml:wall-element->pseq (list-ref doors door-number)
                                   wall)
          (let ((entry-point (sxml:entry-wall-point entry))
-               (wallp (sxml:wall->pseq wall)))
-           (let ((center (pseq:normalized-1d->point wallp entry-point))
+               (wall-seg (sxml:wall->segment wall)))
+           (let ((center (segment:normalized-1d->point wall-seg entry-point))
                  (direction (vect2:inexact->exact
-                             (pseq:~normalized-tangent-in-relative wallp entry-point)))) ; TODO: WRONG! normalized!
+                             (pseq:~normalized-tangent-in-relative (segment->pseq ; TODO: ??
+                                                                    wall-seg)
+                                                                   entry-point)))) ; TODO: WRONG! normalized!
              (list (vect2+ center (vect2:*scalar direction #e0.4))
                    (vect2+ center (vect2:*scalar (direction:reverse direction) #e0.4)))))))))
 
@@ -417,7 +425,7 @@
 ;;; Get the structural as a list of points
 
 (define (sxml:structural->pseq graph structural)
-  (let* ((center (sxml:archpoint->point ((sxpath '(center @ *)) structural)))
+  (let* ((center (sxml:archpoint->point (car ((sxpath '(center @)) structural))))
          (dimensions ((sxpath '(dim @ *)) structural))
          (a (inexact->exact (string->number (cadadr dimensions))))
          (b (inexact->exact (string->number (cadar dimensions))))
@@ -454,7 +462,7 @@
               ((equal? type 'wall)
                (make-wall (sxml:element-uid e)
                           (sxml:wall-metadata e)
-                          (sxml:wall->pseq e)
+                          (sxml:wall->segment e)
                           (let ((windows (sxml:wall-windows e)))
                             (map (lambda (w)
                                    (make-window

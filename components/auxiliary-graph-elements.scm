@@ -31,9 +31,9 @@
 ;;; Squared distance agent-wall
 
 (define (squareddistance.agent<->wall agent wall)
-  (squareddistance.point-pseq
+  (squareddistance.point-segment
    (car (agent-positions agent)) ; TODO: multi-nodal agents
-   (wall-pseq wall)))
+   (wall-segment wall)))
 
 ;;; Distance agent-window
 
@@ -77,9 +77,9 @@
   (let* ((limits (graph:wall-list->pseq exterior-walls))
          (c (pseq:centroid limits)))
    (map (lambda (w)
-          (~distance.point-pseq
+          (~distance.point-segment
            (car (agent-positions a))n
-           (wall-pseq w)))
+           (wall-segment w)))
         (pseq:relative-position->point
          (pseq:clip/lines-clockwise external-walls
                     (point&direction->line c (rotate·direction orientation (- (/ pi 8))))
@@ -125,8 +125,8 @@
         (p (agent-head-position agent)))
     (fold
      (lambda (w closest)
-       (if (< (squareddistance.point-pseq p (wall-pseq w))
-              (squareddistance.point-pseq p (wall-pseq closest)))
+       (if (< (squareddistance.point-segment p (wall-segment w))
+              (squareddistance.point-segment p (wall-segment closest)))
            w
            closest))
      (car walls)
@@ -141,12 +141,12 @@
           (p (agent-head-position agent)))
      (fold
       (lambda (w nearest-w.d)                ; w.d = (wall . distance)
-        (let ((dist-current-wall (squareddistance.point-pseq p (wall-pseq w))))
+        (let ((dist-current-wall (squareddistance.point-segment p (wall-segment w))))
           (if (< dist-current-wall
                  (cdr nearest-w.d))
               (cons w dist-current-wall)
               nearest-w.d)))
-      (cons first-wall (squareddistance.point-pseq p (wall-pseq first-wall)))
+      (cons first-wall (squareddistance.point-segment p (wall-segment first-wall)))
       (cdr walls)))))
 
 ;-------------------------------------------------------------------------------
@@ -165,8 +165,8 @@
 (define (sort.distance.agent<->walls graph a)
   (let ((p (agent-head-position a)))
     (sort (graph:filter.walls graph)
-          (lambda (w1 w2) (< (squareddistance.point-pseq p (wall-pseq w1))
-                        (squareddistance.point-pseq p (wall-pseq w2)))))))
+          (lambda (w1 w2) (< (squareddistance.point-segment p (wall-segment w1))
+                        (squareddistance.point-segment p (wall-segment w2)))))))
 
 ;-------------------------------------------------------------------------------
 ; Misc.

@@ -74,9 +74,9 @@
 ;;; Are these walls connected?
 
 (define (graph:walls-are-connected? wall1 wall2)
-  (pseq:connected-pseq?
-   (wall-pseq wall1)
-   (wall-pseq wall2)))
+  (segment:connected-segment?
+   (wall-segment wall1)
+   (wall-segment wall2)))
 
 ;;; Is this wall exterior?
 
@@ -84,9 +84,11 @@
   (define (point-in-any-room? p)
     (any (lambda (room) (graph:point-in-room? graph room p))
          (graph:filter.rooms graph)))
-  (let* ((wall-points (wall-pseq wall))
-         (mid-p (pseq:normalized-1d->point wall-points 1/2))
-         (tangent-p (pseq:tangent-in-relative wall-points 1/2))
+  (let* ((wall-seg (wall-segment wall))
+         (mid-p (segment:normalized-1d->point wall-seg 1/2))
+         (tangent-p (pseq:tangent-in-relative (segment->pseq ; TODO: ??
+                                               wall-seg)
+                                              1/2)) ; TODO: Could this be improved with normalized?
          (p1 (rotate.point/ref mid-p
                                (vect2+ mid-p
                                        (vect2:*scalar tangent-p equal-accuracy))
@@ -140,19 +142,19 @@
 ;;; Find walls connected to a given one
 
 (define (graph:filter.walls-connected/wall graph wall)
-  (let ((wallp (wall-pseq wall))
+  (let ((wall-seg (wall-segment wall))
         (inspected-walls (remove
                           (lambda (w) (equal? wall w))
                           (graph:filter.walls graph))))
     (values
      (aif connected-walls
           null?
-          (filter (lambda (w) (pseq:end-point? (wall-pseq w) (first wallp))) inspected-walls)
+          (filter (lambda (w) (segment:end-point? (wall-segment w) (segment-a wall-seg))) inspected-walls)
           (error "can't find any wall connected to this one: inconsistency")
           connected-walls)
      (aif connected-walls
           null?
-          (filter (lambda (w) (pseq:end-point? (wall-pseq w) (last wallp))) inspected-walls)
+          (filter (lambda (w) (segment:end-point? (wall-segment w) (segment-b wall-seg))) inspected-walls)
           (error "can't find any wall connected to this one: inconsistency")
           connected-walls))))
 
@@ -173,8 +175,8 @@
        #f
        (fold
         (lambda (w maxw)
-          (if (< (pseq:~length (wall-pseq maxw))
-                 (pseq:~length (wall-pseq w)))
+          (if (< (segment:squaredlength (wall-segment maxw))
+                 (segment:squaredlength (wall-segment w)))
               w
               maxw))
         (car walls)
@@ -206,35 +208,35 @@
 (define (graph:wall-list->pseq wlis)
   (cond
    ((null? (cdr wlis))
-    (wall-pseq (car wlis)))
+    (segment->pseq ; TODO: MAKE An append-segment
+     (wall-segment (car wlis))))
    (else
     (pseq:append
-      (wall-pseq (car wlis))
+      (segment->pseq
+       (wall-segment (car wlis)))
       (graph:wall-list->pseq (cdr wlis))))))
 
 ;;; Walls common point
 
 (define (graph:walls-common-point w1 w2)
-  (aif cp (pseq:common-point?
-           (wall-pseq w1)
-           (wall-pseq w2))
+  (aif cp (segment:connected-segment?
+           (wall-segment w1)
+           (wall-segment w2))
        cp
-       (begin (pp (wall-pseq w1))
-              (pp (wall-pseq w2))
+       (begin (pp (wall-segment w1))
+              (pp (wall-segment w2))
               (error "Given walls don't have any common point"))))
 
 ;;; Wall distances from end points
 
 (define (graph:~walls-distance/endpoints w1 w2)
-  (let ((ws1 (wall-pseq w1))
-        (ws2 (wall-pseq w2)))
-    (~distance.pseq-pseq/endpoints ws1 ws2)))
+  (~distance.segment-segment/endpoints (wall-segment w1) (wall-segment w2)))
 
 ;;; Calculate the closest wall to a point
 
 (define (graph:nearest-wall graph point)
   (min/generator (lambda (w)
-                   (~distance.point-pseq point (wall-pseq w)))
+                   (squareddistance.point-segment point (wall-segment w)))
                  (graph:filter.walls graph)))
 
 ;;; Calculate the pseq that describes a room
@@ -257,7 +259,7 @@
                          (lambda (w)
                            (intersect.line-segment
                             line
-                            (pseq->segment (wall-pseq w))))
+                            (wall-segment w)))
                          walls)))
     (unzip2
      (filter-map (lambda (e)
@@ -267,7 +269,7 @@
                       (point? intersection)
                       (list wall
                             (segment:point->normalized-1d
-                             (pseq->segment (wall-pseq wall))
+                             (wall-segment wall)
                              intersection)))))
                  (zip walls intersections)))))
 
@@ -359,7 +361,7 @@
                          ((wall? element)
                           (make-wall (uif (assq 'uid props&vals) (cadr ?it) (wall-uid element))
                                      (uif (assq 'metadata props&vals) (cadr ?it) (wall-metadata element))
-                                     (uif (assq 'pseq props&vals) (cadr ?it) (wall-pseq element))
+                                     (uif (assq 'segment props&vals) (cadr ?it) (wall-segment element))
                                      (uif (assq 'windows props&vals) (cadr ?it) (wall-windows element))
                                      (uif (assq 'doors props&vals) (cadr ?it) (wall-doors element))))
                          (else (error "doesn't allow changing any other element than walls")))
@@ -402,14 +404,14 @@
 
 (define (graph:partition-windows/point wall split-x)
   (let/cc exit
-   (let ((wall-segment (pseq->segment (wall-pseq wall))))
+   (let ((wall-seg (wall-segment wall)))
      (fold/values (lambda (w a b c)
                     (let ((window-segment (pseq->segment (window-plan w))))
                       (let ((window-from
-                             (segment:point->normalized-1d wall-segment
+                             (segment:point->normalized-1d wall-seg
                                                            (segment-a window-segment)))
                             (window-to
-                             (segment:point->normalized-1d wall-segment
+                             (segment:point->normalized-1d wall-seg
                                                            (segment-b window-segment))))
                         (cond
                          ;; TODO: HORRIBLE HACK DUE TO SOME NON-COLLINEARITY OF WINDOWS
@@ -434,21 +436,21 @@
 ;;; @returns 3 vals: 2 new walls + status
 
 (define (graph:split-wall wall split-x uuid1 uuid2) ; TODO: make segment-based walls
-  (let ((wall-pseq (wall-pseq wall)))
-    (let ((split-point (pseq:normalized-1d->point wall-pseq split-x))
-          (first-point (first wall-pseq))
-          (second-point (last wall-pseq)))
+  (let ((wall-seg (wall-segment wall)))
+    (let ((split-point (segment:normalized-1d->point wall-seg split-x))
+          (first-point (segment-a wall-seg))
+          (second-point (segment-b wall-seg)))
       (receive (first-side-windows second-side-windows splitted-windows)
                (graph:partition-windows/point wall split-x)
                (values
                 (make-wall uuid1
                            '((type "new"))
-                           (list first-point split-point)
+                           (make-segment first-point split-point)
                            first-side-windows
                            '())
                 (make-wall uuid2
                            '((type "new"))
-                           (list split-point second-point)
+                           (make-segment split-point second-point)
                            second-side-windows
                            '())
                 (if (null? splitted-windows)
@@ -458,21 +460,22 @@
 ;;; Try to merge into one wall if the two given are parallel
 
 (define (graph:try-to-merge-if-parallel-walls walls new-uid) (%accept (and (list? walls)))
+  ;; TODO: input as a list of arguments
   (let ((wall-a (car walls))
         (wall-b (cadr walls)))
-    (let ((wall-a-points (wall-pseq wall-a))
-          (wall-b-points (wall-pseq wall-b)))
-      (if (pseq:parallel-pseq? wall-a-points wall-b-points)
-          (let ((first-point (if (pseq:end-point? wall-b-points (car wall-a-points))
-                                 (cadr wall-a-points)
-                                 (car wall-a-points)))
-                (second-point (if (pseq:end-point? wall-a-points (car wall-b-points))
-                                  (cadr wall-b-points)
-                                  (car wall-b-points))))
+    (let ((wall-a-seg (wall-segment wall-a))
+          (wall-b-seg (wall-segment wall-b)))
+      (if (segment:parallel-segment? wall-a-seg wall-b-seg)
+          (let ((first-point (if (segment:end-point? wall-b-seg (segment-a wall-a-seg))
+                                 (segment-b wall-a-seg)
+                                 (segment-a wall-a-seg)))
+                (second-point (if (segment:end-point? wall-a-seg (segment-a wall-b-seg))
+                                  (segment-b wall-b-seg)
+                                  (segment-a wall-b-seg))))
             (list (make-wall
                    new-uid
                    '((type "new"))
-                   (list first-point second-point)
+                   (make-segment first-point second-point)
                    (append (wall-windows wall-a)
                            (wall-windows wall-b))
                    '()))) ; TODO: we drop doors, because in the future everything will be holes
