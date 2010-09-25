@@ -350,6 +350,7 @@
 ;;; (_ graph element (properties) (new-values))
 
 (define (graph:update-element graph element new-element/properties . values)
+  ;; TODO: use case-lambda!
   (let ((update-properties
          (lambda (props&vals)
            (make-graph

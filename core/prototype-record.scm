@@ -5,8 +5,6 @@
 ;;; Records implemented as prototypes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;; WARNING! ALPHA CODE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (declare (standard-bindings)
          (extended-bindings)
          (block))

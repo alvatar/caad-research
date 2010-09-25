@@ -88,6 +88,12 @@
 ; Vector dimension 2
 ;-------------------------------------------------------------------------------
 
+;;; Inexact conversion
+
+(define (vect2:exact->inexact v)
+  (make-vect2 (exact->inexact (vect2-x v))
+              (exact->inexact (vect2-y v))))
+
 ;;; Are these vectors equal?
 
 (define (vect2:~= v1 v2)

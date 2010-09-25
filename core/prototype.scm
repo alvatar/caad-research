@@ -21,7 +21,8 @@
 
 (export $ ->string define-prototype-check
         object object?
-        custom-method-finder)
+        custom-method-finder
+        %po)
 
 (%activate-checks)
 
@@ -252,3 +253,10 @@
      ((find-method '->string thing) => (lambda (m) (m thing)))
      ((object? thing) (obj->string thing))
      (else (scheme->string thing)))))
+
+;;; Print an object
+
+(define-syntax %po
+  (syntax-rules ()
+    ((_ ?obj)
+     (display (->string ?obj)))))

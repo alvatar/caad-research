@@ -133,7 +133,6 @@
                                     "both guides must lie in the same halfplane, otherwise they don't allow any movement")
                              ;; build the trajectories (pseq) for each one of the points of the wall and assign the
                              ;; primary and secondary guide
-                             (%log "-> wall gliding done")
                              (receive
                               ;; the mirrors are the connected walls parallel to the guides
                               (primary-guide primary-mirror secondary-guide secondary-mirror)

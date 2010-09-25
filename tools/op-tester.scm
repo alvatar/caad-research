@@ -37,7 +37,7 @@
    50))
 
 (let ((graph (input-from-xml "xml-input/two_rooms.xml")))
-  (pp graph)
+  (%po graph)
   (visualize-graph graph)
   (visualize-title "op:glide - wall (original graph)")
   (visualization:do-loop)
@@ -63,7 +63,7 @@
                                     (room chosen-room)
                                     (unit 'trajectory-relative)
                                     (value 1/2)))))))
-      (pp transformed-graph)
+      (%po transformed-graph)
       (visualization:forget-all)
       (visualize-graph transformed-graph)
       (visualize-title "op:glide - wall (transformed graph)")
@@ -72,7 +72,7 @@
   (visualization:forget-all))
 
 (let ((graph (input-from-xml "xml-input/one_room.xml")))
-  (pp graph)
+  (%po graph)
   (visualize-graph graph)
   (visualize-title "op:cut (original graph)")
   (visualization:do-loop)
@@ -87,7 +87,7 @@
             (vect2:*scalar (generate.random-point)
                            (vect2:max-component
                             (bbox:size-segment (pseq:bbox graph-limits))))))))
-    (pp transformed-graph)
+    (%po transformed-graph)
     (visualization:forget-all)
     (visualize-graph transformed-graph)
     (visualize-title "op:cut (transformed graph)")
@@ -95,7 +95,7 @@
   (visualization:forget-all))
 
 (let ((graph (input-from-xml "xml-input/two_rooms.xml")))
-  (pp graph)
+  (%po graph)
   (visualize-graph graph)
   (visualize-title "op:merge (original graph)")
   (visualization:do-loop)
@@ -104,7 +104,7 @@
          (op:merge (apply many->context
                           graph
                           (graph:filter.rooms graph)))))
-    (pp transformed-graph)
+    (%po transformed-graph)
     (visualization:forget-all)
     (visualize-graph transformed-graph)
 
