@@ -307,13 +307,14 @@
                                chosen-wall
                                'windows
                                (list
-                                (make-window
-                                 (make-segment
-                                  (vect2:inexact->exact
-                                   (segment:~1d-coord->point chosen-segment door-start))
-                                  (vect2:inexact->exact
-                                   (segment:~1d-coord->point chosen-segment (+ door-start
-                                                                               door-size)))))))
+                                (new-window
+                                 chosen-segment
+                                 'absolute-2d
+                                 (vect2:inexact->exact
+                                  (segment:~1d-coord->point chosen-segment door-start))
+                                 (vect2:inexact->exact
+                                  (segment:~1d-coord->point chosen-segment (+ door-start
+                                                                              door-size))))))
                               (exit #f #f #f)))))) ; TODO: currently shortcircuits too small walls
                 graph
                 other-spaces))

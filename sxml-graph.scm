@@ -458,20 +458,24 @@
               ((equal? type 'pipe)
                (make-pipe (sxml:pipe->center-position e)))
               ((equal? type 'wall)
-               (make-wall (sxml:element-uid e)
-                          (sxml:wall-metadata e)
-                          (sxml:wall->segment e)
-                          (let ((windows (sxml:wall-windows e)))
-                            (map (lambda (w)
-                                   (make-window
-                                    (pseq->segment ; TODO: not nice, came from switching pseq to segment
-                                     (sxml:wall-element->pseq w e)))) windows))
-                          (let ((doors (sxml:wall-doors e)))
-                            (map (lambda (d)
-                                   (make-door
-                                    (sxml:wall-element->pseq d e)
-                                    (sxml:wall-element-relative-points 'from d)
-                                    (sxml:wall-element-relative-points 'to d))) doors))))
+               (let ((wall-seg (sxml:wall->segment e)))
+                 (make-wall (sxml:element-uid e)
+                            (sxml:wall-metadata e)
+                            wall-seg
+                            (let ((windows (sxml:wall-windows e)))
+                              (map (lambda (w)
+                                     (let ((pseq (sxml:wall-element->pseq w e)))
+                                       (new-window
+                                        wall-seg
+                                        'absolute-2d
+                                        (car pseq)
+                                        (cadr pseq)))) windows))
+                            (let ((doors (sxml:wall-doors e)))
+                              (map (lambda (d)
+                                     (make-door
+                                      (sxml:wall-element->pseq d e)
+                                      (sxml:wall-element-relative-points 'from d)
+                                      (sxml:wall-element-relative-points 'to d))) doors)))))
               ((equal? type 'room)
                (make-room (sxml:element-uid e)
                           (map (lambda (w) (sxml:element-uid w)) (sxml:room-wall-refs e))))

@@ -12,68 +12,14 @@
 
 (import (std srfi/13
              srfi/48)
-        geometry/kernel
         core/debugging
-        core/prototype)
+        core/prototype
+        geometry/kernel
+        math/inexact-algebra)
 
 ;-------------------------------------------------------------------------------
 ; Types
 ;-------------------------------------------------------------------------------
-
-;; (define-list-record-type graph
-;;   (make-graph uid environment architecture)
-;;   graph?
-;;   (uid graph-uid)
-;;   (environment graph-environment)
-;;   (architecture graph-architecture))
-;; (define-list-record-type wall
-;;   (make-wall uid metadata pseq windows doors)
-;;   wall?
-;;   (uid wall-uid)
-;;   (metadata wall-metadata)
-;;   (pseq wall-pseq)
-;;   (windows wall-windows)
-;;   (doors wall-doors))
-;; (define-list-record-type window
-;;   (make-window segment)
-;;   window?
-;;   (segment window-segment))
-;; (define-list-record-type door
-;;   (make-door pseq from to)
-;;   door?
-;;   (pseq door-pseq)
-;;   (from door-from)
-;;   (to door-to))
-;; (define-list-record-type room
-;;   (make-room uid walls)
-;;   room?
-;;   (uid room-uid)
-;;   (walls room-walls))
-;; (define-list-record-type structural
-;;   (make-structural uid pseq)
-;;   structural?
-;;   (uid structural-uid)
-;;   (pseq structural-pseq))
-;; (define-list-record-type entry
-;;   (make-entry pseq wall-uid door-number wall-point)
-;;   entry?
-;;   (pseq entry-pseq)
-;;   (wall-uid entry-wall-uid)
-;;   (door-number entry-door-number)
-;;   (wall-point entry-wall-point)
-;; (define-list-record-type pipe
-;;   (make-pipe position)
-;;   pipe?
-;;   (position pipe-position))
-
-;; (define-type graph uid environment architecture)
-;; (define-type wall uid metadata segment windows doors)
-;; (define-type window segment)
-;; (define-type door pseq from to)
-;; (define-type room uid walls)
-;; (define-type structural uid pseq)
-;; (define-type entry pseq wall-uid door-number wall-point)
-;; (define-type pipe position)
 
 ;;; Object prototype: graph
 
@@ -102,7 +48,9 @@
           ((type self) 'wall)
           ((->string self)
            (string-append
-            (format " $wall: ~a ~%" (->string ($ segment self)))
+            (let ((seg ($ segment self))) (format " $wall: a_~a b_~a ~%"
+                                                  (segment-a seg)
+                                                  (segment-b seg)))
             (let ((windows ($ windows self)))
               (if (null? windows)
                   ""
@@ -130,13 +78,50 @@
          (object ()
                  ((window? self) #t)
                  ((type self) 'window)
-                 ((->string self) (format "  $window: ~a ~%"
-                                          (segment:exact->inexact
-                                           ($ segment self)))))))
-    (lambda (segment)
-      (object ((segment segment))
-              ((delegate self) prototype)))))
-(define make-window new-window)
+                 ((->string self) (format "  $window: a_~a b_~a ~%"
+                                          (vect2:exact->inexact ($ point-a self))
+                                          (vect2:exact->inexact ($ point-b self))))
+                 ;; the segment is cached to avoid recalculation
+                 ((segment self) (make-segment
+                                  ($ point-a self)
+                                  ($ point-b self)))
+                 
+                 ;; update keeping the segment as is
+                 ((update/segment self parent) self) ; TODO
+                 ;; update keeping the 2d absolute coords as they are
+                 ((update/absolute-2d self parent) self) ; TODO
+                 ;; update keeping the 1d absolute coords as they are
+                 ((update/absolute-1d self parent) self) ; TODO
+                 ;; update keeping the 1d relative coords as they are
+                 ((update/relative-1d self parent) self))))
+    (lambda (parent-wall kind . values)
+      (case kind
+        ((segment)
+         (let ((segment (car values)))
+           (object
+            ((point-a (segment-a segment))
+             (point-b (segment-b segment))
+             (coord-1d-a #f)
+             (coord-1d-b #f)
+             (rel-a #f)
+             (rel-b #f)
+             (parent-wall parent-wall))
+            ((delegate self) prototype))))
+        ((absolute-2d)
+         (object
+          ((point-a (car values))
+           (point-b (cadr values))
+           (coord-1d-a #f)
+           (coord-1d-b #f)
+           (rel-a #f)
+           (rel-b #f)
+           (parent-wall parent-wall))
+          ((delegate self) prototype)))
+        ((absolute-1d) ; TODO
+         '())
+        ;; This is the main constructor, the one tha needs to be 
+        ((relative-1d) ; TODO
+         '())))))
 (define (window-segment instance) ($ segment instance))
 
 ;;; Door
