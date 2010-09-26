@@ -75,7 +75,7 @@
 ;; (define-type entry pseq wall-uid door-number wall-point)
 ;; (define-type pipe position)
 
-;;; Graph
+;;; Object prototype: graph
 
 (define-prototype-check graph?)
 (define (new-graph uid environment architecture)
@@ -91,21 +91,30 @@
 (define (graph-environment instance) ($ environment instance))
 (define (graph-architecture instance) ($ architecture instance))
 
-;;; Wall
+;;; Class prototype: wall
 
 (define-prototype-check wall?)
-(define (new-wall uid metadata segment windows doors)
-  (object ((uid uid) (metadata metadata) (segment segment) (windows windows) (doors doors))
+(define new-wall
+  (let ((prototype
+         (object
+          ()
           ((wall? self) #t)
           ((type self) 'wall)
-          ((->string self) (string-append
-                            (format " $wall: ~a ~%" (->string segment))
-                            (if (null? windows)
-                                ""
-                                (string-concatenate (map ->string windows)))
-                            (if (null? doors)
-                                ""
-                                (string-concatenate (map ->string doors)))))))
+          ((->string self)
+           (string-append
+            (format " $wall: ~a ~%" (->string ($ segment self)))
+            (let ((windows ($ windows self)))
+              (if (null? windows)
+                  ""
+                  (string-concatenate (map ->string windows))))
+            (let ((doors ($ doors self)))
+              (if (null? doors)
+                  ""
+                  (string-concatenate (map ->string doors)))))))))
+    (lambda (uid metadata segment windows doors)
+      (object
+       ((uid uid) (metadata metadata) (segment segment) (windows windows) (doors doors))
+       ((delegate self) prototype)))))
 (define make-wall new-wall)
 (define (wall-uid instance) ($ uid instance))
 (define (wall-metadata instance) ($ metadata instance))
@@ -113,16 +122,20 @@
 (define (wall-windows instance) ($ windows instance))
 (define (wall-doors instance) ($ doors instance))
 
-;;; Window
+;;; Class prototype: Window
 
 (define-prototype-check window?)
-(define (new-window plan)
-  (object ((plan plan))
-          ((window? self) #t)
-          ((type self) 'window)
-          ((->string self) (format "  $window: ~a ~%"
-                                   (map vect2:exact->inexact
-                                        plan)))))
+(define new-window
+  (let ((prototype
+         (object ()
+                 ((window? self) #t)
+                 ((type self) 'window)
+                 ((->string self) (format "  $window: ~a ~%"
+                                          (map vect2:exact->inexact
+                                               ($ plan self)))))))
+    (lambda (plan)
+      (object ((plan plan))
+              ((delegate self) prototype)))))
 (define make-window new-window)
 (define (window-plan instance) ($ plan instance))
 
