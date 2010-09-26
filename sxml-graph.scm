@@ -195,12 +195,10 @@
               (%accept (window? w))
               (let ((window-from
                      (segment:normalized-1d->point wall-seg
-                                                   (segment-a (pseq->segment
-                                                               (window-plan w)))))
+                                                   (segment-a (window-segment w))))
                     (window-to
                      (segment:normalized-1d->point wall-seg
-                                                   (segment-b (pseq->segment
-                                                               (window-plan w))))))
+                                                   (segment-b (window-segment w)))))
                 `(window (@ (from ,(number->string
                                     (exact->inexact window-from)))
                             (to ,(number->string
@@ -466,7 +464,8 @@
                           (let ((windows (sxml:wall-windows e)))
                             (map (lambda (w)
                                    (make-window
-                                    (sxml:wall-element->pseq w e))) windows))
+                                    (pseq->segment ; TODO: not nice, came from switching pseq to segment
+                                     (sxml:wall-element->pseq w e)))) windows))
                           (let ((doors (sxml:wall-doors e)))
                             (map (lambda (d)
                                    (make-door

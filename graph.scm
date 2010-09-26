@@ -12,7 +12,7 @@
 
 (import (std srfi/13
              srfi/48)
-        math/inexact-algebra
+        geometry/kernel
         core/debugging
         core/prototype)
 
@@ -35,9 +35,9 @@
 ;;   (windows wall-windows)
 ;;   (doors wall-doors))
 ;; (define-list-record-type window
-;;   (make-window plan)
+;;   (make-window segment)
 ;;   window?
-;;   (plan window-plan))
+;;   (segment window-segment))
 ;; (define-list-record-type door
 ;;   (make-door pseq from to)
 ;;   door?
@@ -68,7 +68,7 @@
 
 ;; (define-type graph uid environment architecture)
 ;; (define-type wall uid metadata segment windows doors)
-;; (define-type window plan)
+;; (define-type window segment)
 ;; (define-type door pseq from to)
 ;; (define-type room uid walls)
 ;; (define-type structural uid pseq)
@@ -131,13 +131,13 @@
                  ((window? self) #t)
                  ((type self) 'window)
                  ((->string self) (format "  $window: ~a ~%"
-                                          (map vect2:exact->inexact
-                                               ($ plan self)))))))
-    (lambda (plan)
-      (object ((plan plan))
+                                          (segment:exact->inexact
+                                           ($ segment self)))))))
+    (lambda (segment)
+      (object ((segment segment))
               ((delegate self) prototype)))))
 (define make-window new-window)
-(define (window-plan instance) ($ plan instance))
+(define (window-segment instance) ($ segment instance))
 
 ;;; Door
 

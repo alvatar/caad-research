@@ -38,9 +38,9 @@
 ;;; Distance agent-window
 
 (define (~distance.agent<->window agent window)
-  (~distance.point-pseq
+  (~distance.point-segment
    (car (agent-positions agent)) ; TODO: multi-nodal agents
-   (window-plan window)))
+   (window-segment window)))
 
 ;;; Distance agent-agent
 

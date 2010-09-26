@@ -407,7 +407,7 @@
   (let/cc exit
    (let ((wall-seg (wall-segment wall)))
      (fold/values (lambda (w a b c)
-                    (let ((window-segment (pseq->segment (window-plan w))))
+                    (let ((window-segment (window-segment w)))
                       (let ((window-from
                              (segment:point->normalized-1d wall-seg
                                                            (segment-a window-segment)))

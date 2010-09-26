@@ -69,7 +69,8 @@
          (visualization:paint-set-line-width backend 0.1)
          (for-each
           (lambda (window)
-            (visualization:paint-path backend (window-plan window)))
+            (visualization:paint-path backend (segment->pseq ; TODO: make paint-segment
+                                               (window-segment window))))
           (wall-windows wall)))
        ;; Paint structural
        (define (paint-structural structural)

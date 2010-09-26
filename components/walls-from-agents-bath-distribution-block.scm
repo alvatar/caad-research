@@ -308,7 +308,7 @@
                                'windows
                                (list
                                 (make-window
-                                 (list
+                                 (make-segment
                                   (vect2:inexact->exact
                                    (segment:~1d-coord->point chosen-segment door-start))
                                   (vect2:inexact->exact
