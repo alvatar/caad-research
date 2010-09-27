@@ -24,10 +24,12 @@
 ;;; License along with this library; if not, write to the Free Software
 ;;; Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+(import ../core/system-conditional)
 
-(compile-options cc-options: "-w -I/usr/include/cairo -I/usr/include/freetype2" ld-options: "-lcairo" force-compile: #t)
-
-
+(%compile-cond ("Linux" ("-w -I/usr/include/cairo -I/usr/include/freetype2"
+                         "-lcairo"))
+               ("Darwin" ("-w -I/opt/local/include/cairo -I/opt/local/include/freetype2 -I/opt/local/include"
+                          "-L/opt/local/lib -lobjc -lcairo")))
 
 (c-declare "#include <cairo.h>")
 (c-declare "#include <cairo-ft.h>")

@@ -9,7 +9,18 @@
 ;; @@FIXME: Implement define-foreign-struct [automagic accessors]
 ;; @@FIXME: Throw Gambit errors
 
-(compile-options cc-options: "-I/usr/include/SDL" ld-options: "-lSDL" force-compile: #t)
+;;; Adapted to BlackHole and modified by Álvaro Castro-Castilla (added OSX support)
+
+(import ../core/system-conditional)
+
+(%compile-cond
+ ("Linux"
+  ("-w -I/usr/include/SDL"
+   "-lSDL"))
+ ("Darwin"
+  ("osx/sdlosx.o -w -I/opt/local/include/SDL"
+   "-L/opt/local/lib -lGL -lGLU -lstdc++ -lobjc -ldl -framework GLUT -framework OpenGL -lSDL -framework Cocoa")))
+
 
 (define pointer) ; FIXME: What? Why?
 (define cast-pointer)
@@ -20,6 +31,10 @@
 #include "SDL.h"
 #include "SDL_keysym.h"
 #include "SDL_events.h"
+
+#ifdef __APPLE__
+#include "osx-sdl.h"
+#endif
 
 int must_lock_surface_P(SDL_Surface *screen)
 {
@@ -144,6 +159,14 @@ end-of-c-declare
 ;==============================================================;
 ;==============================================================;
 
+;;; Initialize OSX code
+
+(%if-sys
+ "Darwin"
+ (define SDL::init-osx
+   (c-lambda ()
+             void
+             "sdl_osx_entry_point")))
 
 (define SDL::draw-rect ;; x y width height rgb-color
   (c-lambda ((pointer "SDL_Surface") int int int int int)

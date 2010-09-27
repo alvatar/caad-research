@@ -6,9 +6,17 @@
 ;;
 ;; author: David St-Hilaire
 ;;
+;; Adapted to BlackHole and modified by Álvaro Castro-Castilla
+;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(compile-options cc-options: "-I/usr/include/GL" ld-options: "-lGL -lGLU" force-compile: #t)
+
+(import ../core/system-conditional)
+
+(%compile-cond ("Linux" ("-w -I/usr/include/GL"
+                         "-lGL -lGLU"))
+               ("Darwin" ("-w -I/opt/local/include/"
+                          "-L/opt/local/lib -lGL -lGLU")))
 
 (c-declare "#include <gl.h>")
 

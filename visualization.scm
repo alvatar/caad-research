@@ -12,7 +12,8 @@
 
 (import (std srfi/1
              srfi/95))
-(import core/syntax
+(import core/system-conditional
+        core/syntax
         ffi/sdl
         ffi/cairo
         geometry/kernel
@@ -59,7 +60,8 @@
 ;;; Visualization control routine
 
 (define visualization-control
-  (let* ((error (SDL::init SDL::init-video)) ; TODO: check this error
+  (let* ((osx-only (%if-sys "Darwin" (SDL::init-osx)))
+         (error (SDL::init SDL::init-video)) ; TODO: check this error
          (sdl-surface (SDL::set-video-mode maxx maxy 0 (+ SDL::hwsurface
                                                           SDL::hwpalette
                                                           SDL::doublebuf)))
