@@ -29,18 +29,10 @@
 (define selector
   (lambda (pool new-graph)
     (let ((new-score (total-score new-graph)))
-      (when (> new-score 0)
-            (begin
-              (display "Solution selected!\n")
-              (visualization:forget-all)
-              (visualize-graph new-graph)
-              (visualize-room-uids new-graph)
-              (visualization:do-loop)
-              (make-evaluated-graph new-graph
-                                    (exact->inexact
-                                     new-score))))))
-  (else
-   (error "selector type not implemented")))
+      (when #t ;(> new-score 0)
+            (make-evaluated-graph new-graph
+                                  (exact->inexact
+                                   new-score))))))
 
 ;;; Evaluation for selection
 

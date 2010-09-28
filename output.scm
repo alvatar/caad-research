@@ -23,26 +23,26 @@
 ;;; Output a single graph
 
 (define output
-  (let ((file-path-gen (lambda (dir-path)
-                         (string-append dir-path
-                                        (number->string
-                                         (random-integer 999999999))
-                                        ".xml"))))
-    (lambda (graph)
-      (let get-dir ((output-dir-path (path-normalize output-dir)))
-        (if (file-exists? output-dir-path)
-            (let gen-file ((file-path (file-path-gen output-dir-path)))
-              (if (file-exists? file-path)
-                  (gen-file (file-path-gen output-dir-path))
-                  (call-with-output-file
-                      file-path
-                    (lambda (file)
-                      (display (sxml->xml-string-fragment
-                                (graph->sxml-graph graph))
-                               file)))))
-            (begin
-              (create-directory output-dir-path)
-              (get-dir (path-normalize output-dir))))))))
+  (lambda (graph)
+   (let ((file-path-gen (lambda (dir-path)
+                          (string-append dir-path
+                                         (number->string
+                                          (random-integer 999999999))
+                                         ".xml"))))
+     (let get-dir ((output-dir-path (path-normalize output-dir)))
+       (if (file-exists? output-dir-path)
+           (let gen-file ((file-path (file-path-gen output-dir-path)))
+             (if (file-exists? file-path)
+                 (gen-file (file-path-gen output-dir-path))
+                 (call-with-output-file
+                     file-path
+                   (lambda (file)
+                     (display (sxml->xml-string-fragment
+                               (graph->sxml-graph graph))
+                              file)))))
+           (begin
+             (create-directory output-dir-path)
+             (get-dir (path-normalize output-dir))))))))
 
 ;;; Output a graph-pool
 

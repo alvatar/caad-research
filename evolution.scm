@@ -23,18 +23,23 @@
         selection
         visualization)
 
+;;; Exceptions?? (TODO: make it an argument maybe??)
+
+(define handle-exceptions #t)
+
 ;;; Clean a pool, keeping only the graph, no extra info
 
-(define (clean-pool pool)
+(define (clean-out-pool pool)
   (map (lambda (eg) (evaluated-graph-graph eg)) pool))
 
 ;;; Main evolution cycle, pulling in all the algorithm parts
 
 (define (evolution evolver-configuration
                    generator-type
-                   seed-data)
+                   seed-data
+                   process-selected)
   ((case (get@ evolver-type evolver-configuration)
-     ;; Stops when the max iterations are reached, choosing the bests ones
+     ;; Stops when the max iterations are reached, choosing the best ones
      ((choose-bests)
       (let@ ((max-iterations pool-size) evolver-configuration)
             (let ((pool-update
@@ -50,14 +55,29 @@
                 (let ((generate (generator generator-type
                                            seed-data))
                       (select selector))
-                  (let loop ((pool '())
-                             (n-iterations 0))
-                    (if (<= max-iterations n-iterations)
-                        (clean-pool pool)
-                        (loop (aif selected (select pool (generate seed-data))
-                                   (pool-update pool selected)
-                                   pool)
-                              (add1 n-iterations)))))))))
+                  (let recur ((pool '())
+                              (n-iterations 0))
+                    ;; if we are over the number of max iterations, just return the pool
+                    (if (or (>= n-iterations max-iterations)
+                            (>= (length pool) pool-size))
+                        pool
+                        (recur (let ((thunk (lambda ()
+                                              (aif selected (select pool (generate seed-data))
+                                                   (let ((selected-graph (evaluated-graph-graph selected)))
+                                                     (display "Solution selected!\n")
+                                                     (visualization:forget-all)
+                                                     (visualize-graph selected-graph)
+                                                     (visualize-room-uids selected-graph)
+                                                     (visualization:do-now)
+                                                     (thread-sleep! 5)
+                                                     (process-selected selected-graph)
+                                                     (pool-update pool selected))
+                                                   pool))))
+                                 (if handle-exceptions
+                                     (with-exception-handler (lambda (e) (recur pool n-iterations))
+                                                             thunk)
+                                     (thunk)))
+                               (add1 n-iterations)))))))))
      ;; Stops when the results pool is full
      ((fill-pool)
       (let@ ((pool-size) evolver-configuration)

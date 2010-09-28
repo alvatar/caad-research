@@ -18,6 +18,7 @@
         core/list
         core/syntax
         core/debugging
+        geometry/bounding-box
         geometry/kernel
         graph
         math/exact-algebra
@@ -191,13 +192,15 @@
      ;;        wall-pseq)
      ,(sxml:point->archpoint (segment-a wall-seg))
      ,(sxml:point->archpoint (segment-b wall-seg))
-     ,@(map (lambda (w)
+     ()
+     ;; TODOO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     #;,@(map (lambda (w)
               (%accept (window? w))
               (let ((window-from
-                     (segment:normalized-1d->point wall-seg
+                     (segment:point->normalized-1d wall-seg
                                                    (segment-a (window-segment w))))
                     (window-to
-                     (segment:normalized-1d->point wall-seg
+                     (segment:point->normalized-1d wall-seg
                                                    (segment-b (window-segment w)))))
                 `(window (@ (from ,(number->string
                                     (exact->inexact window-from)))
@@ -329,8 +332,8 @@
 (define (sxml:make-pipe e)
   (let ((pos (pipe-position e)))
    `(pipe
-     (@ (x ,(point-x pos))
-        (y ,(point-y pos))))))
+     (@ (x ,(exact->inexact (point-x pos)))
+        (y ,(exact->inexact (point-y pos)))))))
 
 ;;; Get the pipe's position
 
@@ -352,7 +355,7 @@
   `(entry
     (@ (wall-uid ,(entry-wall-uid e))
        (door-number ,(entry-door-number e))
-       (pt ,(entry-wall-point e)))))
+       (pt ,(exact->inexact (entry-wall-point e))))))
 
 ;;; Get the entry point as a list of points corresponding to the door
 

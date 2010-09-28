@@ -13,13 +13,14 @@
 
 (import ../core/system-conditional)
 
+;; TODO: pass target directory as argument
 (%compile-cond
  ("Linux"
   ("-w -I/usr/include/SDL"
    "-lSDL"))
  ("Darwin"
-  ("osx/sdlosx.o -w -I/opt/local/include/SDL"
-   "-L/opt/local/lib -lGL -lGLU -lstdc++ -lobjc -ldl -framework GLUT -framework OpenGL -lSDL -framework Cocoa")))
+  ("-w -I/opt/local/include/SDL"
+   "/Users/chris/ensanche-core/ffi/osx/sdlosx.o -L/opt/local/lib -lGL -lGLU -lstdc++ -lobjc -ldl -framework GLUT -framework OpenGL -lSDL -framework Cocoa")))
 
 
 (define pointer) ; FIXME: What? Why?
