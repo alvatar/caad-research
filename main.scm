@@ -11,13 +11,36 @@
         output
         visualization)
 
-((lambda ()
-   (random-source-randomize! default-random-source)
-   (output-pool
-    (evolution (list@ (evolver-type 'choose-bests)
-                      (max-iterations 100)
-                      (pool-size 5))
-               'bath-block
-               (input-from-xml "xml-input/plan_1.xml")))
-   (visualization:exit)
-   (exit 0)))
+(let ((input-dir "xml-input/")
+      (output-dir "xml-output/")
+      (pool-size-target 5))
+  (random-source-randomize! default-random-source)
+  (output-pool
+   (evolution (list@ (evolver-type 'choose-bests)
+                     (max-iterations 100)
+                     (pool-size (if (file-exists? output-dir)
+                                    (let* ((files (directory-files output-dir))
+                                           (num-files (length files)))
+                                      (if (>= num-files pool-size-target)
+                                          (begin
+                                            (for-each
+                                             (lambda (f)
+                                               (delete-file
+                                                (string-append output-dir f)))
+                                             files)
+                                            pool-size-target)
+                                          (- pool-size-target num-files)))
+                                    (create-directory output-dir))))
+              'bath-block
+              (input-from-xml
+               (string-append
+                input-dir
+                (let ((files (directory-files input-dir)))
+                  (if (> (length files) 1)
+                      (begin
+                        (display
+                         "warning: there are more than one xml in the input directory\n")
+                        (car files))
+                      (car files)))))))
+  (visualization:exit)
+  (exit 0))
