@@ -59,7 +59,7 @@
 
 ;;; Visualization control routine
 
-(define visualization-control
+'(define visualization-control
   (let* ((osx-only (%if-sys "Darwin" (SDL::init-osx)))
          (error (SDL::init SDL::init-video)) ; TODO: check this error
          (sdl-surface (SDL::set-video-mode maxx maxy 0 (+ SDL::hwsurface
@@ -119,7 +119,7 @@
 ;;; Execute now the sequence of representation of the selected layers
 
 (define (visualization:do-now-layers layers)
-  (visualization-control
+  '(visualization-control
    (lambda (e)
      (any (lambda (l)
             (equal? (painter-layer e) l))
@@ -129,14 +129,14 @@
 ;;; Execute now the full sequence of representation of the all the layers
 
 (define (visualization:do-now)
-  (visualization-control
+  '(visualization-control
    (lambda (e) #t)
    'single-frame))
 
 ;;; Execute now the representation sequence in a loop, controlled by SDL
 
 (define (visualization:do-loop)
-  (visualization-control
+  '(visualization-control
    (lambda (e) #t)
    'loop))
 

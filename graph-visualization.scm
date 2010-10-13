@@ -138,7 +138,7 @@
        (visualization:translate
         backend
         (make-vect2
-         (/ (* (- maxx (* vis-scale (vect2-x size-vec))) 0.5) vis-scale)  ; 0.5 stands for half the displacement
+         (/ (* (- maxx (* vis-scale (vect2-x size-vec))) 0.5) vis-scale) ; 0.5 stands for half the displacement
          (/ (* (- maxy (* vis-scale (vect2-y size-vec))) 0.5) vis-scale))))
      0)
 
