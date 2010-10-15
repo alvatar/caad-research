@@ -19,7 +19,7 @@
   ("-w -I/usr/include/SDL"
    "-lSDL"))
  ("Darwin"
-  ("-w -I/opt/local/include/SDL"
+  ("-w -I/opt/local/include/SDL -I/Users/chris/ensanche-core/ffi/"
    "/Users/chris/ensanche-core/ffi/osx/sdlosx.o -L/opt/local/lib -lGL -lGLU -lstdc++ -lobjc -ldl -framework GLUT -framework OpenGL -lSDL -framework Cocoa")))
 
 
